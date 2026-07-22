@@ -159,7 +159,12 @@ class QAWorkflow:
         return self.retriever.retrieve(query, route.intent, route.mode, top_k=self.top_k * multiplier)
 
 
-def build_default_workflow(project_root: Path | None = None) -> QAWorkflow:
+def build_default_workflow(
+    project_root: Path | None = None,
+    *,
+    router: IntentRouter | None = None,
+    verifier=None,
+) -> QAWorkflow:
     root = project_root or Path(__file__).resolve().parents[2]
     settings = yaml.safe_load((root / "config" / "settings.yaml").read_text(encoding="utf-8"))
     entities_path = root / settings["paths"]["entities"]
@@ -194,15 +199,18 @@ def build_default_workflow(project_root: Path | None = None) -> QAWorkflow:
         default_top_k=int(settings["retrieval"].get("final_top_k", 8)),
     )
     verification = settings.get("verification", {})
-    verifier = EvidenceVerifier(
+    default_verifier = EvidenceVerifier(
         pass_threshold=float(verification.get("pass_threshold", 0.80)),
         retry_threshold=float(verification.get("retry_threshold", 0.55)),
         max_retries=int(verification.get("max_retries", 1)),
         min_vector_score=float(verification.get("min_vector_score", 0.08)),
     )
+    if verifier is None:
+        verifier = default_verifier
     return QAWorkflow(
         hybrid_retriever,
         graph_repo,
+        router=router,
         verifier=verifier,
         top_k=int(settings["retrieval"].get("final_top_k", 8)),
     )

@@ -569,3 +569,51 @@ python scripts/freeze_baseline.py --verify
 ### 当前状态
 
 实验协议和输出合同已经冻结，下一步才实现实验运行器：根据上述配置切换固定路由、关闭 Verifier，并将每题输出写入 `ExperimentRunReport`。运行器完成并通过回归测试后，再运行 `pilot` 上的四组主实验；仍不会重新运行或调参 `final` 保留集。
+
+## 2026-07-22 阶段 6.3：实验运行器与 Verifier 消融适配
+
+### 完成事项
+
+- 扩展 `src/agent/workflow.py`，允许实验工厂注入自定义 Router 和 Verifier；默认工作流仍使用原有 EvidenceVerifier。
+- 新增 `src/evaluation/workflow_factory.py`：
+  - `ConfiguredRouter` 保留原始意图识别，只按实验配置强制 Vector、Graph 或 Hybrid；
+  - `NoVerifier` 旁路不进行验证、不重试，固定输出 `pass`，但保留未支持 Claim 供幻觉分析；
+  - 禁止构建 Direct LLM 和其他禁用实验。
+- 新增 `scripts/run_experiments.py`：
+  - 按 `config/experiments.yaml` 读取实验矩阵；
+  - 默认运行集为 `pilot`，支持 `dev` 调试；
+  - `final` split 永久拒绝，避免误触发冻结集重跑；
+  - 已存在输出时拒绝覆盖；
+  - 输出统一 `ExperimentRunReport` JSON，包含配置快照、数据集哈希、逐题证据、路径、延迟和自动/人工指标状态；
+  - `Recall@5` 只对能由 approved 图关系保守推导 gold Chunk 的题计算，其余不伪造指标；
+  - `--dry-run` 只显示执行计划，不调用工作流。
+- 修复一个会影响消融有效性的接入问题：默认工作流不再覆盖传入的 NoVerifier 实例。
+- 新增运行器回归测试，覆盖固定路由、NoVerifier 行为、工厂模式切换和禁用 Direct LLM 拦截。
+
+### 验证结果
+
+```bash
+python -m compileall -q app src scripts tests
+pytest -q
+python scripts/run_experiments.py --dry-run
+python scripts/run_experiments.py --split final
+python scripts/validate_experiments.py
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_evaluation.py
+python -m pip check
+python scripts/freeze_baseline.py --verify
+```
+
+结果：
+
+- Pytest：`26 passed`；
+- dry-run 正确列出 `vector_rag`、`graph_only`、`proposed`、`no_verifier` 四个 pilot 输出；
+- final 防护命令按预期失败并提示复用 `reports/evaluation_final.json`；
+- 图数据、证据回指、评测集和依赖检查通过；
+- v1.0 归档哈希继续匹配；
+- `reports/experiments/` 目前只有 README，尚未生成任何实验结果。
+
+### 当前状态
+
+实验运行器已经可以安全执行，但本阶段按分步要求只完成实现和 dry-run 验证。下一步运行四组 `pilot` 主实验并保存 JSON 结果，随后再做人工评分表，不触碰 `final` 保留集。
