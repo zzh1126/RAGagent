@@ -33,7 +33,16 @@ REQUIRED_RULES = (
     TextRule("R10", "NetworkX must be identified as the experiment backend", r"当前(?:冻结评测和 pilot )?实验(?:均)?使用 NetworkX"),
     TextRule("R11", "Neo4j online benchmark must be disclaimed", r"不声称完成了在线 Neo4j 服务基准测试"),
     TextRule("R12", "1.48 ms must be separated from online LLM latency", r"1\.48 ms[^\n]{0,50}不是在线 LLM 延迟"),
-    TextRule("R13", "technical enhancement No-Go status must remain explicit", r"当前状态：No-Go，未作为项目贡献"),
+    TextRule(
+        "R13",
+        "Generator readiness and Planner No-Go status must remain explicit",
+        r"当前状态：Generator 前置门槛通过，Planner No-Go，业务增强尚未实现",
+    ),
+    TextRule(
+        "R14",
+        "the extension holdout must be described as frozen and locked without outputs",
+        r"23 题 `extension_holdout`[\s\S]{0,300}(?:执行锁仍生效|锁定)[\s\S]{0,100}(?:没有 extension 输出|尚未生成任何 extension)",
+    ),
 )
 
 
@@ -52,6 +61,12 @@ FORBIDDEN_RULES = (
     ),
     TextRule("F09", "stale preliminary scoring status in the current report", r"preliminary_pending_user_confirmation"),
     TextRule("F10", "stale preliminary semantic wording in the current report", r"(?:Codex 辅助初步语义复核|初步语义评分|初步语义复核|初步 Hallucination Rate)"),
+    TextRule("F11", "stale extension holdout creation status", r"No-Go 状态下不创建 `extension_holdout`"),
+    TextRule(
+        "F12",
+        "probe readiness incorrectly described as completed Agent integration",
+        r"qwen3:4b[^。\n]{0,50}(?:已接入 Agent 主链路|已完成 enhanced 实验|已证明增强有效)",
+    ),
 )
 
 
@@ -63,12 +78,17 @@ def expected_literals() -> dict[str, str]:
     stats = read_json(BASELINE_DIR / "data_statistics.json")
     comparison = read_json(PROJECT_ROOT / "reports" / "experiments" / "pilot_comparison.json")
     semantic = read_json(PROJECT_ROOT / "reports" / "experiments" / "pilot_human_metrics.json")
+    llm_probe = read_json(PROJECT_ROOT / "reports" / "llm_probe_qwen3_4b.json")
+    extension_manifest = read_json(
+        PROJECT_ROOT / "data" / "evaluation" / "extension_holdout_manifest.json"
+    )
 
     kb = stats["knowledge_base"]
     graph = stats["graph"]
     final = stats["evaluation"]["final_metrics"]
     proposed_auto = next(row for row in comparison["methods"] if row["method"] == "proposed")
     proposed_semantic = semantic["methods"]["proposed"]
+    llm_summary = llm_probe["summary"]
 
     return {
         "S01 knowledge-base scale": (
@@ -93,6 +113,11 @@ def expected_literals() -> dict[str, str]:
             f"证据忠实度为 {proposed_semantic['evidence_faithfulness']['value']:.4f}"
         ),
         "S13 confirmed review status": semantic["review_status"],
+        "S14 qwen3 structured schema count": (
+            f"结构化 Schema 成功为 {llm_summary['total_schema_successes']}/{llm_summary['total_runs']}"
+        ),
+        "S15 extension question count": f"{extension_manifest['question_count']} 题 `extension_holdout`",
+        "S16 extension dataset hash": extension_manifest["dataset_sha256"],
     }
 
 

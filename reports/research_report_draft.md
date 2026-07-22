@@ -5,8 +5,8 @@
 > - 版本：Draft v1
 > - 项目路径：`E:\RAGagent`
 > - 基线版本：`v1.0-baseline`
-> - 当前实验分支：`experiment/day6-main-ablation`
-> - 写作状态：方法、基线、主实验、消融、用户确认语义评分和误差分析已填入；技术增强前置审计为 No-Go。
+> - 当前实验分支：`experiment/llm-agent-v2`
+> - 写作状态：方法、基线、主实验、消融、用户确认语义评分和误差分析已填入；`qwen3:4b` 已通过 Generator 前置门槛，extension 保留集已锁定，但业务增强和新实验尚未开始。
 
 ## 摘要
 
@@ -274,13 +274,13 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 ## 5.8 技术增强决策
 
-**当前状态：No-Go，未作为项目贡献。**
+**当前状态：Generator 前置门槛通过，Planner No-Go，业务增强尚未实现。**
 
-根据冲刺方案的决策树，当前生成器为离线规则模板，因此理论首选是“可插拔真实 LLM 结构化生成 + 离线规则 fallback”。本机 Ollama `0.32.1` 和 `qwen3-vl:8b` 可以真实推理，但 5 次手工受控调用与 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空。冷启动耗时约 84.7 s，其中模型加载约 67.2 s；后续非首次调用约 1.0～12.0 s。由于正式答案字段的结构化成功率为 0/6，当前组合不满足 `AnswerPayload` 输出合同，不能通过读取 thinking 的临时补丁宣称增强完成。
+初始审计中，Ollama `0.32.1` 与 `qwen3-vl:8b` 的 5 次手工受控调用和 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空，因此该视觉模型组合仍为 No-Go，且没有读取 thinking 绕过接口合同。
 
-备选的 Sparse + Dense + Graph 增强也未启动。虽然 `sentence-transformers` 已安装，但本机没有已缓存、可直接加载的文本 Embedding 模型；现有 Hugging Face 缓存为图像相关 CLIP/ViT 模型。按照模型下载和接口稳定性的止损规则，本轮保留 v1.0，不临时下载新模型，不伪造 enhanced 结果。
+随后在独立分支安装纯文本 `qwen3:4b` 并执行三类各 20 次正式探针。结构化 Schema 成功为 60/60，空 `message.content` 和非空 thinking 均为 0；简单状态与嵌套 AnswerPayload 的语义成功均为 20/20，但 QueryPlan 语义成功仅为 1/20。冷启动约 20.698 s，全部热请求平均约 0.930 s、P95 约 1.294 s。因此当前只批准 LLM Answer Generator，继续使用规则 Router，不实现或宣称 LLM Planner。
 
-No-Go 状态下不创建 `extension_holdout`。只有兼容的本地文本模型在 20 次结构化探针中至少成功 19 次后，才重新选择增强 A、冻结独立保留集并开始实现。完整依据见 `reports/technical_enhancement_decision.md`。
+在任何业务实现前，项目已冻结 23 题 `extension_holdout` 和评分合同，题集 SHA-256 为 `7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5`。当前执行锁仍生效，没有 extension 输出或 enhanced 指标。现有正式生成器仍是 `GroundedAnswerGenerator`；统一 LLM Client、fallback、Verifier 接线和独立实验尚未完成，因此这些前置结果不能作为增强有效性的结论。Sparse + Dense + Graph 也未启动。完整依据见 `reports/technical_enhancement_decision.md` 与 `reports/extension_holdout_freeze.md`。
 
 ---
 
@@ -507,7 +507,7 @@ $$
 
 ## 8.4 当前可提交性
 
-技术增强前置审计当前为 No-Go，但 v1.0 已包含完整知识库、三路检索、LangGraph、Verifier、Streamlit、冻结结果、主实验、消融和误差分析，可作为科研实践保底版本提交。
+LLM Generator 已通过模型前置门槛且 extension 保留集已经冻结，但业务增强与独立实验尚未完成。v1.0 仍包含完整知识库、三路检索、LangGraph、Verifier、Streamlit、冻结结果、主实验、消融和误差分析，可继续作为科研实践保底版本提交。
 
 ---
 
@@ -546,6 +546,7 @@ python scripts/validate_config.py
 python scripts/validate_graph_data.py
 python scripts/validate_graph_evidence.py
 python scripts/validate_evaluation.py
+python scripts/validate_extension_holdout.py
 python scripts/validate_experiments.py
 python scripts/validate_report_claims.py
 python scripts/generate_report_figures.py --check
@@ -560,8 +561,9 @@ python scripts/validate_scoring.py
 # 附录 B 待完成清单
 
 - [x] 用户已确认 `human_scoring_pilot_confirmed.csv` 中 160 行 pilot 语义评分；原始 preliminary 文件仅作审计留痕；
-- [x] 完成技术增强前置审计并将 No-Go 决策写入 5.8；
-- [ ] 仅在增强重新获准后冻结 extension holdout，并在实现完成后只运行一次；
+- [x] 完成 `qwen3-vl:8b` 初始 No-Go 与 `qwen3:4b` Generator Go / Planner No-Go 复验；
+- [x] 在业务实现前冻结 23 题 extension holdout、评分合同和 SHA-256，当前保持执行锁；
+- [ ] 实现统一 LLM Client、Answer Generator、fallback 与 Verifier 接线，冻结实现后再解除 extension 执行锁；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；
 - [ ] 制作答辩 PPT、演示脚本和录屏。

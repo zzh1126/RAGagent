@@ -17,6 +17,15 @@ EXPECTED_FINAL_COUNTS = {
     "metric_selection": 2,
     "no_answer": 4,
 }
+EXPECTED_EXTENSION_COUNTS = {
+    "single_hop": 4,
+    "multi_hop": 4,
+    "definition": 3,
+    "comparison": 3,
+    "principle_pros_cons": 3,
+    "metric_selection": 2,
+    "no_answer": 4,
+}
 REQUIRED_FIELDS = {
     "question_id",
     "split",
@@ -74,6 +83,7 @@ def main() -> None:
         "demo": evaluation_dir / "demo_questions.jsonl",
         "pilot": evaluation_dir / "pilot_questions.jsonl",
         "final": evaluation_dir / "final_questions.jsonl",
+        "extension": evaluation_dir / "extension_questions.jsonl",
     }
     entity_ids = read_ids(PROJECT_ROOT / "data" / "graph" / "entities.csv", "entity_id")
     relation_types = read_ids(PROJECT_ROOT / "data" / "graph" / "relations.csv", "relation")
@@ -90,10 +100,15 @@ def main() -> None:
         errors.append(f"pilot set must contain 40 questions, got {len(datasets['pilot'])}")
     if len(datasets["final"]) != 40:
         errors.append(f"final set must contain 40 questions, got {len(datasets['final'])}")
+    if len(datasets["extension"]) != 23:
+        errors.append(f"extension set must contain 23 questions, got {len(datasets['extension'])}")
 
     observed_counts = Counter(row["category"] for row in datasets["final"])
     if dict(observed_counts) != EXPECTED_FINAL_COUNTS:
         errors.append(f"final category counts mismatch: {dict(observed_counts)}")
+    extension_counts = Counter(row["category"] for row in datasets["extension"])
+    if dict(extension_counts) != EXPECTED_EXTENSION_COUNTS:
+        errors.append(f"extension category counts mismatch: {dict(extension_counts)}")
 
     final_questions = {row["question"] for row in datasets["final"]}
     dev_overlap = final_questions & {row["question"] for row in datasets["dev"]}
@@ -103,6 +118,12 @@ def main() -> None:
     if pilot_overlap:
         errors.append(f"pilot/final leakage: {sorted(pilot_overlap)}")
 
+    extension_questions = {row["question"] for row in datasets["extension"]}
+    for prior_split in ("dev", "demo", "pilot", "final"):
+        overlap = extension_questions & {row["question"] for row in datasets[prior_split]}
+        if overlap:
+            errors.append(f"{prior_split}/extension leakage: {sorted(overlap)}")
+
     if errors:
         for error in errors:
             print(f"ERROR: {error}")
@@ -111,9 +132,14 @@ def main() -> None:
     print("OK: evaluation datasets are valid")
     print(
         f"OK: dev={len(datasets['dev'])} demo={len(datasets['demo'])} "
-        f"pilot={len(datasets['pilot'])} final={len(datasets['final'])}"
+        f"pilot={len(datasets['pilot'])} final={len(datasets['final'])} "
+        f"extension={len(datasets['extension'])}"
     )
     print("OK: final distribution=" + ", ".join(f"{key}:{value}" for key, value in observed_counts.items()))
+    print(
+        "OK: extension distribution="
+        + ", ".join(f"{key}:{value}" for key, value in extension_counts.items())
+    )
 
 
 if __name__ == "__main__":

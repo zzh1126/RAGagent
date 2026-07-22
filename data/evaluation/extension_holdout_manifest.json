@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "artifact": "extension_holdout",
+  "status": "frozen_locked",
+  "frozen_at": "2026-07-22T21:05:14+08:00",
+  "baseline_commit": "9e2c34f9d6fa2824d73d62c0b448f7520a8363b2",
+  "dataset_path": "data/evaluation/extension_questions.jsonl",
+  "dataset_sha256": "7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5",
+  "scoring_contract_path": "config/extension_evaluation.yaml",
+  "scoring_contract_sha256": "a9415d4efc8b3e79bd65d6df84488364761695860bf53d04861e3e4148060b65",
+  "question_fingerprint_sha256": "1dfbf35117b5a22e28bcee8f27b3cdd1cf86e7542c76122c583ef6780217fc28",
+  "question_count": 23,
+  "answerable_count": 19,
+  "category_distribution": {
+    "single_hop": 4,
+    "multi_hop": 4,
+    "definition": 3,
+    "comparison": 3,
+    "principle_pros_cons": 3,
+    "metric_selection": 2,
+    "no_answer": 4
+  },
+  "near_duplicate_threshold": 0.82,
+  "max_prior_similarity": 0.7097,
+  "closest_question_pair": {
+    "extension_question_id": "X-SH-03",
+    "prior_question_id": "T-SH-05"
+  },
+  "method_ids": [
+    "rule_baseline",
+    "llm_generator",
+    "llm_generator_no_verifier"
+  ],
+  "execution_status": "locked",
+  "release_record_path": "data/evaluation/extension_holdout_release.json",
+  "release_record_present": false,
+  "extension_outputs_present": false,
+  "final_result_policy": "read_only_unchanged"
+}

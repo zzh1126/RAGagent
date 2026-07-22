@@ -2,7 +2,7 @@
 
 ## 使用范围
 
-本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前状态基于 `v1.0-baseline` 与实验分支 `experiment/day6-main-ablation`；pilot 语义评分已经由用户确认，原始 preliminary 文件仅作为审计记录保留。
+本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，LLM Generator 仅通过前置门槛，extension 仍处于锁定未运行状态。
 
 ## 权威证据源
 
@@ -16,7 +16,10 @@
 | `reports/experiments/pilot_human_metrics.json` | 用户确认后的 pilot 语义评分与评审状态 |
 | `reports/experiments/pilot_human_metrics_preliminary.json` | 确认前的指标快照，仅用于审计 |
 | `reports/human_scoring_pilot_confirmed.csv` | 当前正式使用的 160 行用户确认评分 |
-| `reports/technical_enhancement_decision.md` | 技术增强前置审计、No-Go 原因和重新进入条件 |
+| `reports/technical_enhancement_decision.md` | `qwen3-vl` 初始 No-Go、`qwen3:4b` Generator Go 与 Planner No-Go |
+| `reports/llm_probe_qwen3_4b.json` | 60 次正式结构化与语义探针明细 |
+| `data/evaluation/extension_holdout_manifest.json` | extension 题集、评分合同哈希与执行锁 |
+| `reports/extension_holdout_freeze.md` | extension 冻结范围、方法和人工评分披露 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
 
@@ -41,7 +44,8 @@
 | C15 | pilot 的语义分数已由用户确认，状态为 `user_confirmed`；分数初稿由 Codex 辅助生成 | 已核验 |
 | C16 | 用户确认样本中的幻觉率为 0 只描述当前小样本观察，不能推出系统不会产生幻觉 | 已核验 |
 | C17 | Manifest SHA-256 为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` | 已核验 |
-| C18 | 技术增强前置审计为 No-Go，未生成 enhanced 结果，也未创建 extension holdout | 已核验 |
+| C18 | `qwen3-vl:8b` 仍为 No-Go；`qwen3:4b` 只通过 Generator 前置门槛，Planner 为 No-Go | 已核验 |
+| C19 | 23 题 extension holdout 已在业务实现前冻结并锁定，尚未生成任何 extension 或 enhanced 结果 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -55,12 +59,14 @@
 - 声称完成了 Neo4j 在线性能基准。
 - 在技术增强尚未完成和独立评测前宣称增强有效。
 - 将 thinking 字段中的 JSON 当作已经通过正式 `AnswerPayload` 输出合同。
+- 将 `qwen3:4b` 的探针成功描述为已经接入 Agent 主链路或完成 enhanced 实验。
 
 ## 发布前检查
 
 ```bash
 python scripts/validate_report_claims.py
 python scripts/validate_scoring.py
+python scripts/validate_extension_holdout.py
 python scripts/freeze_baseline.py --verify
 ```
 

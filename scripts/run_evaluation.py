@@ -13,6 +13,10 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from src.agent.workflow import build_default_workflow
 
 
+RUNNABLE_SPLITS = ("dev", "demo", "pilot")
+FROZEN_SPLITS = ("final", "extension")
+
+
 def read_jsonl(path: Path) -> list[dict]:
     with path.open("r", encoding="utf-8-sig") as handle:
         return [json.loads(line) for line in handle if line.strip()]
@@ -77,9 +81,11 @@ def summarize(results: list[dict], engine: str) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate the frozen scikit-learn QA workflow")
-    parser.add_argument("--split", choices=["dev", "demo", "pilot", "final"], default="dev")
+    parser.add_argument("--split", choices=[*RUNNABLE_SPLITS, *FROZEN_SPLITS], default="dev")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+
+    ensure_split_runnable(args.split)
 
     input_path = PROJECT_ROOT / "data" / "evaluation" / f"{args.split}_questions.jsonl"
     output_path = args.output or PROJECT_ROOT / "reports" / f"evaluation_{args.split}.json"
@@ -100,6 +106,17 @@ def main() -> None:
     print(f"OK: report={output_path}")
     print(f"OK: decision_accuracy={report['decision_accuracy']:.4f}")
     print(f"OK: mean_keyword_coverage={report['mean_keyword_coverage']:.4f}")
+
+
+def ensure_split_runnable(split: str) -> None:
+    if split == "final":
+        raise SystemExit(
+            "Refusing to run the frozen final split. Reuse reports/evaluation_final.json instead."
+        )
+    if split == "extension":
+        raise SystemExit(
+            "Refusing to run the locked extension holdout before an explicit release record exists."
+        )
 
 
 if __name__ == "__main__":

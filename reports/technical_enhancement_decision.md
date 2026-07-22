@@ -13,7 +13,7 @@
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
 | 当前实施范围 | 仅批准 LLM Answer Generator；暂不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
-| extension holdout | 下一阶段先冻结，再开始业务实现 |
+| extension holdout | 23 题已冻结并锁定，尚未运行 |
 
 ## 前置条件审计
 
@@ -102,13 +102,13 @@ AnswerPayload 无法从正式答案字段解析
 
 1. 允许进入 LLM Answer Generator 的实现阶段；
 2. 暂不实现 LLM Query Planner，继续使用现有规则 Router；
-3. 下一阶段先冻结独立 `extension_holdout`，再修改 Schema、Client 或生成器业务代码；
+3. 独立 23 题 `extension_holdout` 和评分合同已经冻结；下一阶段才允许修改 Schema、Client 或生成器业务代码；
 4. final 继续只读，原 v1.0 结果、配置指纹和归档哈希不变；
 5. 不实施 Dense Retrieval，也不把 Planner 描述为已经可用。
 
 ## 重新进入条件
 
-以下条件用于完成增强 A。当前仅条件 1～2 已满足；下一阶段先完成条件 5，再实现和验证条件 3～4，条件 6 始终有效：
+以下条件用于完成增强 A。当前条件 1、2、5 已满足；下一阶段实现和验证条件 3～4，条件 6 始终有效：
 
 1. 使用适合纯文本指令的本地模型，或修复当前 Ollama/model 组合，使 JSON Schema 输出进入 `message.content`；
 2. 在合成探针和 dev 上连续执行至少 20 次结构化输出，成功不少于 19 次；
@@ -124,6 +124,7 @@ python scripts/check_enhancement_readiness.py
 python scripts/check_enhancement_readiness.py --probe-ollama --model qwen3-vl:8b
 python scripts/probe_llm_structured.py --model qwen3:4b --runs-per-schema 20 --target-gate generator --unload-before-run
 python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
 ```
 
 `check_enhancement_readiness.py` 只输出环境变量名称和模型清单，不输出密钥值；正式探针报告保存结构化解析结果、哈希和计时，但不保存 thinking 内容。

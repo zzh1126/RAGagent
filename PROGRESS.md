@@ -1036,3 +1036,94 @@ python scripts/validate_llm_probe.py
 ### 当前决定
 
 LLM Answer Generator 的前置门槛已经通过，可以进入下一阶段；LLM Query Planner 仍为 No-Go，继续使用规则 Router。下一阶段必须先冻结独立 23 题 `extension_holdout` 和评分合同，之后才允许修改统一 Schema、LLM Client 与 Generator 主链路。
+
+## 2026-07-22 阶段 7.1：Extension Holdout 与评分合同冻结
+
+### 完成事项
+
+- 在 LLM Client、LLM Answer Generator 和业务 Prompt 实现前创建并冻结 `data/evaluation/extension_questions.jsonl`：
+  - 共 23 题；
+  - 可回答题 19 题；
+  - 无答案题 4 题，分别覆盖完全超域、机器学习但不在六页知识库、实体存在但属性不存在、错误任务前提；
+  - 每题增加 `expected_route`、`required_aspects` 和 `forbidden_claims`，供后续盲评和错误检查使用。
+- 固定 extension 题型分布：
+
+| 题型 | 数量 |
+| --- | ---: |
+| single_hop | 4 |
+| multi_hop | 4 |
+| definition | 3 |
+| comparison | 3 |
+| principle_pros_cons | 3 |
+| metric_selection | 2 |
+| no_answer | 4 |
+
+- 新增 `config/extension_evaluation.yaml`，在看到任何 extension 输出前冻结：
+  - Rule Baseline；
+  - LLM Generator；
+  - LLM Generator No Verifier；
+  - 不包含 LLM Planner，Route Accuracy 明确为不适用；
+  - 自动指标包括决策、拒答、过度拒答、引用、结构化成功、fallback 和冷/热延迟；
+  - 人工指标包括 Correctness、Faithfulness、Hallucination、Over-refusal 和 Readability；
+  - 固定各指标分母、0/1/2 或 1～5 评分规则、隐藏方法标签和随机答案顺序；
+  - 当前仍是用户确认的单一复核流程，不声称独立双人标注。
+- 新增冻结 manifest `data/evaluation/extension_holdout_manifest.json`：
+  - 题集 SHA-256：`7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5`；
+  - 评分合同 SHA-256：`a9415d4efc8b3e79bd65d6df84488364761695860bf53d04861e3e4148060b65`；
+  - 题目 ID + 归一化题面指纹：`1dfbf35117b5a22e28bcee8f27b3cdd1cf86e7542c76122c583ef6780217fc28`；
+  - 基线提交：`9e2c34f9d6fa2824d73d62c0b448f7520a8363b2`；
+  - 状态：`frozen_locked`；
+  - release record 不存在，extension 输出不存在。
+- 新增 `scripts/validate_extension_holdout.py`：
+  - 校验 23 题、题型分布和 19/4 行为分布；
+  - 校验实体、关系及 approved 关系与 gold 实体的一致性；
+  - 校验题集、评分合同和题面指纹哈希；
+  - 检查 dev/demo/pilot/final 完全重合和近重复；
+  - 检查评分方法、指标合同和执行锁；
+  - 锁定期间发现 release record 或任何 extension 输出即失败。
+- 与四个已有数据集的完全相同题面重合为 0；归一化最高相似度为 0.7097，低于 0.82 阈值，最近题对为 `X-SH-03` / `T-SH-05`。
+- 修复旧评测入口保护：
+  - `scripts/run_evaluation.py --split final` 现在明确拒绝运行并要求复用冻结结果；
+  - `scripts/run_evaluation.py --split extension` 在 release record 创建前明确拒绝运行；
+  - 没有为 extension 增加任何可执行实验入口。
+- 新增 `reports/extension_holdout_freeze.md`，记录冻结范围、方法、评分披露、防泄漏边界和文件指纹。
+- 同步更新研究报告、事实声明清单和自动声明校验：
+  - 初始 `qwen3-vl:8b` 仍为 No-Go；
+  - `qwen3:4b` 仅为 Generator 前置 Go，Planner No-Go；
+  - extension 已冻结但尚未运行；
+  - 当前主链路和正式生成器仍未增强，不能宣称 enhanced 有效。
+
+### 验证结果
+
+```bash
+python scripts/validate_evaluation.py
+python scripts/validate_extension_holdout.py
+python scripts/run_evaluation.py --split final
+python scripts/run_evaluation.py --split extension
+pytest -q tests/test_evaluation_data.py tests/test_evaluation_guards.py
+python scripts/validate_report_claims.py
+```
+
+- 评测数据校验通过：dev=10、demo=8、pilot=40、final=40、extension=23；
+- extension 题集、评分合同、manifest、关系证据和执行锁校验通过；
+- final 与 extension 两个运行入口均按预期拒绝；
+- 7 个相关数据与运行保护测试通过；
+- 没有调用工作流读取 extension 问题，没有生成 extension 或 enhanced 结果；
+- final 未运行、未修改，v1.0 结果继续只读。
+
+### 当前状态
+
+条件 1、2、5 已满足：纯文本模型与 Generator 结构化门槛通过，extension holdout 已冻结。下一阶段可以开始统一 Schema 和 LLM Client，但仍禁止运行 extension；只有 Client、Generator、fallback、Verifier 接线、测试和配置全部冻结后，才创建独立 release record 并执行一次正式比较。
+
+### 阶段 7.1 最终验收
+
+- 将研究报告页眉中的当前实验分支修正为 `experiment/llm-agent-v2`；
+- 全量测试通过：`35 passed`；
+- LLM 探针校验通过：Schema `60/60`、简单语义 `20/20`、嵌套 AnswerPayload `20/20`、QueryPlan `1/20`，结论保持 Generator Go / Planner No-Go；
+- extension 结构、关系证据、防泄漏、评分合同、三项哈希和执行锁全部通过校验；
+- 新增仅作用于 3 个 extension 冻结工件的 `.gitattributes` LF 约束，避免 Windows `core.autocrlf` 导致逐字节 SHA-256 在重新检出后漂移；
+- evaluation、experiments、scoring、report claims 与 5 张报告图均通过一致性校验；
+- `run_evaluation.py --split final` 与 `--split extension` 均在工作流构建前按预期拒绝执行；
+- `python -m pip check` 返回 `No broken requirements found`，`git diff --check` 未发现空白错误；
+- v1.0 归档的 23 个 payload 校验通过，Manifest SHA-256 仍为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- 用户提供的方案 DOCX 保持未跟踪、未修改，不纳入提交；没有生成 extension 输出或 release record。

@@ -1,0 +1,109 @@
+schema_version: "1.0"
+split: extension
+status: frozen_locked
+question_count: 23
+answerable_count: 19
+category_distribution:
+  single_hop: 4
+  multi_hop: 4
+  definition: 3
+  comparison: 3
+  principle_pros_cons: 3
+  metric_selection: 2
+  no_answer: 4
+
+freeze:
+  frozen_at: "2026-07-22T21:05:14+08:00"
+  baseline_commit: "9e2c34f9d6fa2824d73d62c0b448f7520a8363b2"
+  created_before_llm_business_implementation: true
+  construction_disclosure: >-
+    The questions were created with access to the frozen graph schema and prior question texts,
+    but before LLM Client or LLM Answer Generator business implementation and without observing
+    any extension outputs.
+
+execution_lock:
+  status: locked
+  release_record: data/evaluation/extension_holdout_release.json
+  allowed_before_release:
+    - structural validation
+    - hash validation
+    - exact and near-duplicate checks
+  forbidden_before_release:
+    - running any QA workflow on extension questions
+    - prompt tuning with extension questions
+    - threshold or routing changes based on extension questions
+    - generating model comparison outputs
+
+methods:
+  - id: rule_baseline
+    planner: rule
+    generator: offline_rule
+    verifier: true
+  - id: llm_generator
+    planner: rule
+    generator: llm
+    verifier: true
+  - id: llm_generator_no_verifier
+    planner: rule
+    generator: llm
+    verifier: false
+
+automatic_metrics:
+  - decision_accuracy
+  - refusal_accuracy
+  - over_refusal_rate
+  - citation_validity
+  - structured_output_success_rate
+  - fallback_rate
+  - cold_start_latency_ms
+  - warm_end_to_end_latency_ms
+
+human_metrics:
+  answer_correctness:
+    scale: [0, 1, 2]
+    denominator: all_questions
+    rubric:
+      0: incorrect, irrelevant, or wrong refusal decision
+      1: partially correct or materially incomplete
+      2: correct and covers all required aspects
+  evidence_faithfulness:
+    scale: [0, 1, 2]
+    denominator: substantive_answers
+    correct_refusal: not_applicable
+    rubric:
+      0: key claims are unsupported or contradicted by cited evidence
+      1: mixed support or citation-to-claim mismatch
+      2: every key claim is supported by supplied evidence
+  hallucination:
+    scale: [0, 1]
+    denominator: substantive_answers
+    positive_definition: contains at least one unsupported professional factual claim
+  over_refusal:
+    scale: [0, 1]
+    denominator: answerable_questions
+    positive_definition: refuses a question marked expected_behavior=answer
+  readability:
+    scale: [1, 2, 3, 4, 5]
+    denominator: correct_or_partially_correct_substantive_answers
+    rubric:
+      1: difficult to understand or disorganized
+      3: understandable with minor organization problems
+      5: concise, coherent, and complete
+
+human_review_protocol:
+  blind_method_labels: true
+  randomize_answer_order: true
+  show_question_and_retrieved_evidence: true
+  show_generator_backend: false
+  reviewer_status: user_confirmed_single_review
+  independent_double_annotation: false
+  revise_rubric_after_outputs: false
+
+claim_policy:
+  primary_comparison: llm_generator_vs_rule_baseline
+  verifier_ablation: llm_generator_vs_llm_generator_no_verifier
+  improvement_requires:
+    - higher mean answer_correctness
+    - no decrease in mean evidence_faithfulness
+  statistical_claims: descriptive_only_due_to_small_sample
+  route_accuracy: not_applicable_planner_no_go
