@@ -753,3 +753,54 @@ python scripts/freeze_baseline.py --verify
 ### 当前状态
 
 自动实验、No Verifier 消融、初步语义评分和 9 案例误差分析已经形成完整科研材料。下一阶段可在不等待最终人工确认的前提下先搭建科研报告骨架，但报告中必须把带星号指标标为初步辅助评分；用户确认评分后再移除该限定。
+
+## 2026-07-22 阶段 6.6：科研报告初稿、事实声明清单与自动校验
+
+### 完成事项
+
+- 新增 `reports/research_report_draft.md`，形成可继续排版的完整科研报告初稿：
+  - 包含摘要、关键词、绪论、相关技术、数据与知识库、系统架构、核心方法、系统实现、实验结果、误差分析、有效性威胁、总结、参考文献和复现实验附录；
+  - 明确 RQ1～RQ3，并使用轻量化混合 GraphRAG / Knowledge-Graph-Enhanced RAG 的准确课题定位；
+  - 写入 6 个来源、164 个 Section、180 个 Chunk、50 个实体和 100 条 approved 关系的可追溯规模；
+  - 写入 v1.0 final 唯一一次冻结结果、四组 pilot 主实验、No Verifier 消融和 9 个误差案例；
+  - 技术增强章节保持“待决策”，没有把未实现内容写成项目贡献；
+  - Codex 辅助语义分数继续保留 `preliminary_pending_user_confirmation` 状态，没有写成独立人工评测。
+- 完成报告逐项事实对账并收紧三处措辞：
+  - 将“Verifier 显著提高”改为 pilot 4 道无答案题上的具体 0 到 1.0000 结果，避免暗示统计显著性；
+  - 明确 Chroma collection 是构建产物，当前运行时读取本地 TF-IDF 稀疏索引；
+  - 将“final 结果证明”改为限定在当前知识库与 40 题测试集上的“结果显示”，避免过度外推。
+- 新增独立文档 `reports/report_claims_checklist.md`：
+  - 列出 8 类权威证据源；
+  - 固定 18 项必须保留的事实边界；
+  - 列出禁止出现的错误结论和发布前检查命令。
+- 新增 `scripts/validate_report_claims.py`：
+  - 从基线统计、pilot 比较和初步语义指标 JSON 中读取真实数值，而不是仅检查硬编码文案；
+  - 校验 13 项来源派生事实；
+  - 校验 13 项必须披露的范围与指标边界；
+  - 拦截 8 类高风险声明，包括“问答准确率 97.5%”“系统不会产生幻觉”“完整实现 Microsoft GraphRAG”和“在线 LLM 延迟 1.48 ms”；
+  - 使用 6 个故意错误声明完成负向规则冒烟测试。
+
+### 验证结果
+
+```bash
+python scripts/validate_report_claims.py
+python -m compileall -q app src scripts tests
+pytest -q
+python scripts/validate_scoring.py
+python scripts/validate_experiments.py
+python scripts/validate_evaluation.py
+python -m pip check
+python scripts/freeze_baseline.py --verify
+```
+
+- 报告声明校验：13 项来源事实、13 项必需声明和 8 类禁止声明全部通过；
+- Pytest：`26 passed`；
+- 初步评分：160 行、4 种方法各 40 行、9 个误差案例，状态仍为 `preliminary_pending_user_confirmation`；
+- 实验配置指纹继续为 `56dd6a55fd05a01490322283926a722a3fe0260d4b4b6534f21d2900ba04c44a`；
+- 依赖检查无冲突；
+- v1.0 归档 23 个 payload 校验通过，Manifest SHA-256 仍为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- 没有重新运行或调参 final 冻结集，原始 final 结果保持不变。
+
+### 当前状态
+
+科研保底版本现已具备代码、冻结结果、主实验、消融、初步语义复核、误差分析和完整报告初稿。下一阶段按照冲刺方案先形成技术增强决策文档：核实是否存在稳定真实 LLM 接口，只选择一个增强，并在任何开发前冻结独立 `extension_holdout`；若前置条件不满足，则保留 v1.0，不伪造增强结果。
