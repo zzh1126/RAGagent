@@ -509,3 +509,63 @@ git push origin v1.0-baseline
 ### 当前状态
 
 v1.0 基线已经同时存在于本地归档、本地 Git tag 和 GitHub 远程仓库。后续实验从 `v1.0-baseline` 创建独立分支，实验过程中的每次实质性改动继续追加到本文件并同步提交。
+
+## 2026-07-22 阶段 6.2：主实验与消融配置合同
+
+### 完成事项
+
+- 从 `v1.0-baseline` 的历史分支创建独立实验分支：
+  - `experiment/day6-main-ablation`；
+  - 本轮所有实验基础设施改动都不会修改 `main` 或移动 `v1.0-baseline` tag。
+- 新增统一实验协议 `config/experiments.yaml`：
+  - 调参集：`dev`；
+  - 实验运行集：`pilot`；
+  - `final`：只读，只复用已有 `reports/evaluation_final.json`；
+  - 检索指标固定为 Recall@5；
+  - 统一使用离线规则生成器；
+  - `Direct LLM` 明确禁用，不伪造联网模型结果。
+- 冻结本轮方法矩阵：
+  - `vector_rag`：固定 Vector、关闭 Verifier；
+  - `graph_only`：固定 Graph、关闭 Verifier；
+  - `proposed`：Adaptive 路由、启用 Verifier；
+  - `no_verifier`：Adaptive 路由、关闭 Verifier；
+  - `no_router`：可选且暂时禁用。
+- 新增配置加载与约束模型 `src/evaluation/config.py`：
+  - 校验必需方法、路由模式、Verifier 开关和 final 只读政策；
+  - 为完整配置生成稳定 SHA-256 指纹：
+    - `56dd6a55fd05a01490322283926a722a3fe0260d4b4b6534f21d2900ba04c44a`。
+- 新增统一结果 Schema `src/evaluation/schemas.py`：
+  - `MetricValue`：区分已计算、待人工评分和不适用；
+  - `LatencyBreakdown`：路由、检索、生成、验证和总耗时；
+  - `HumanAssessment`：正确性、忠实度、幻觉、过度拒答和评审备注；
+  - `QuestionRunResult`：题目、决策、证据、路径、Chunk、延迟和错误阶段；
+  - `ExperimentMetrics`：决策准确率、回答正确性、忠实度、Recall@5、路径有效性、拒答、幻觉、过度拒答、引用率和延迟；
+  - `ExperimentRunReport`：实验配置快照、数据集哈希、配置指纹、逐题结果和指标。
+- 新增 `scripts/validate_experiments.py` 和 `reports/experiments/README.md`，可在不运行问答的情况下检查协议及 final 文件存在性。
+- 新增 4 个实验合同测试，覆盖配置矩阵、final 禁止调参、自动指标与人工指标分离、结果数量一致性。
+
+### 验证结果
+
+以下命令均已通过：
+
+```bash
+python -m compileall -q app src scripts tests
+python scripts/validate_experiments.py
+python scripts/validate_evaluation.py
+pytest -q
+python -m pip check
+python scripts/freeze_baseline.py --verify
+```
+
+结果：
+
+- Pytest：`22 passed`；
+- 评测集：dev 10、demo 8、pilot 40、final 40，分布和零重合规则通过；
+- 依赖检查通过；
+- v1.0 归档 23 个 payload 哈希继续匹配；
+- final 结果文件未重新生成，SHA-256 保持不变；
+- 本阶段没有运行 Vector、Graph、Proposed 或 No Verifier 实验，也没有生成实验结果文件。
+
+### 当前状态
+
+实验协议和输出合同已经冻结，下一步才实现实验运行器：根据上述配置切换固定路由、关闭 Verifier，并将每题输出写入 `ExperimentRunReport`。运行器完成并通过回归测试后，再运行 `pilot` 上的四组主实验；仍不会重新运行或调参 `final` 保留集。

@@ -1,0 +1,79 @@
+schema_version: "1.0"
+
+protocol:
+  tuning_split: dev
+  experiment_split: pilot
+  output_dir: reports/experiments
+  answer_generator: offline_rule
+  retrieval_recall_k: 5
+  frozen_holdout:
+    split: final
+    result_path: reports/evaluation_final.json
+    policy: reuse_v1_result_only
+
+experiments:
+  direct_llm:
+    id: direct_llm
+    display_name: Direct LLM
+    enabled: false
+    retrieval_mode: none
+    router_mode: none
+    verifier_enabled: false
+    answer_generator: llm
+    requires_network: true
+    purpose: Knowledge-free baseline; disabled because no stable online LLM endpoint is configured.
+
+  vector_rag:
+    id: vector_rag
+    display_name: Vector RAG
+    enabled: true
+    retrieval_mode: vector
+    router_mode: fixed_vector
+    verifier_enabled: false
+    answer_generator: offline_rule
+    requires_network: false
+    purpose: Text retrieval baseline with a fixed vector route.
+
+  graph_only:
+    id: graph_only
+    display_name: Graph Only
+    enabled: true
+    retrieval_mode: graph
+    router_mode: fixed_graph
+    verifier_enabled: false
+    answer_generator: offline_rule
+    requires_network: false
+    purpose: Structured relation baseline with a fixed graph route.
+
+  proposed:
+    id: proposed
+    display_name: Proposed
+    enabled: true
+    retrieval_mode: adaptive
+    router_mode: adaptive
+    verifier_enabled: true
+    answer_generator: offline_rule
+    requires_network: false
+    purpose: Complete hybrid workflow with dynamic routing and evidence verification.
+
+  no_verifier:
+    id: no_verifier
+    display_name: No Verifier
+    enabled: true
+    retrieval_mode: adaptive
+    router_mode: adaptive
+    verifier_enabled: false
+    answer_generator: offline_rule
+    requires_network: false
+    purpose: Required ablation that removes evidence verification while preserving retrieval and routing.
+
+  no_router:
+    id: no_router
+    display_name: No Router
+    enabled: false
+    retrieval_mode: hybrid
+    router_mode: fixed_hybrid
+    verifier_enabled: true
+    answer_generator: offline_rule
+    requires_network: false
+    purpose: Optional routing ablation, disabled until the required experiments are complete.
