@@ -485,3 +485,27 @@ python scripts/freeze_baseline.py --verify
 ### 当前状态
 
 v1.0 现在同时具备文件归档校验和本地 Git commit/tag 两种版本固定方式。后续实验应从当前 `v1.0-baseline` tag 创建独立分支；远程推送需要先确定目标仓库地址，当前不自动执行。
+
+## 2026-07-22 补充：v1.0 发布到 GitHub 远程仓库
+
+### 完成事项
+
+- 配置远程仓库：`https://github.com/zzh1126/RAGagent.git`。
+- 推送前检查确认远程仓库为空，本地工作树干净，因此不需要合并，也没有使用 force push。
+- 已成功推送：
+  - `main` 分支，包含当前基线 commit 和 Git 设置记录；
+  - `v1.0-baseline` annotated tag，指向冻结 commit `04f54f6039023b1165f569efef3a5191c52dde19`。
+- 本地 `main` 已设置为跟踪 `origin/main`。
+
+### 验证结果
+
+```bash
+git push -u origin main
+git push origin v1.0-baseline
+```
+
+两条命令均成功。未执行任何强制推送或远程历史覆盖操作。
+
+### 当前状态
+
+v1.0 基线已经同时存在于本地归档、本地 Git tag 和 GitHub 远程仓库。后续实验从 `v1.0-baseline` 创建独立分支，实验过程中的每次实质性改动继续追加到本文件并同步提交。
