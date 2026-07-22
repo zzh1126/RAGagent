@@ -884,3 +884,91 @@ python scripts/freeze_baseline.py --verify
 ### 当前状态
 
 技术增强已按照冲刺方案完成真实前置审计和及时止损，不再占用报告与交付时间。下一阶段转入实验可视化与报告素材：根据已有 pilot 和初步评分结果生成可追溯图表，将 Mermaid 架构图导出为静态图片，并继续保持初步语义指标的星号与用户确认状态。
+
+## 2026-07-22 阶段 6.8：用户确认评分晋级与报告图表素材
+
+### 完成事项
+
+- 用户已确认 pilot 四种方法共 160 行语义评分，覆盖正确性、忠实度、幻觉和过度拒答四个字段。
+- 新增 `scripts/confirm_pilot_scoring.py`，执行确认版数据提升：
+  - 逐行比对 preliminary 与 confirmed 的题目、方法和四个评分字段；
+  - 分数未发生任何变化；
+  - 将正式状态更新为 `user_confirmed`；
+  - 将需要人工核对的说明改为用户已确认的评分解释；
+  - 生成当前正式文件 `reports/human_scoring_pilot_confirmed.csv`；
+  - 将旧指标 JSON 归档为 `pilot_human_metrics_preliminary.json`，当前 `pilot_human_metrics.json` 改为确认状态；
+  - 同步更新 `metrics_summary.csv/md`、pilot 比较材料和用户确认版误差分析。
+- 将四份 `vector_rag_pilot.json`、`graph_only_pilot.json`、`proposed_pilot.json` 和 `no_verifier_pilot.json` 的四类语义 `MetricValue` 补齐为 `user_confirmed`，自动检索、决策和延迟指标保持原值。
+- 保留原始审计材料，不删除任何 preliminary 文件：
+  - `reports/human_scoring_pilot_preliminary.csv`；
+  - `reports/experiments/pilot_human_metrics_preliminary.json`；
+  - `reports/experiments/pilot_error_analysis_draft.md`。
+- 更新 `scripts/validate_scoring.py`：
+  - 检查 160 行 confirmed 数据和四种方法分布；
+  - 检查 confirmed 与 preliminary 的评分字段完全一致；
+  - 检查当前指标为 `user_confirmed`、历史快照仍保留原状态；
+  - 检查 9 个误差案例和指标重算结果。
+- 更新报告与声明约束：
+  - 正式报告移除语义评分表的 `*`、待确认状态和“初步语义评分”表述；
+  - 改为“用户确认后的语义复核”，并保留“评分初稿由 Codex 辅助生成、未进行独立双人标注”的方法透明度；
+  - `report_claims_checklist.md` 和 `validate_report_claims.py` 现在要求 `user_confirmed`，并拦截当前报告中的 stale preliminary 状态；
+  - 新增 `reports/scoring_confirmation.md` 记录确认范围、正式文件和审计留痕。
+- 完成报告静态图表素材：
+  - `architecture.png`：替换 Mermaid 的 LangGraph 状态流；
+  - `pilot_automatic_metrics.png`：自动指标对比；
+  - `pilot_semantic_confirmed.png`：用户确认语义指标；
+  - `pilot_latency.png`：本地热路径耗时；
+  - `pilot_category_decision_accuracy.png`：按题型决策准确率热图；
+  - `figure_manifest.json`：记录输入和图片 SHA-256。
+- 新增 `scripts/generate_report_figures.py`，支持生成和 `--check` 哈希校验；静态图片已完成视觉抽查，修复了架构图右侧裁切、热图文字对比度和语义图残留星号。
+- 修正根 `README.md` 的评测命令：移除直接运行 final 的示例，改为复用冻结结果并执行 confirmed 评分与图表校验。
+
+### 验证结果
+
+```bash
+python scripts/confirm_pilot_scoring.py
+python scripts/validate_scoring.py
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python -m compileall -q app src scripts tests
+pytest -q
+python scripts/validate_experiments.py
+python scripts/validate_evaluation.py
+python -m pip check
+python scripts/freeze_baseline.py --verify
+```
+
+- 确认提升：160 行，四种方法各 40 行，评分字段与原始 preliminary 完全一致；
+- 当前评分状态：`user_confirmed`；
+- 报告声明校验通过，当前报告不再包含待确认语义评分状态；
+- 图表 manifest 和 5 张图全部通过哈希校验；
+- Pytest：`26 passed`；
+- 实验配置指纹仍为 `56dd6a55fd05a01490322283926a722a3fe0260d4b4b6534f21d2900ba04c44a`；
+- v1.0 归档 23 个 payload 和 Manifest SHA-256 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` 继续匹配；
+- final 未重跑，技术增强仍为 No-Go，未创建 extension holdout。
+
+### 当前状态
+
+pilot 语义评分现在可以作为报告正式结果使用，但应准确称为“用户确认后的语义复核”，不延伸为独立双人标注。实验结果和静态图表素材已齐备，下一阶段进入 Markdown 报告定稿、DOCX 排版和答辩材料制作。
+
+## 2026-07-22 阶段 6.9：评分确认清理验收
+
+### 完成事项
+
+- 清理正式交付面中的过渡标记：报告、指标汇总、pilot 比较材料、四份实验 JSON 和图表均以 `user_confirmed` 为当前语义评分状态，不再使用星号、待确认说明或 `preliminary_pending_user_confirmation` 作为正式结果描述。
+- 核对正式读取路径：`human_scoring_pilot_confirmed.csv` 与 `pilot_human_metrics.json` 是当前权威评分文件；确认前的三份原始文件不参与正式统计和报告读取，仅作为审计快照保留。
+- 保留通用 `pending_human_review` 契约、空白评分模板和历史进度记录，避免把未来评测能力与本次已确认结果混为一谈。
+- 未修改冻结 `final` 结果、实验配置指纹、评分数值或图表输入数据。
+
+### 验证结果
+
+- `pytest -q`：`26 passed`；
+- `python scripts/validate_scoring.py`：160 行、四种方法各 40 行、9 个误差案例，状态 `user_confirmed`；
+- `python scripts/validate_report_claims.py`、`python scripts/generate_report_figures.py --check`、`python scripts/validate_experiments.py`、`python scripts/validate_evaluation.py` 全部通过；
+- `python -m pip check` 无依赖冲突；
+- `python scripts/freeze_baseline.py --verify` 通过，v1.0 Manifest SHA-256 仍为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `git diff --cached --check` 与工作区空白检查通过。
+
+### 当前状态
+
+评分确认清理已验收，可以提交阶段 6.8/6.9 改动。下一步进入 Markdown 报告定稿、DOCX 排版和答辩材料制作；技术增强仍保持 No-Go，不生成 enhanced 结果。

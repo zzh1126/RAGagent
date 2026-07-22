@@ -1,5 +1,5 @@
-﻿method,decision_accuracy,answer_correctness_preliminary,evidence_faithfulness_preliminary,retrieval_recall_at_5,path_validity,refusal_accuracy,hallucination_rate_preliminary,over_refusal_rate,mean_latency_ms,review_status
-vector_rag,0.9,0.5375,0.4875,0.8276,,0.0,0.0,0.0,1.325,preliminary_pending_user_confirmation
-graph_only,0.9,0.8375,0.925,0.9655,1.0,0.0,0.0,0.0,1.0,preliminary_pending_user_confirmation
-proposed,1.0,0.8625,1.0,0.9655,1.0,1.0,0.0,0.0,1.7,preliminary_pending_user_confirmation
-no_verifier,0.9,0.8,0.85,0.9655,1.0,0.0,0.0,0.0,1.225,preliminary_pending_user_confirmation
+﻿method,decision_accuracy,answer_correctness,evidence_faithfulness,retrieval_recall_at_5,path_validity,refusal_accuracy,hallucination_rate,over_refusal_rate,mean_latency_ms,review_status
+vector_rag,0.9,0.5375,0.4875,0.8276,,0.0,0.0,0.0,1.325,user_confirmed
+graph_only,0.9,0.8375,0.925,0.9655,1.0,0.0,0.0,0.0,1.0,user_confirmed
+proposed,1.0,0.8625,1.0,0.9655,1.0,1.0,0.0,0.0,1.7,user_confirmed
+no_verifier,0.9,0.8,0.85,0.9655,1.0,0.0,0.0,0.0,1.225,user_confirmed

@@ -2,7 +2,7 @@
 
 ## 使用范围
 
-本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前状态基于 `v1.0-baseline` 与实验分支 `experiment/day6-main-ablation`；技术增强和用户人工确认完成后，应同步更新本清单与 `scripts/validate_report_claims.py`。
+本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前状态基于 `v1.0-baseline` 与实验分支 `experiment/day6-main-ablation`；pilot 语义评分已经由用户确认，原始 preliminary 文件仅作为审计记录保留。
 
 ## 权威证据源
 
@@ -13,7 +13,9 @@
 | `reports/releases/v1.0-baseline/manifest.json` | 23 个归档 payload 及逐文件 SHA-256 |
 | `reports/releases/v1.0-baseline/MANIFEST_SHA256.txt` | Manifest SHA-256 |
 | `reports/experiments/pilot_comparison.json` | 四种 pilot 方法的自动指标 |
-| `reports/experiments/pilot_human_metrics.json` | Codex 辅助初步语义评分与评审状态 |
+| `reports/experiments/pilot_human_metrics.json` | 用户确认后的 pilot 语义评分与评审状态 |
+| `reports/experiments/pilot_human_metrics_preliminary.json` | 确认前的指标快照，仅用于审计 |
+| `reports/human_scoring_pilot_confirmed.csv` | 当前正式使用的 160 行用户确认评分 |
 | `reports/technical_enhancement_decision.md` | 技术增强前置审计、No-Go 原因和重新进入条件 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
@@ -36,8 +38,8 @@
 | C12 | 1.48 ms 是本地离线规则热路径均值，不是在线 LLM 延迟 | 已核验 |
 | C13 | final 唯一错误为 T-DF-01，即 AdaBoost 定义题过度拒答 | 已核验 |
 | C14 | pilot 的 Proposed 决策准确率和拒答准确率均为 1.0000 | 已核验 |
-| C15 | pilot 的语义分数是 Codex 辅助初步复核，状态必须为 `preliminary_pending_user_confirmation` | 已核验 |
-| C16 | 初步幻觉率为 0 只描述当前小样本观察，不能推出系统不会产生幻觉 | 已核验 |
+| C15 | pilot 的语义分数已由用户确认，状态为 `user_confirmed`；分数初稿由 Codex 辅助生成 | 已核验 |
+| C16 | 用户确认样本中的幻觉率为 0 只描述当前小样本观察，不能推出系统不会产生幻觉 | 已核验 |
 | C17 | Manifest SHA-256 为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` | 已核验 |
 | C18 | 技术增强前置审计为 No-Go，未生成 enhanced 结果，也未创建 extension holdout | 已核验 |
 
@@ -48,7 +50,7 @@
 - “系统不会产生幻觉”。
 - “完整实现/完整复现 Microsoft GraphRAG”。
 - “在线 LLM 延迟为 1.48 ms”。
-- 将带 `*` 的初步语义评分写成独立人工评测。
+- 将用户确认语义评分写成独立双人标注或统计显著性结论。
 - 声称当前正式检索使用 sentence-transformers 或神经 Dense Embedding。
 - 声称完成了 Neo4j 在线性能基准。
 - 在技术增强尚未完成和独立评测前宣称增强有效。

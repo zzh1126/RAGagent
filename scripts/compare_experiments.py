@@ -141,6 +141,15 @@ def build_failure_cases(reports: list[ExperimentRunReport]) -> dict[str, list[di
     }
 
 
+def human_scoring_status(rows: list[dict[str, object]]) -> str:
+    statuses = {
+        row[field]
+        for row in rows
+        for field in ("answer_correctness_status", "faithfulness_status", "hallucination_status")
+    }
+    return "user_confirmed" if statuses == {"user_confirmed"} else "pending"
+
+
 def write_markdown(
     path: Path,
     rows: list[dict[str, object]],
@@ -148,6 +157,7 @@ def write_markdown(
     failure_cases: dict,
     dataset_hash: str,
     config_hash: str,
+    scoring_status: str,
 ) -> None:
     lines = [
         "# Pilot Experiment Comparison",
@@ -157,7 +167,7 @@ def write_markdown(
         "",
         f"- Dataset SHA-256: `{dataset_hash}`",
         f"- Configuration fingerprint: `{config_hash}`",
-        "- Human correctness, faithfulness, and hallucination scores are still pending.",
+        f"- Semantic scoring status: `{scoring_status}`.",
         "",
         "## Overall Metrics",
         "",
@@ -215,6 +225,7 @@ def main() -> None:
     rows = build_rows(reports)
     category_metrics = build_category_metrics(reports)
     failure_cases = build_failure_cases(reports)
+    scoring_status = human_scoring_status(rows)
     output_dir = root / "reports" / "experiments"
     csv_path = output_dir / f"{args.split}_comparison.csv"
     json_path = output_dir / f"{args.split}_comparison.json"
@@ -236,7 +247,7 @@ def main() -> None:
         "methods": rows,
         "category_metrics": category_metrics,
         "failure_cases": failure_cases,
-        "human_scoring_status": "pending",
+        "human_scoring_status": scoring_status,
     }
     json_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     write_markdown(
@@ -246,6 +257,7 @@ def main() -> None:
         failure_cases,
         reports[0].dataset_sha256,
         reports[0].config_fingerprint,
+        scoring_status,
     )
     print(f"OK: validated {len(reports)} reports")
     print(f"OK: comparison_csv={csv_path}")

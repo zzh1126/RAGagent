@@ -10,7 +10,7 @@ This directory is reserved for the Day 6 main experiments and verifier ablation.
 - Retrieval metric: Recall@5.
 - Required runnable methods: `vector_rag`, `graph_only`, `proposed`, and `no_verifier`.
 - Disabled methods: `direct_llm` (no stable real LLM endpoint) and optional `no_router`.
-- Human correctness, faithfulness, hallucination, and over-refusal metrics remain pending until manual review.
+- Human correctness, faithfulness, hallucination, and over-refusal metrics are attached to the pilot reports with `user_confirmed` status; automatic retrieval and decision fields remain unchanged.
 
 Validate the protocol without running an experiment:
 
@@ -28,4 +28,4 @@ After the pilot run, the directory contains:
 - `no_verifier_pilot.json`
 - `pilot_comparison.csv`, `pilot_comparison.json`, and `pilot_comparison.md`
 
-The blank 160-row manual review sheet is `reports/human_scoring.csv`. Empty score fields are intentional; they must be reviewed and filled separately.
+The blank 160-row review sheet is `reports/human_scoring.csv`. The current confirmed scoring layer is `reports/human_scoring_pilot_confirmed.csv`; the original `human_scoring_pilot_preliminary.csv` is retained as an audit snapshot.

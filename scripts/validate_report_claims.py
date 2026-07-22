@@ -23,8 +23,8 @@ class TextRule:
 REQUIRED_RULES = (
     TextRule("R01", "97.5% must be labelled as pass/refuse decision accuracy", r"97\.5%[^。\n]{0,40}pass/refuse 决策准确率"),
     TextRule("R02", "decision accuracy must be separated from answer correctness", r"(?:不等同于回答正确率|不是问答准确率)"),
-    TextRule("R03", "preliminary review status must remain explicit", r"preliminary_pending_user_confirmation"),
-    TextRule("R04", "preliminary scores must be identified as Codex-assisted", r"Codex 辅助初步语义复核"),
+    TextRule("R03", "user-confirmed review status must remain explicit", r"user_confirmed"),
+    TextRule("R04", "confirmed scoring provenance must be disclosed", r"用户确认后的语义复核"),
     TextRule("R05", "TF-IDF representation must be disclosed", r"TF-IDF 稀疏表示"),
     TextRule("R06", "dense embedding must be explicitly disclaimed", r"不是神经稠密 Embedding"),
     TextRule("R07", "the offline generator must be disclosed", r"GroundedAnswerGenerator[^。\n]{0,40}不调用在线 LLM"),
@@ -50,6 +50,8 @@ FORBIDDEN_RULES = (
         "unverified Neo4j benchmark claim",
         r"(?:(?:已完成(?:了)?|已经完成(?:了)?|已进行(?:了)?|已经进行(?:了)?)\s*(?:在线\s*)?Neo4j\s*(?:在线\s*)?(?:服务\s*)?(?:性能|延迟|基准)[^。\n]{0,4}(?:测试|结果)|Neo4j\s*(?:在线\s*)?(?:服务\s*)?(?:性能|延迟|基准)[^。\n]{0,4}(?:测试|结果)[^。\n]{0,8}(?:已完成|已经完成|已提供|已经提供))",
     ),
+    TextRule("F09", "stale preliminary scoring status in the current report", r"preliminary_pending_user_confirmation"),
+    TextRule("F10", "stale preliminary semantic wording in the current report", r"(?:Codex 辅助初步语义复核|初步语义评分|初步语义复核|初步 Hallucination Rate)"),
 )
 
 
@@ -90,7 +92,7 @@ def expected_literals() -> dict[str, str]:
         "S12 proposed preliminary faithfulness": (
             f"证据忠实度为 {proposed_semantic['evidence_faithfulness']['value']:.4f}"
         ),
-        "S13 preliminary review status": semantic["review_status"],
+        "S13 confirmed review status": semantic["review_status"],
     }
 
 

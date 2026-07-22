@@ -18,9 +18,9 @@
       "mean_latency_ms": 1.325,
       "wrong_count": 4,
       "wrong_question_ids": "F-NA-01;F-NA-02;F-NA-03;F-NA-04",
-      "answer_correctness_status": "pending_human_review",
-      "faithfulness_status": "pending_human_review",
-      "hallucination_status": "pending_human_review"
+      "answer_correctness_status": "user_confirmed",
+      "faithfulness_status": "user_confirmed",
+      "hallucination_status": "user_confirmed"
     },
     {
       "method": "graph_only",
@@ -36,9 +36,9 @@
       "mean_latency_ms": 1.0,
       "wrong_count": 4,
       "wrong_question_ids": "F-NA-01;F-NA-02;F-NA-03;F-NA-04",
-      "answer_correctness_status": "pending_human_review",
-      "faithfulness_status": "pending_human_review",
-      "hallucination_status": "pending_human_review"
+      "answer_correctness_status": "user_confirmed",
+      "faithfulness_status": "user_confirmed",
+      "hallucination_status": "user_confirmed"
     },
     {
       "method": "proposed",
@@ -54,9 +54,9 @@
       "mean_latency_ms": 1.7,
       "wrong_count": 0,
       "wrong_question_ids": "",
-      "answer_correctness_status": "pending_human_review",
-      "faithfulness_status": "pending_human_review",
-      "hallucination_status": "pending_human_review"
+      "answer_correctness_status": "user_confirmed",
+      "faithfulness_status": "user_confirmed",
+      "hallucination_status": "user_confirmed"
     },
     {
       "method": "no_verifier",
@@ -72,9 +72,9 @@
       "mean_latency_ms": 1.225,
       "wrong_count": 4,
       "wrong_question_ids": "F-NA-01;F-NA-02;F-NA-03;F-NA-04",
-      "answer_correctness_status": "pending_human_review",
-      "faithfulness_status": "pending_human_review",
-      "hallucination_status": "pending_human_review"
+      "answer_correctness_status": "user_confirmed",
+      "faithfulness_status": "user_confirmed",
+      "hallucination_status": "user_confirmed"
     }
   ],
   "category_metrics": {
@@ -320,5 +320,5 @@
       }
     ]
   },
-  "human_scoring_status": "pending"
+  "human_scoring_status": "user_confirmed"
 }

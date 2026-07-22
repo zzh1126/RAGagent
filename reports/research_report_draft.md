@@ -6,13 +6,13 @@
 > - 项目路径：`E:\RAGagent`
 > - 基线版本：`v1.0-baseline`
 > - 当前实验分支：`experiment/day6-main-ablation`
-> - 写作状态：方法、基线、主实验、消融和误差分析已填入；技术增强前置审计为 No-Go；带 `*` 的语义评分待用户确认。
+> - 写作状态：方法、基线、主实验、消融、用户确认语义评分和误差分析已填入；技术增强前置审计为 No-Go。
 
 ## 摘要
 
 面向机器学习领域知识问答中存在的文本检索语义不足、结构关系难以表达以及生成答案缺少证据约束等问题，本项目构建了一个以六页 scikit-learn 官方文档为文本来源、以预定义领域知识图谱为结构知识的轻量化混合 GraphRAG 问答 Agent。系统将 164 个文档 Section 切分为 180 个稳定 Chunk，并构建包含 50 个实体、100 条 approved 关系的双语知识图谱；每条图关系均绑定真实 Chunk 证据。系统使用 LangGraph 编排查询路由、Vector/Graph/Hybrid 三路检索、离线规则生成、证据验证、一次重试和保守拒答，并通过统一 `GraphRepository` 接口支持 NetworkX 离线后端与可选 Neo4j 后端。
 
-本项目严格区分开发集、演示集、pilot 集和 final 冻结保留集。v1.0 在仅运行一次的 40 题 final 集上取得 97.5% 的 pass/refuse 决策准确率，4 道无答案题全部正确拒答；该指标不等同于回答正确率。进一步在 pilot 集上比较 Vector RAG、Graph Only、Proposed 和 No Verifier 四种配置，Proposed 的决策准确率和无答案拒答准确率分别为 100% 和 100%，而关闭 Verifier 的配置对 4 道无答案题均未作出正确决策。Codex 辅助初步语义复核显示 Proposed 的回答正确性为 0.8625、证据忠实度为 1.0000，但该结果状态为 `preliminary_pending_user_confirmation`，最终报告需经用户确认后才能作为人工评测使用。
+本项目严格区分开发集、演示集、pilot 集和 final 冻结保留集。v1.0 在仅运行一次的 40 题 final 集上取得 97.5% 的 pass/refuse 决策准确率，4 道无答案题全部正确拒答；该指标不等同于回答正确率。进一步在 pilot 集上比较 Vector RAG、Graph Only、Proposed 和 No Verifier 四种配置，Proposed 的决策准确率和无答案拒答准确率分别为 100% 和 100%，而关闭 Verifier 的配置对 4 道无答案题均未作出正确决策。用户确认后的语义复核显示 Proposed 的回答正确性为 0.8625、证据忠实度为 1.0000；评分初稿由 Codex 辅助生成，随后由用户确认，当前状态为 `user_confirmed`。
 
 实验结果显示，在由 approved 图关系定义的保守 gold Chunk 子集上，包含图检索的配置具有更高的 Recall@5；在 pilot 的 4 道无答案题上，Proposed 将拒答准确率从 No Verifier 的 0 提高到 1.0000。同时，唯一 final 错误 T-DF-01 说明保守验证也可能导致过度拒答。项目结果支持在短周期、小型领域知识库中采用“预定义知识图谱 + 文本证据 + 状态化验证”的可复现方案。
 
@@ -178,23 +178,9 @@ final 与 dev、pilot 题面重合均为 0。final 运行后没有根据 T-DF-01
 
 ## 4.1 总体流程
 
-```mermaid
-flowchart LR
-    Q[用户问题] --> R[意图识别与动态路由]
-    R --> V[Vector Retriever]
-    R --> G[Graph Retriever]
-    R --> H[Hybrid Retriever]
-    V --> F[证据统一与编号]
-    G --> F
-    H --> F
-    F --> A[离线规则生成器]
-    A --> E[Evidence Verifier]
-    E -->|pass| O[回答与引用]
-    E -->|retry| H
-    E -->|refuse| X[证据不足拒答]
-```
+![图 4-1 系统状态流](figures/architecture.png)
 
-> 图 4-1：系统状态流。最终排版时应将 Mermaid 导出为 PNG，而不是保留代码块。
+> 图 4-1：系统状态流。静态图片由 `scripts/generate_report_figures.py` 根据当前实现生成。
 
 ## 4.2 统一数据结构
 
@@ -370,7 +356,7 @@ final 已冻结，不应再次执行 `run_evaluation.py --split final`。实验�
 2. final 与 dev/pilot 题面无重合，冻结后仅运行一次；
 3. 不针对 final 唯一错误 T-DF-01 再调参并重新声称无泄漏结果；
 4. 自动决策准确率、引用率和人工回答正确性是不同指标；
-5. Codex 辅助语义评分必须带星号，用户确认前不能描述为独立人工评测。
+5. pilot 语义评分已由用户确认；本文将其称为用户确认后的语义复核，不将其描述为独立双人标注。
 
 ## 7.2 实验配置
 
@@ -421,26 +407,32 @@ $$
 
 ## 7.5 pilot 主结果
 
-| 方法 | 决策准确率 | Answer Correctness* | Faithfulness* | Recall@5 | Path Validity | Refusal Acc. | Hallucination* | Latency |
+| 方法 | 决策准确率 | Answer Correctness | Faithfulness | Recall@5 | Path Validity | Refusal Acc. | Hallucination | Latency |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Vector RAG | 0.9000 | 0.5375 | 0.4875 | 0.8276 | 不适用 | 0.0000 | 0.0000 | 1.325 ms |
 | Graph Only | 0.9000 | 0.8375 | 0.9250 | 0.9655 | 1.0000 | 0.0000 | 0.0000 | 1.000 ms |
 | Proposed | 1.0000 | 0.8625 | 1.0000 | 0.9655 | 1.0000 | 1.0000 | 0.0000 | 1.700 ms |
 | No Verifier | 0.9000 | 0.8000 | 0.8500 | 0.9655 | 1.0000 | 0.0000 | 0.0000 | 1.225 ms |
 
-`*` Codex 辅助初步语义复核，状态 `preliminary_pending_user_confirmation`。用户确认前不得写成正式人工评测。
+语义列为用户确认后的复核结果，状态为 `user_confirmed`。评分初稿由 Codex 辅助生成后经用户确认；该流程不等同于独立双人标注。
+
+![图 7-1 Pilot 自动指标对比](figures/pilot_automatic_metrics.png)
+
+![图 7-2 Pilot 用户确认语义指标](figures/pilot_semantic_confirmed.png)
+
+![图 7-3 Pilot 本地工作流耗时](figures/pilot_latency.png)
 
 ## 7.6 结果分析
 
-**回答 RQ1：** Graph Only、Proposed 和 No Verifier 在保守 gold 子集上的 Recall@5 均为 0.9655，高于 Vector RAG 的 0.8276。初步语义评分中 Graph Only 和 Proposed 的回答正确性也明显高于 Vector RAG，说明图关系有助于结构问题，但多跳路径不完整仍会降低答案覆盖。
+**回答 RQ1：** Graph Only、Proposed 和 No Verifier 在保守 gold 子集上的 Recall@5 均为 0.9655，高于 Vector RAG 的 0.8276。用户确认的语义评分中 Graph Only 和 Proposed 的回答正确性也明显高于 Vector RAG，说明图关系有助于结构问题，但多跳路径不完整仍会降低答案覆盖。
 
-**回答 RQ2：** Proposed 对 4 道无答案题全部拒答，No Verifier 的拒答准确率为 0。No Verifier 的初步忠实度低于 Proposed，主要原因是回答虽然带引用，却可能与问题限定条件不匹配。当前规则生成器没有观察到明显无证据专业事实，因此初步 Hallucination Rate 为 0；Verifier 的主要收益体现为拒答和问题对齐，而不是该小样本中的事实幻觉下降。
+**回答 RQ2：** Proposed 对 4 道无答案题全部拒答，No Verifier 的拒答准确率为 0。No Verifier 的用户确认忠实度低于 Proposed，主要原因是回答虽然带引用，却可能与问题限定条件不匹配。当前规则生成器没有观察到明显无证据专业事实，因此本次用户确认样本中的 Hallucination Rate 为 0；Verifier 的主要收益体现为拒答和问题对齐，而不是该小样本中的事实幻觉下降。
 
 **回答 RQ3：** 系统在 NetworkX、TF-IDF 和离线规则生成器下可独立运行，真实 LangGraph、数据哈希、配置指纹、归档清单和 26 项测试提供了可复现基础。
 
 ## 7.7 No Verifier 消融
 
-| 方法 | Adaptive 路由 | Verifier | 决策准确率 | Faithfulness* | 拒答准确率 | 平均重试 |
+| 方法 | Adaptive 路由 | Verifier | 决策准确率 | Faithfulness | 拒答准确率 | 平均重试 |
 | --- | --- | --- | ---: | ---: | ---: | ---: |
 | Proposed | 是 | 是 | 1.0000 | 1.0000 | 1.0000 | 无答案题中 3/4 触发一次重试 |
 | No Verifier | 是 | 否 | 0.9000 | 0.8500 | 0.0000 | 0 |
@@ -472,13 +464,15 @@ $$
 | E08 | F-DF-05 | entity/generation | 通用分类任务优先于 SVC 算法 | 定义题优先精确 Algorithm 实体 |
 | E09 | F-MS-02 | routing/graph retrieval | 返回回归算法而非 MSE/R2 指标 | 优先 Task--EVALUATED_BY--Metric |
 
-完整初稿见 `reports/experiments/pilot_error_analysis_draft.md`。
+用户确认版误差分析见 `reports/experiments/pilot_error_analysis.md`；原始分析草稿 `pilot_error_analysis_draft.md` 保留用于审计。
+
+![图 7-4 Pilot 各题型决策准确率](figures/pilot_category_decision_accuracy.png)
 
 ## 7.10 有效性威胁
 
 - final 仅 40 题，无答案题仅 4 道，统计置信度有限；
 - pilot 曾用于发现实现缺口，不能视为无泄漏最终结果；
-- Codex 辅助语义评分不是独立人工标注；
+- 语义评分由 Codex 辅助生成并经用户确认，但未进行独立双人标注或一致性统计；
 - gold Chunk 由图关系保守推导，仅覆盖部分题；
 - 规则生成器限制了对真实 LLM 幻觉问题的外推；
 - 延迟为单机热路径，没有冷启动与在线服务基准；
@@ -500,7 +494,7 @@ $$
 4. Verifier 可能产生过度拒答；
 5. 数据集和知识库规模较小；
 6. Neo4j 代码接口已实现，但当前实验使用 NetworkX，未提供独立在线 Neo4j 性能结果；
-7. 初步语义评分需用户确认。
+7. 用户确认的语义评分来自单一确认流程，尚未进行双人一致性评估。
 
 ## 8.3 后续工作
 
@@ -554,6 +548,7 @@ python scripts/validate_graph_evidence.py
 python scripts/validate_evaluation.py
 python scripts/validate_experiments.py
 python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
 python scripts/freeze_baseline.py --verify
 pytest -q
 
@@ -564,9 +559,9 @@ python scripts/validate_scoring.py
 
 # 附录 B 待完成清单
 
-- [ ] 用户确认或修订 `human_scoring_pilot_preliminary.csv`；
+- [x] 用户已确认 `human_scoring_pilot_confirmed.csv` 中 160 行 pilot 语义评分；原始 preliminary 文件仅作审计留痕；
 - [x] 完成技术增强前置审计并将 No-Go 决策写入 5.8；
 - [ ] 仅在增强重新获准后冻结 extension holdout，并在实现完成后只运行一次；
-- [ ] 生成实验图表并替换 Mermaid；
+- [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；
 - [ ] 制作答辩 PPT、演示脚本和录屏。

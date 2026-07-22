@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 from src.evaluation.config import ExperimentDefinition
 
 
-MetricStatus = Literal["computed", "pending_human_review", "not_applicable"]
+MetricStatus = Literal["computed", "user_confirmed", "pending_human_review", "not_applicable"]
 Decision = Literal["pass", "refuse"]
 ErrorStage = Literal[
     "entity_linking",
@@ -30,9 +30,9 @@ class MetricValue(BaseModel):
 
     @model_validator(mode="after")
     def validate_value_status(self) -> "MetricValue":
-        if self.status == "computed" and self.value is None:
-            raise ValueError("computed metrics must include value")
-        if self.status != "computed" and self.value is not None:
+        if self.status in {"computed", "user_confirmed"} and self.value is None:
+            raise ValueError("computed or user-confirmed metrics must include value")
+        if self.status in {"pending_human_review", "not_applicable"} and self.value is not None:
             raise ValueError("pending or not-applicable metrics cannot include value")
         if self.denominator is not None and self.denominator <= 0:
             raise ValueError("metric denominator must be positive")

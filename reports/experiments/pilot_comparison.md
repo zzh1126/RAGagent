@@ -5,7 +5,7 @@ The frozen `final` split was not rerun.
 
 - Dataset SHA-256: `fa48ddcb3e7f4ec794b9b95c0415b5f1ddbc937d6f2918987a29dd9abb7a19b0`
 - Configuration fingerprint: `56dd6a55fd05a01490322283926a722a3fe0260d4b4b6534f21d2900ba04c44a`
-- Human correctness, faithfulness, and hallucination scores are still pending.
+- Semantic scores are user-confirmed; the original Codex-assisted scoring draft is retained for audit.
 
 ## Overall Metrics
 

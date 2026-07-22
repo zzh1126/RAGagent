@@ -45,9 +45,12 @@ Open `http://localhost:8501`. The interface exposes the answer, graph paths, off
 ```bash
 python scripts/validate_evaluation.py
 python scripts/run_evaluation.py --split dev
-python scripts/run_evaluation.py --split final
+python scripts/validate_scoring.py
+python scripts/generate_report_figures.py --check
 ```
 
 Dataset ownership and leakage rules are documented in `data/evaluation/README.md`. Generated reports are written under `reports/`.
+
+The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`.
 
 The frozen holdout run is stored in `reports/evaluation_final.json`: 39 of 40 routing/refusal decisions were correct (`0.975`), including all four no-answer cases. The single residual error is an overly conservative refusal on an AdaBoost definition question.

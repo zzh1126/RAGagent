@@ -1,3 +1,10 @@
+"""Historical pre-confirmation summarizer.
+
+The current report uses the artifacts produced by
+``scripts/confirm_pilot_scoring.py``. This script remains available to
+reproduce the original preliminary summary for audit purposes.
+"""
+
 from __future__ import annotations
 
 import csv

@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "split": "pilot",
+  "semantic_review_status": "user_confirmed",
+  "sources": {
+    "reports/experiments/pilot_comparison.json": "f020e224909eac78858468d751d080c169a88cca5af67b521ba499c48f9d30da",
+    "reports/experiments/pilot_human_metrics.json": "25fd05edc6ca975d941f2239bd4ae31ba20ab37579fc1aa24bcc3bb6fe128063",
+    "config/experiments.yaml": "b8e6872a15f7776af985cccd20f5de3e8d99c08e9a6837d2d693ff9d100981bc"
+  },
+  "figures": {
+    "architecture.png": {
+      "sha256": "e3b9e6645e07134b8785e141b49fd86a9792d31c4ced131b65ed1d03df810d25",
+      "dimensions_px": [
+        1988,
+        923
+      ],
+      "purpose": "Implemented route, retrieval, generation, verification, retry and terminal states."
+    },
+    "pilot_automatic_metrics.png": {
+      "sha256": "babea3bc0709a6aa36ffc6f26d5c41c7dfdb27ebf5f193da5d7b7ae8b0af0f4e",
+      "dimensions_px": [
+        1592,
+        1049
+      ],
+      "purpose": "Automatic pilot retrieval and decision metrics."
+    },
+    "pilot_semantic_confirmed.png": {
+      "sha256": "d0d6fec288363443856c60b026e7dc69ad3d26404bc71fa9cf44fb5e88df1810",
+      "dimensions_px": [
+        1452,
+        1032
+      ],
+      "purpose": "User-confirmed semantic scores; generated with Codex assistance and confirmed by the user."
+    },
+    "pilot_latency.png": {
+      "sha256": "5c1e4ffe44c49372f25f1e776b7cd94b5c92b21024dae29d135c0c8d69f5f24d",
+      "dimensions_px": [
+        1313,
+        873
+      ],
+      "purpose": "Mean local offline workflow latency for the four pilot methods."
+    },
+    "pilot_category_decision_accuracy.png": {
+      "sha256": "479c4fd8a4d3c3a071f6c1a9cbdf0ba7104839c1697e59f3b075c472611fcd3c",
+      "dimensions_px": [
+        1884,
+        937
+      ],
+      "purpose": "Automatic decision accuracy by pilot question category."
+    }
+  }
+}
