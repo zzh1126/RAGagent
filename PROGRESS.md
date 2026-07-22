@@ -456,3 +456,32 @@ python scripts/freeze_baseline.py --verify
 ### 当前状态
 
 方案要求的第一个冲刺动作已经完成，`v1.0-baseline` 现在是独立、可审计且不会被后续增强覆盖的交付基线。下一阶段只进入实验基础设施：先冻结 Vector RAG、Graph Only、Proposed 和 No Verifier 的统一实验配置与输出 Schema，再运行主实验和必做消融；暂不开始技术增强。
+
+## 2026-07-22 补充：Git 认证与本地仓库补齐
+
+### 完成事项
+
+- 核实用户的 Git 登录状态：
+  - Git Credential Manager 的 GitHub 账号为 `zzh1126`；
+  - 全局 Git 身份为 `zzh1126 <2435539971@qq.com>`；
+  - 因此此前归档中的“Git repository unavailable”只表示冻结当时工作区没有 `.git`，不表示用户没有登录 GitHub。
+- 在 `E:\RAGagent` 创建本地 Git 仓库：
+  - 分支：`main`；
+  - 新增 `.gitignore`，忽略 Python/pytest 缓存、实际 `.env` 和运行日志；
+  - 保留知识库、Chroma 索引、评测结果、截图和方案文档以支持基线复现。
+- 创建基线 commit 和 annotated tag：
+  - commit：`04f54f6039023b1165f569efef3a5191c52dde19`；
+  - message：`release: freeze complete GraphRAG QA baseline`；
+  - tag：`v1.0-baseline`，已确认指向上述 commit。
+- 当前没有配置 `origin` 远程地址，因此没有执行 push；不会猜测或写入远程仓库地址。
+
+### 验证结果
+
+- `git status --short --branch`：工作树干净，当前分支为 `main`；
+- `git rev-list -n 1 v1.0-baseline` 与 `git rev-parse HEAD` 完全一致；
+- 暂存/提交文件中没有实际 `.env`、缓存目录或日志文件；
+- GitHub Credential Manager 登录状态仍可查询到 `zzh1126`。
+
+### 当前状态
+
+v1.0 现在同时具备文件归档校验和本地 Git commit/tag 两种版本固定方式。后续实验应从当前 `v1.0-baseline` tag 创建独立分支；远程推送需要先确定目标仓库地址，当前不自动执行。
