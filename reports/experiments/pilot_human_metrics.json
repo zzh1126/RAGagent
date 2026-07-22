@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "split": "pilot",
+  "reviewer": "Codex-assisted preliminary review",
+  "review_status": "preliminary_pending_user_confirmation",
+  "methods": {
+    "vector_rag": {
+      "answer_correctness": {
+        "value": 0.5375,
+        "numerator": 43,
+        "denominator": 80
+      },
+      "evidence_faithfulness": {
+        "value": 0.4875,
+        "numerator": 39,
+        "denominator": 80
+      },
+      "hallucination_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 40
+      },
+      "over_refusal_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 36
+      },
+      "scoring_status": "preliminary_pending_user_confirmation",
+      "reviewer": "Codex-assisted preliminary review"
+    },
+    "graph_only": {
+      "answer_correctness": {
+        "value": 0.8375,
+        "numerator": 67,
+        "denominator": 80
+      },
+      "evidence_faithfulness": {
+        "value": 0.925,
+        "numerator": 74,
+        "denominator": 80
+      },
+      "hallucination_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 40
+      },
+      "over_refusal_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 36
+      },
+      "scoring_status": "preliminary_pending_user_confirmation",
+      "reviewer": "Codex-assisted preliminary review"
+    },
+    "proposed": {
+      "answer_correctness": {
+        "value": 0.8625,
+        "numerator": 69,
+        "denominator": 80
+      },
+      "evidence_faithfulness": {
+        "value": 1.0,
+        "numerator": 80,
+        "denominator": 80
+      },
+      "hallucination_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 40
+      },
+      "over_refusal_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 36
+      },
+      "scoring_status": "preliminary_pending_user_confirmation",
+      "reviewer": "Codex-assisted preliminary review"
+    },
+    "no_verifier": {
+      "answer_correctness": {
+        "value": 0.8,
+        "numerator": 64,
+        "denominator": 80
+      },
+      "evidence_faithfulness": {
+        "value": 0.85,
+        "numerator": 68,
+        "denominator": 80
+      },
+      "hallucination_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 40
+      },
+      "over_refusal_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 36
+      },
+      "scoring_status": "preliminary_pending_user_confirmation",
+      "reviewer": "Codex-assisted preliminary review"
+    }
+  },
+  "notes": [
+    "Scores are an agent-assisted preliminary semantic review.",
+    "A human reviewer must confirm or revise them before final reporting.",
+    "The frozen final split was not used."
+  ]
+}

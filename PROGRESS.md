@@ -682,3 +682,74 @@ python scripts/freeze_baseline.py --verify
 ### 当前状态
 
 主实验和必做 No Verifier 消融的自动结果已经保存，横向比较材料可直接用于报告。下一阶段集中完成人工正确性/忠实度评分，并据此计算 Answer Correctness、Evidence Faithfulness、Hallucination Rate，随后整理至少 8 个错误或边界案例。
+
+## 2026-07-22 阶段 6.5：初步语义评分、统一指标表与 9 案例误差分析
+
+### 完成事项
+
+- 保留原始空白人工评分模板 `reports/human_scoring.csv`，没有覆盖或伪造用户人工评审结果。
+- 新增 `scripts/score_pilot_preliminary.py`，对 4 种方法 × 40 题执行可审计的 Codex 辅助初步语义复核：
+  - 输出 `reports/human_scoring_pilot_preliminary.csv`；
+  - 160 行均包含正确性 0/1/2、忠实度 0/1/2、幻觉、过度拒答、评分依据和 reviewer；
+  - reviewer 固定为 `Codex-assisted preliminary review`；
+  - review status 固定为 `preliminary_pending_user_confirmation`；
+  - 支持“集成方法/集成学习”“过拟合/过拟合风险”等同义表达；
+  - 显式区分实际决策和答案文本，例如 F-NA-01 的 pass 决策与拒答文本不混为一谈。
+- 生成初步评分指标 `reports/experiments/pilot_human_metrics.json`。
+- 新增 `scripts/summarize_scored_experiments.py`，把自动指标和初步语义评分合并为：
+  - `reports/metrics_summary.csv`；
+  - `reports/metrics_summary.md`。
+- 新增 9 个错误或边界案例初稿 `reports/experiments/pilot_error_analysis_draft.md`：
+  - 4 个无答案/错误前提案例；
+  - Ridge 关系检索错误；
+  - 随机森林多跳路径缺失；
+  - SVC 特征缩放多跳不完整；
+  - SVC 定义实体优先级错误；
+  - 回归指标路由与关系方向错误；
+  - 每个案例均记录发生阶段、具体原因和改进建议。
+- 新增 `scripts/validate_scoring.py`，验证评分行数、方法分布、分值范围、唯一键、指标重算一致性和案例数量。
+
+### 初步语义评分
+
+以下结果只能表述为 Codex 辅助初步复核，用户确认前不能写成独立人工评分：
+
+| 方法 | Answer Correctness* | Evidence Faithfulness* | Hallucination Rate* | Over-refusal Rate* |
+| --- | ---: | ---: | ---: | ---: |
+| Vector RAG | 0.5375 | 0.4875 | 0.0000 | 0.0000 |
+| Graph Only | 0.8375 | 0.9250 | 0.0000 | 0.0000 |
+| Proposed | 0.8625 | 1.0000 | 0.0000 | 0.0000 |
+| No Verifier | 0.8000 | 0.8500 | 0.0000 | 0.0000 |
+
+`*` 状态：`preliminary_pending_user_confirmation`。
+
+结果解释：
+
+- Proposed 的初步正确性和忠实度最高，但回答正确性 0.8625 明显低于自动决策准确率 1.0000，证明二者不能混用。
+- 当前观察到的主要问题是回答不相关或信息不完整，而不是无证据专业事实，因此初步幻觉率为 0；该结论仍需用户复核。
+- No Verifier 的主要损失是拒答与问题对齐，而非当前规则生成器下的明显事实幻觉。
+- 所有结论只针对已参与调试的 pilot 集，不替代 final 冻结结果。
+
+### 验证结果
+
+```bash
+python scripts/score_pilot_preliminary.py --split pilot
+python scripts/summarize_scored_experiments.py
+python scripts/validate_scoring.py
+python -m compileall -q app src scripts tests
+pytest -q
+python scripts/validate_experiments.py
+python scripts/validate_evaluation.py
+python -m pip check
+python scripts/freeze_baseline.py --verify
+```
+
+- Pytest：`26 passed`；
+- 初步评分：160 行，四种方法各 40 行，无空分、无重复 method/question；
+- 指标重算与 JSON 汇总一致；
+- 误差分析案例：9；
+- v1.0 归档校验通过；
+- final 结果 SHA-256 仍为 `BB468FD0E3B63CFEA6A3319D1C9AEB0573C8842B18FED17931545A7D906D55FC`。
+
+### 当前状态
+
+自动实验、No Verifier 消融、初步语义评分和 9 案例误差分析已经形成完整科研材料。下一阶段可在不等待最终人工确认的前提下先搭建科研报告骨架，但报告中必须把带星号指标标为初步辅助评分；用户确认评分后再移除该限定。
