@@ -40,12 +40,17 @@ llm:
   temperature: 0.0
   timeout_seconds: 120
   keep_alive: 30m
-  num_predict: 768
+  num_predict: 1536
   seed: 42
   max_retries: 1
 
 agent:
   planner_backend: rule
-  generator_backend: offline_rule
+  generator_backend: llm
   planner_fallback: rule
   generator_fallback: offline_rule
+  generator_prompt_version: v1
+  max_text_evidence: 8
+  max_graph_paths: 8
+  max_chars_per_evidence: 900
+  max_context_chars: 10000

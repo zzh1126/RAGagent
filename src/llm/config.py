@@ -47,3 +47,8 @@ class AgentLLMSettings(BaseModel):
     generator_backend: Literal["offline_rule", "llm"] = "offline_rule"
     planner_fallback: Literal["rule"] = "rule"
     generator_fallback: Literal["offline_rule"] = "offline_rule"
+    generator_prompt_version: Literal["v1"] = "v1"
+    max_text_evidence: int = Field(default=8, ge=1, le=20)
+    max_graph_paths: int = Field(default=8, ge=0, le=20)
+    max_chars_per_evidence: int = Field(default=900, ge=200, le=4000)
+    max_context_chars: int = Field(default=10000, ge=2000, le=30000)

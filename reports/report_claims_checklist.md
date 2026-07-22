@@ -21,7 +21,9 @@
 | `data/evaluation/extension_holdout_manifest.json` | extension 题集、评分合同哈希与执行锁 |
 | `reports/extension_holdout_freeze.md` | extension 冻结范围、方法和人工评分披露 |
 | `src/llm/ollama_client.py` | 统一 Client 的正式 content、一次重试和脱敏调用记录合同 |
-| `config/settings.yaml` | 当前 LLM 参数及 rule/offline_rule 主链路开关 |
+| `reports/llm_generator_dev_audit.md` | 三轮 dev 调试结果、修复轨迹与已知限制 |
+| `reports/evaluation_llm_generator_dev_candidate.json` | 当前 LLM Generator 候选 dev 自动结果 |
+| `config/settings.yaml` | 当前 rule Router、LLM Generator 与 offline_rule fallback 配置 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
 
@@ -32,7 +34,7 @@
 | C01 | 知识库仅包含 6 个官方页面、164 个 Section、180 个 Chunk | 已核验 |
 | C02 | 图谱为 50 个实体、100 条 approved 关系，100 条关系均有 Chunk 证据 | 已核验 |
 | C03 | Vector 检索使用 TF-IDF 稀疏表示，不是神经稠密 Embedding | 已核验 |
-| C04 | 当前生成器为离线规则/模板，不调用生产 LLM API | 已核验 |
+| C04 | v1.0 与冻结实验使用离线规则生成器；当前增强分支默认使用本地 LLM Generator | 已核验 |
 | C05 | 当前工作流使用真实 LangGraph 1.0.10 `StateGraph` | 已核验 |
 | C06 | final 与 pilot 当前使用 NetworkX；Neo4j 仅为可选适配器，未做在线服务基准 | 已核验 |
 | C07 | 项目是轻量化 Knowledge-Graph-Enhanced RAG，不是完整 Microsoft GraphRAG | 已核验 |
@@ -48,7 +50,8 @@
 | C17 | Manifest SHA-256 为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` | 已核验 |
 | C18 | `qwen3-vl:8b` 仍为 No-Go；`qwen3:4b` 只通过 Generator 前置门槛，Planner 为 No-Go | 已核验 |
 | C19 | 23 题 extension holdout 已在业务实现前冻结并锁定，尚未生成任何 extension 或 enhanced 结果 | 已核验 |
-| C20 | 统一 Schema 与 LLM Client 已完成，但当前 Agent 仍使用规则 Router 和 `GroundedAnswerGenerator`，不能据此声称 LLM 已进入主链路 | 已核验 |
+| C20 | 当前 Agent 使用规则 Router、`qwen3:4b` LLM Generator、确定性 Verifier 与 `GroundedAnswerGenerator` fallback | 已核验 |
+| C21 | 候选 dev 结构化输出 10/10、fallback 0/10、决策 6/10；4 个错误均为过度拒答，不能证明优于规则基线 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -64,6 +67,7 @@
 - 将 thinking 字段中的 JSON 当作已经通过正式 `AnswerPayload` 输出合同。
 - 将 `qwen3:4b` 的探针成功描述为已经接入 Agent 主链路或完成 enhanced 实验。
 - 将统一 Client 的合成 smoke 成功描述为已经完成 LLM Answer Generator、fallback 或 Agent 主链路接线。
+- 将 dev 调试结果描述为独立保留集结果、统计显著结论或 LLM 已优于规则基线。
 
 ## 发布前检查
 

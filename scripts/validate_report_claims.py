@@ -35,8 +35,8 @@ REQUIRED_RULES = (
     TextRule("R12", "1.48 ms must be separated from online LLM latency", r"1\.48 ms[^\n]{0,50}不是在线 LLM 延迟"),
     TextRule(
         "R13",
-        "Client readiness, missing Generator wiring, and Planner No-Go must remain explicit",
-        r"当前状态：统一 Schema 与 LLM Client 已完成，Generator 主链路尚未接线，Planner No-Go",
+        "Generator wiring, Planner No-Go, and the extension lock must remain explicit",
+        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go，extension 仍锁定",
     ),
     TextRule(
         "R14",
@@ -45,8 +45,13 @@ REQUIRED_RULES = (
     ),
     TextRule(
         "R15",
-        "the production workflow must remain identified as offline after Client-only work",
-        r"现有正式生成器仍是 `GroundedAnswerGenerator`，配置仍为 `generator_backend: offline_rule`",
+        "the current LLM workflow and offline fallback must both be disclosed",
+        r"当前分支默认使用 `qwen3:4b` 的 `LLMAnswerGenerator`[\s\S]{0,500}自动回退 `GroundedAnswerGenerator`",
+    ),
+    TextRule(
+        "R16",
+        "dev results must be separated from independent enhancement evidence",
+        r"候选 dev 的结构化输出成功率为 1\.0000[\s\S]{0,250}决策准确率为 0\.6000[\s\S]{0,150}(?:不能证明 LLM 增强有效|只用于开发调试)",
     ),
 )
 
@@ -77,6 +82,11 @@ FORBIDDEN_RULES = (
         "Client smoke incorrectly described as completed Generator integration",
         r"(?:统一 (?:LLM )?Client|合成 smoke)[^。\n]{0,60}(?:已接入 Agent 主链路|已完成 LLM Answer Generator|已证明增强有效)",
     ),
+    TextRule(
+        "F14",
+        "dev tuning results incorrectly presented as LLM superiority",
+        r"(?:候选 dev|dev 调试)[^。\n]{0,80}(?:证明|表明)[^。\n]{0,30}LLM[^。\n]{0,20}(?:优于|超过)规则",
+    ),
 )
 
 
@@ -92,6 +102,7 @@ def expected_literals() -> dict[str, str]:
     extension_manifest = read_json(
         PROJECT_ROOT / "data" / "evaluation" / "extension_holdout_manifest.json"
     )
+    llm_dev = read_json(PROJECT_ROOT / "reports" / "evaluation_llm_generator_dev_candidate.json")
 
     kb = stats["knowledge_base"]
     graph = stats["graph"]
@@ -128,6 +139,13 @@ def expected_literals() -> dict[str, str]:
         ),
         "S15 extension question count": f"{extension_manifest['question_count']} 题 `extension_holdout`",
         "S16 extension dataset hash": extension_manifest["dataset_sha256"],
+        "S17 LLM dev structured success": (
+            f"候选 dev 的结构化输出成功率为 {llm_dev['structured_output_success_rate']:.4f}"
+        ),
+        "S18 LLM dev fallback rate": f"fallback rate 为 {llm_dev['fallback_rate']:.4f}",
+        "S19 LLM dev decision accuracy": (
+            f"pass/refuse 决策准确率为 {llm_dev['decision_accuracy']:.4f}"
+        ),
     }
 
 

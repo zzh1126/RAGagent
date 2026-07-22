@@ -57,6 +57,13 @@ class RetrievalResult(BaseModel):
     text_evidence: list[TextEvidence] = Field(default_factory=list)
 
 
+class EvidenceQuote(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    evidence_id: str = Field(min_length=1)
+    quote: str = Field(min_length=12, max_length=500)
+
+
 class AnswerClaim(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -64,6 +71,7 @@ class AnswerClaim(BaseModel):
     evidence_ids: list[str] = Field(default_factory=list)
     graph_path_ids: list[str] = Field(default_factory=list)
     relation_id: str = ""
+    supporting_quotes: list[EvidenceQuote] = Field(default_factory=list)
 
 
 class AnswerPayload(BaseModel):
@@ -75,6 +83,10 @@ class AnswerPayload(BaseModel):
     unsupported_claims: list[str] = Field(default_factory=list)
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     generator_backend: GeneratorBackend = "offline_rule"
+    fallback_used: bool = False
+    fallback_reason: str | None = None
+    generation_attempts: int = Field(default=0, ge=0)
+    generation_latency_ms: float = Field(default=0.0, ge=0.0)
 
 
 class ClaimResult(BaseModel):
@@ -93,10 +105,22 @@ class VerifyResult(BaseModel):
     unsupported_claims: list[str] = Field(default_factory=list)
 
 
+class GenerationCall(BaseModel):
+    requested_backend: GeneratorBackend
+    actual_backend: GeneratorBackend
+    fallback_used: bool = False
+    fallback_reason: str | None = None
+    attempts: int = Field(default=0, ge=0)
+    latency_ms: float = Field(default=0.0, ge=0.0)
+    structured_output_success: bool = False
+
+
 class FinalResponse(BaseModel):
     query: str
     answer: str
+    answer_payload: AnswerPayload
     retrieval: RetrievalResult
     verification: VerifyResult
+    generation_trace: list[GenerationCall] = Field(default_factory=list)
     latency_ms: int = 0
     retry_count: int = 0

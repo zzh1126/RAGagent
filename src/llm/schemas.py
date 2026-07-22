@@ -29,3 +29,4 @@ class LLMCallRecord(StrictLLMModel):
     completion_tokens: int | None = Field(default=None, ge=0)
     done_reason: str | None = None
     error_type: str | None = None
+    validation_issues: list[str] = Field(default_factory=list)

@@ -24,7 +24,40 @@ def main() -> None:
     print(f"DECISION: {verification.decision}")
     print(f"EVIDENCE_SCORE: {verification.evidence_score:.4f}")
     print(f"CLAIM_COVERAGE: {verification.claim_coverage:.4f}")
+    print(f"CITATION_VALIDITY: {verification.citation_validity:.4f}")
+    print(f"PATH_VALIDITY: {verification.path_validity:.4f}")
+    print(f"RETRIEVAL_SUFFICIENCY: {verification.retrieval_sufficiency:.4f}")
     print(f"RETRY_COUNT: {response.retry_count}")
+    print(f"GENERATOR_BACKEND: {response.answer_payload.generator_backend}")
+    print(f"GENERATOR_FALLBACK: {response.answer_payload.fallback_used}")
+    if response.answer_payload.fallback_reason:
+        print(f"GENERATOR_FALLBACK_REASON: {response.answer_payload.fallback_reason}")
+    print(f"GENERATION_ATTEMPTS: {response.answer_payload.generation_attempts}")
+    print(f"GENERATION_LATENCY_MS: {response.answer_payload.generation_latency_ms:.1f}")
+    print(f"GENERATION_CALLS: {len(response.generation_trace)}")
+    for index, call in enumerate(response.generation_trace, start=1):
+        print(
+            f"  GENERATION_CALL_{index}: requested={call.requested_backend} "
+            f"actual={call.actual_backend} fallback={call.fallback_used} "
+            f"attempts={call.attempts} latency_ms={call.latency_ms:.1f}"
+        )
+    print(f"GENERATOR_ANSWER: {response.answer_payload.answer}")
+    print("GENERATOR_CLAIMS:")
+    for claim in response.answer_payload.claims:
+        print(
+            f"  claim={claim.claim} evidence_ids={claim.evidence_ids} "
+            f"graph_path_ids={claim.graph_path_ids} relation_id={claim.relation_id or '-'}"
+        )
+        for quote in claim.supporting_quotes:
+            print(f"    quote[{quote.evidence_id}]={quote.quote}")
+    if response.answer_payload.unsupported_claims:
+        print("GENERATOR_UNSUPPORTED:")
+        for item in response.answer_payload.unsupported_claims:
+            print(f"  {item}")
+    if verification.unsupported_claims:
+        print("VERIFIER_UNSUPPORTED:")
+        for item in verification.unsupported_claims:
+            print(f"  {item}")
     print("ANSWER:")
     print(response.answer)
     print("EVIDENCE_CHUNKS:")

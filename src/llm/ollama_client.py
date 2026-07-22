@@ -72,6 +72,7 @@ class OllamaClient:
         attempts = 0
         response_data: dict = {}
         schema_valid = False
+        validation_issues: list[str] = []
         request_messages = normalized_messages
 
         try:
@@ -140,8 +141,12 @@ class OllamaClient:
                 try:
                     parsed = response_model.model_validate_json(content)
                 except ValidationError as exc:
+                    validation_issues = self._validation_issues(exc)
                     if attempts <= self.settings.max_retries:
-                        request_messages = self._with_repair_message(normalized_messages)
+                        request_messages = self._with_repair_message(
+                            normalized_messages,
+                            validation_error=exc,
+                        )
                         continue
                     raise LLMSchemaError(
                         f"Ollama content does not match {response_model.__name__}"
@@ -158,6 +163,7 @@ class OllamaClient:
                     started_at=started_at,
                     response_data=response_data,
                     error_type=None,
+                    validation_issues=[],
                 )
                 return parsed
         except LLMError as exc:
@@ -171,6 +177,7 @@ class OllamaClient:
                 started_at=started_at,
                 response_data=response_data,
                 error_type=type(exc).__name__,
+                validation_issues=validation_issues,
             )
             raise
 
@@ -209,8 +216,17 @@ class OllamaClient:
         ]
 
     @staticmethod
-    def _with_repair_message(messages: list[dict[str, str]]) -> list[dict[str, str]]:
-        return [*messages, {"role": "system", "content": REPAIR_MESSAGE}]
+    def _with_repair_message(
+        messages: list[dict[str, str]],
+        *,
+        validation_error: ValidationError | None = None,
+    ) -> list[dict[str, str]]:
+        message = REPAIR_MESSAGE
+        if validation_error is not None:
+            issues = OllamaClient._validation_issues(validation_error)
+            if issues:
+                message += " Validation issues: " + ", ".join(issues) + "."
+        return [*messages, {"role": "system", "content": message}]
 
     def _emit_record(
         self,
@@ -224,6 +240,7 @@ class OllamaClient:
         started_at: float,
         response_data: dict,
         error_type: str | None,
+        validation_issues: list[str],
     ) -> None:
         record = LLMCallRecord(
             request_id=request_id,
@@ -239,6 +256,7 @@ class OllamaClient:
             completion_tokens=self._optional_nonnegative_int(response_data.get("eval_count")),
             done_reason=self._optional_string(response_data.get("done_reason")),
             error_type=error_type,
+            validation_issues=validation_issues,
         )
         self.last_call = record
         LOGGER.info("llm_call %s", record.model_dump_json())
@@ -257,3 +275,11 @@ class OllamaClient:
     @staticmethod
     def _optional_string(value) -> str | None:
         return value if isinstance(value, str) and value else None
+
+    @staticmethod
+    def _validation_issues(error: ValidationError) -> list[str]:
+        issues = []
+        for item in error.errors(include_url=False, include_input=False)[:5]:
+            location = ".".join(str(part) for part in item.get("loc", ())) or "root"
+            issues.append(f"{location}:{item.get('type', 'validation_error')}")
+        return issues

@@ -4,6 +4,38 @@ from src.retrieval.query_rewrite import rewrite_query_to_english
 from src.schemas import AnswerClaim, AnswerPayload, RetrievalResult, VerifyResult
 
 
+CLAIM_GROUNDING_TERMS = {
+    "随机森林": ("random forest",),
+    "逻辑回归": ("logistic regression",),
+    "决策树": ("decision tree",),
+    "装袋法": ("bagging",),
+    "集成学习": ("ensemble",),
+    "自助采样": ("bootstrap", "with replacement"),
+    "有放回": ("with replacement", "bootstrap"),
+    "随机子集": ("random subset",),
+    "基模型": ("base estimator", "base learner"),
+    "基学习器": ("base estimator", "base learner"),
+    "聚合": ("aggregate", "aggregation", "combine"),
+    "平均": ("average", "averaging"),
+    "投票": ("voting", "vote"),
+    "方差": ("variance",),
+    "偏差": ("bias",),
+    "权重": ("weight", "weighted"),
+    "加权": ("weight", "weighted"),
+    "迭代": ("iteration", "iterative"),
+    "错误样本": ("misclassified", "incorrectly classified", "error example"),
+    "特征缩放": ("feature scaling", "scaled"),
+    "缩放特征": ("feature scaling", "scaled", "scale your data"),
+    "正则化": ("regularization",),
+    "过拟合": ("overfitting", "over-fit"),
+    "类别不平衡": ("class imbalance", "imbalanced"),
+    "精确率": ("precision",),
+    "召回率": ("recall",),
+    "平衡准确率": ("balanced accuracy",),
+    "f1": ("f1", "f-measure", "f measure"),
+}
+
+
 class EvidenceVerifier:
     def __init__(
         self,
@@ -28,23 +60,66 @@ class EvidenceVerifier:
         evidence_by_id = {item.evidence_id: item for item in retrieval.text_evidence}
         valid_paths = self._valid_path_count(retrieval, graph_repo)
         path_total = len(retrieval.graph_paths)
-        path_validity = valid_paths / path_total if path_total else 1.0
+        retrieval_path_validity = valid_paths / path_total if path_total else 1.0
+        available_path_ids = {path.path_id for path in retrieval.graph_paths}
+        answer_path_ids = list(
+            dict.fromkeys(
+                [*answer.graph_paths]
+                + [path_id for claim in answer.claims for path_id in claim.graph_path_ids]
+            )
+        )
+        valid_answer_path_count = sum(path_id in available_path_ids for path_id in answer_path_ids)
+        answer_path_validity = (
+            valid_answer_path_count / len(answer_path_ids) if answer_path_ids else 1.0
+        )
+        path_validity = min(retrieval_path_validity, answer_path_validity)
 
-        unsupported: list[str] = []
+        unsupported: list[str] = list(answer.unsupported_claims)
+        unknown_path_ids = sorted(set(answer_path_ids) - available_path_ids)
+        if unknown_path_ids:
+            unsupported.append(
+                "回答引用了不存在的 graph_path_id: " + ", ".join(unknown_path_ids)
+            )
         valid_reference_count = 0
         reference_count = 0
         supported_claim_count = 0
         for claim in answer.claims:
             claim_text = claim.claim.strip()
+            claim_errors: list[str] = []
             refs = [str(ref) for ref in claim.evidence_ids]
             reference_count += len(refs)
             valid_refs = [ref for ref in refs if ref in evidence_by_id]
             valid_reference_count += len(valid_refs)
             has_relevant_evidence = self._has_relevant_evidence(valid_refs, evidence_by_id, claim, retrieval)
-            if valid_refs and has_relevant_evidence:
-                supported_claim_count += 1
+            if not valid_refs or not has_relevant_evidence:
+                claim_errors.append(claim_text or "未命名 claim")
+            if answer.generator_backend == "ollama":
+                if not claim.supporting_quotes:
+                    claim_errors.append(f"Claim 缺少可核验原文: {claim_text}")
+                for quote in claim.supporting_quotes:
+                    if quote.evidence_id not in refs:
+                        claim_errors.append(
+                            f"Claim 原文未绑定到 evidence_ids: {quote.evidence_id}"
+                        )
+                        continue
+                    evidence_item = evidence_by_id.get(quote.evidence_id)
+                    if evidence_item is None:
+                        continue
+                    normalized_quote = self._normalize_text(quote.quote)
+                    normalized_evidence = self._normalize_text(evidence_item.display_text)
+                    if normalized_quote not in normalized_evidence:
+                        claim_errors.append(
+                            f"Claim 原文不属于引用证据: {quote.evidence_id}"
+                        )
+                missing_terms = self._missing_grounding_terms(claim)
+                if missing_terms:
+                    claim_errors.append(
+                        "Claim 关键术语未被原文覆盖: " + ", ".join(missing_terms)
+                    )
+            if claim_errors:
+                unsupported.extend(claim_errors)
             else:
-                unsupported.append(claim_text or "未命名 claim")
+                supported_claim_count += 1
 
         claim_total = len(answer.claims)
         claim_coverage = supported_claim_count / claim_total if claim_total else 0.0
@@ -53,6 +128,7 @@ class EvidenceVerifier:
         if not self._query_alignment(query, retrieval, graph_repo):
             claim_coverage = 0.0
             unsupported.append("检索证据未覆盖问题中的关键限定条件")
+        unsupported = list(dict.fromkeys(item for item in unsupported if item))
         evidence_score = round(
             0.30 * claim_coverage
             + 0.25 * citation_validity
@@ -68,6 +144,7 @@ class EvidenceVerifier:
             and claim_coverage >= 0.80
             and citation_validity >= 0.80
             and path_validity >= 0.80
+            and not unsupported
         ):
             decision = "pass"
         elif (
@@ -261,3 +338,20 @@ class EvidenceVerifier:
             for triple in path.triples:
                 terms.extend([triple.source_name.lower(), triple.target_name.lower()])
         return [term for term in terms if term]
+
+    @staticmethod
+    def _normalize_text(value: str) -> str:
+        return " ".join(value.split()).casefold()
+
+    @classmethod
+    def _missing_grounding_terms(cls, claim: AnswerClaim) -> list[str]:
+        claim_text = cls._normalize_text(claim.claim)
+        quoted_text = " ".join(
+            cls._normalize_text(quote.quote) for quote in claim.supporting_quotes
+        )
+        return [
+            marker
+            for marker, aliases in CLAIM_GROUNDING_TERMS.items()
+            if marker.casefold() in claim_text
+            and not any(alias.casefold() in quoted_text for alias in aliases)
+        ]

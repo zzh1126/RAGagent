@@ -1210,3 +1210,118 @@ git diff --check
 ### 当前状态与下一步
 
 模块 2 已完成，但 LLM 尚未进入 `QAWorkflow`。下一阶段实现 `AnswerGenerator` Protocol、证据上下文序列化、`LLMAnswerGenerator` 和 `FallbackAnswerGenerator`，并用 dev/合成测试验证无效引用与服务关闭回退；在 Generator、fallback、Verifier 接线和配置全部冻结前，继续禁止运行 extension。
+
+## 2026-07-22 阶段 7.3：LLM Answer Generator、Verifier 与规则 Fallback 主链路
+
+### 完成事项
+
+- 新建模块化 `src/agent/generators/`：
+  - `AnswerGenerator` Protocol；
+  - `EvidenceContextSerializer`；
+  - 独立 LLM wire Schema `LLMAnswerDraft` / `LLMAnswerClaim`；
+  - `LLMAnswerGenerator`；
+  - `FallbackAnswerGenerator`；
+  - 统一 Generator Factory。
+- 证据上下文固定长度和来源边界：
+  - 最多 8 条文本证据和 8 条图路径；
+  - 每条文本最多 900 字符；
+  - 总上下文最多 10,000 字符；
+  - 一半文本预算优先保留图路径绑定证据，其余按问题英文改写词对当前 RetrievalResult 候选重排；
+  - 不改变或重建冻结 RetrievalResult，只控制送入生成器的上下文。
+- LLM wire Schema 不允许模型填写运行时 backend/fallback 元数据：
+  - `claims` 必填且至少 1 条；
+  - 每条 Claim 必须绑定至少一个 `evidence_id`；
+  - 每条 Claim 必须提供至少一段 `supporting_quotes`；
+  - quote 必须标注 evidence ID，长度限制 12～500 字符；
+  - 模型输出验证后才转换为内部 `AnswerPayload`，backend、fallback、attempts 和 latency 由程序写入。
+- Prompt v1 强制：只使用当前 TEXT_EVIDENCE / GRAPH_PATHS，中文回答，不读取模型记忆补充事实，不伪造 E/P/R ID，quote 逐字来自原文，证据不足写入 `unsupported_claims`。
+- 增强确定性 Verifier：
+  - 检查模型声明的 `unsupported_claims`；
+  - 检查所有 evidence/path/relation ID 是否属于当前 RetrievalResult；
+  - 检查 supporting quote 归一化后是否为对应 Chunk 原文子串；
+  - 增加保守的中英关键术语覆盖检查，拦截“引用存在但机制细节不受支持”的假阳性；
+  - Claim 只有在引用、路径、quote 和术语检查全部通过后才计入 claim coverage；
+  - pass 额外要求不存在 unsupported 项。
+- 用户可见答案始终由结构化 Claim 重建并附带 E/P 引用，不直接展示模型自由生成的 `answer` 字段，避免正文夹带未进入 Verifier 的额外事实。
+- Fallback 仅捕获预期 LLM 运行故障：服务不可达、超时、空 content 或两次 Schema 失败；`ValueError` 等程序错误不会被吞掉。
+- 默认配置已切换为：
+  - `planner_backend: rule`；
+  - `generator_backend: llm`；
+  - `generator_fallback: offline_rule`；
+  - Ollama `qwen3:4b`、Prompt v1、`num_predict=1536`；
+  - 可通过 `AGENT_GENERATOR_BACKEND=offline_rule` 强制离线模式。
+- `QAWorkflow`、LangGraph answer 节点和 `FinalResponse` 已接入生成器 Factory；历史实验 Factory 与 v1 回归测试显式固定 `offline_rule`，不会因当前默认配置改变旧实验语义。
+- 新增逐调用 `generation_trace`：每次生成节点记录 requested/actual backend、fallback、原因、attempts、latency 和 structured success；评测聚合整题所有调用，不再只读取 Verifier 重试后的最后一个 payload。
+- `run_agent.py` 增加安全诊断输出：backend、fallback、生成尝试、generation trace、Claim 的 E/P/R 和 quote、Generator/Verifier unsupported；不输出 Prompt、content 原始 JSON 或 thinking。
+- `run_evaluation.py` 增加：
+  - structured output success、fallback rate、generation call count/attempts/latency；
+  - Generator 与 Verifier unsupported；
+  - 模型/Provider/Prompt 版本；
+  - dev 数据集和 settings SHA-256；
+  - final 与 extension 运行锁保持不变。
+- 修复 dev 暴露的两个检索词缺口：
+  - `装袋法 -> bagging`，`AdaBoost -> adaboost boosting`；
+  - `缩放特征 -> feature scaling scale`；
+  - DEV06 因此能检索到明确写有 SVM 不具尺度不变性的官方 Chunk，并由真实 LLM 一次 pass。
+- Ollama Client 的 Schema 修复提示现在只附带最多 5 个 Pydantic 字段路径/错误类型，不包含无效 content；调用记录增加脱敏 `validation_issues`。
+- DEV02 持续 `root:json_invalid` 被定位为 768 token 截断；提高到 1536 后一次生成成功，`done_reason=stop`，completion tokens 为 957；重试次数没有增加。
+
+### 真实主链路验收
+
+- DEV01 随机森林模型族：真实 LLM 一次 pass，绑定 `E1/P1/R009`；
+- DEV05 Bagging / AdaBoost：模型尝试补充未在 Chunk 中出现的重加权机制，quote/术语检查将其拦截并在一次补检索后 refuse；
+- DEV08 随机森林学习率：模型常识没有绕过属性对齐，最终 refuse；
+- DEV06 SVC 特征缩放：中英改写修复后，一次 pass，quote 明确包含 `not scale invariant`；
+- 模拟 Ollama 不可达：DEV01 自动切换 `offline_rule`，`fallback_reason=LLMUnavailableError`，最终仍 pass；
+- 没有运行 final 或 extension。
+
+### 三轮 Dev 审计
+
+| 运行 | Decision Accuracy | Final-payload Structured Success | Fallback Rate | Mean Total Latency |
+| --- | ---: | ---: | ---: | ---: |
+| initial | 0.7000 | 0.9000 | 0.1000 | 12295.4 ms |
+| postfix | 0.7000 | 0.9000 | 0.1000 | 11485.8 ms |
+| candidate | 0.6000 | 1.0000 | 0.0000 | 11437.7 ms |
+
+- candidate 的 10 个最终生成 payload 均通过结构化合同且没有运行时 fallback；
+- 两道无答案题均正确拒答；
+- 4 个错误全部是 answerable 问题被过度拒答，没有观察到错误放行；
+- 规则 dev 基线为 1.0000，因此不能声称 LLM Generator 提高了决策准确率；
+- candidate 数据集 SHA-256：`7db6c94473797ee63c03b16c9daaad2936118780277bd97bbc3906cff32533e3`；
+- candidate settings SHA-256：`245af4032950698f5e8b9d6ca556a6380b5ada170cee8d8f429a56bb48bafece`；
+- 三份 dev JSON 生成时尚未聚合首次生成节点，端到端 latency 有效，但分阶段 generation 指标只代表最终 payload；代码随后已加入完整 trace，历史 dev 文件不回写。
+
+完整审计见 `reports/llm_generator_dev_audit.md`。
+
+### 验证结果
+
+```bash
+pytest -q
+python scripts/validate_config.py
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_chunks.py
+python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试：`59 passed`；
+- 配置校验确认 `llm=ollama/qwen3:4b planner=rule generator=llm`；
+- 图谱仍为 50 个实体、100 条 approved 关系，文档仍为 164 个 Section、180 个 Chunk；
+- 正式探针仍为 Schema 60/60、Generator Go、Planner No-Go；
+- extension 23 题、题集/评分合同哈希和执行锁全部通过，没有 release record 或输出；
+- 旧实验配置、160 行用户确认评分、5 张图和报告事实声明均通过；
+- v1.0 的 23 个归档 payload 全部通过，Manifest SHA-256 仍为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `pip check` 无损坏依赖，`git diff --check` 无空白错误。
+
+### 当前决定与下一步
+
+真实 LLM 已进入默认答案生成节点，结构化生成、引用/quote 边界、Verifier、一次补检索和运行时离线 fallback 已形成闭环；Planner 继续 No-Go。由于候选 dev 决策结果低于规则基线，当前只确认“实现完成且结构稳定”，不确认“增强有效”。extension 继续锁定；下一阶段先冻结实现、Prompt、配置和 trace 评分合同哈希，再创建一次性 release record，不能继续使用 dev 调参。

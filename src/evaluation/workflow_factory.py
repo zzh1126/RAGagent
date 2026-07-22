@@ -81,4 +81,9 @@ def build_experiment_workflow(
 
     router = ConfiguredRouter(experiment.router_mode)
     verifier = None if experiment.verifier_enabled else NoVerifier()
-    return build_default_workflow(project_root, router=router, verifier=verifier)
+    return build_default_workflow(
+        project_root,
+        router=router,
+        verifier=verifier,
+        generator_backend="offline_rule",
+    )

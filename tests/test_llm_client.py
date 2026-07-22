@@ -144,6 +144,8 @@ def test_schema_failure_gets_one_generic_repair_attempt() -> None:
     repair_messages = session.calls[1]["json"]["messages"]
     assert repair_messages[-1]["role"] == "system"
     assert "required JSON Schema" in repair_messages[-1]["content"]
+    assert "status:literal_error" in repair_messages[-1]["content"]
+    assert '"status":"wrong"' not in repair_messages[-1]["content"]
     assert client.last_call is not None
     assert client.last_call.attempts == 2
 
@@ -158,6 +160,7 @@ def test_schema_failure_after_repair_raises_typed_error() -> None:
     assert len(session.calls) == 2
     assert client.last_call is not None
     assert client.last_call.error_type == "LLMSchemaError"
+    assert client.last_call.validation_issues
 
 
 def test_timeout_retries_once_then_succeeds() -> None:

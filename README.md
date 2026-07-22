@@ -32,19 +32,22 @@ The workflow routes each query to vector, graph, or hybrid retrieval, generates 
 
 Set `GRAPH_BACKEND=neo4j` together with `NEO4J_URI`, `NEO4J_USER`, and `NEO4J_PASSWORD` to switch the graph repository. The default remains `networkx`.
 
-## LLM Client Readiness
+## LLM Generation Mode
 
-The shared Ollama Client and strict structured-output contracts are available, with `qwen3:4b` configured locally:
+The default workflow uses the rule Router with a real `qwen3:4b` Answer Generator, deterministic Evidence Verifier, and `GroundedAnswerGenerator` fallback:
 
 ```bash
 python scripts/validate_config.py
 python scripts/smoke_llm_client.py --timeout 180
-pytest -q tests/test_llm_client.py
+python scripts/run_agent.py "随机森林为什么更稳定"
+pytest -q tests/test_llm_client.py tests/test_answer_generators.py
 ```
 
-The Client always sends `think=false` and `stream=false`, reads only `message.content`, retries timeout or schema failure at most once, and emits metadata without prompts, generated content, thinking, or credentials. `OLLAMA_BASE_URL` and `OLLAMA_MODEL` can override the non-secret local endpoint and model settings.
+The Client always sends `think=false` and `stream=false`, reads only `message.content`, retries timeout or schema failure at most once, and emits metadata without prompts, generated content, thinking, or credentials. Every LLM Claim must bind existing E/P/R IDs and an exact source quote; the Verifier also applies a conservative bilingual term-coverage check.
 
-The QA workflow still uses `GroundedAnswerGenerator` with `agent.generator_backend: offline_rule`. The LLM Answer Generator and fallback wiring are a separate implementation stage; the locked extension holdout must not be run during Client development.
+Set `AGENT_GENERATOR_BACKEND=offline_rule` to force the deterministic mode. `OLLAMA_BASE_URL` and `OLLAMA_MODEL` can override the non-secret local endpoint and model. If Ollama is unavailable, the LLM mode automatically falls back to the offline generator.
+
+The candidate 10-question dev run reached `10/10` structured outputs with no runtime fallback, but only `6/10` pass/refuse decisions; all four errors were over-refusals. This is development evidence, not an independent result, and does not establish that LLM generation outperforms the rule baseline. See `reports/llm_generator_dev_audit.md`. The extension holdout remains locked.
 
 ## Streamlit Demo
 
@@ -59,7 +62,7 @@ Open `http://localhost:8501`. The interface exposes the answer, graph paths, off
 ```bash
 python scripts/validate_evaluation.py
 python scripts/validate_extension_holdout.py
-python scripts/run_evaluation.py --split dev
+python scripts/run_evaluation.py --split dev --output reports/evaluation_custom_dev.json
 python scripts/validate_scoring.py
 python scripts/generate_report_figures.py --check
 ```

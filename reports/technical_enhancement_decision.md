@@ -7,11 +7,11 @@
 | 审计日期 | 2026-07-22 |
 | 审计分支 | `experiment/day6-main-ablation` |
 | 重新进入分支 | `experiment/llm-agent-v2` |
-| 当前生成器 | `GroundedAnswerGenerator`，离线规则/模板 |
+| 当前生成器 | `qwen3:4b` LLM Answer Generator；`GroundedAnswerGenerator` 作为运行时 fallback |
 | 理论首选增强 | 增强 A：可插拔真实 LLM 结构化生成 + 离线规则 fallback |
 | 初始决定 | `qwen3-vl:8b` 为 **No-Go**，保留 v1.0 |
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
-| 当前实施范围 | 统一 Schema 与 LLM Client 已完成；Answer Generator 尚未接线；不接入 LLM Query Planner |
+| 当前实施范围 | LLM Answer Generator、Verifier 与规则 fallback 已接线；不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
 | extension holdout | 23 题已冻结并锁定，尚未运行 |
 
@@ -60,7 +60,7 @@ AnswerPayload 无法从正式答案字段解析
 
 `sentence-transformers` 和 PyTorch 已安装，但这只代表代码依赖存在。本机 Hugging Face 缓存中没有可直接加载的文本 Embedding 模型，现有缓存均为 CLIP/ViT 图像相关模型。根据冲刺方案“优先使用已能在本机加载的多语言模型”和“模型下载不稳定时止损”的规则，增强 B 也不具备立即实施条件。
 
-此外，当前生成器仍是离线模板，按照原决策树应优先解决真实生成能力，不应为了绕开增强 A 的前置失败而临时切换到增强 B。
+此外，初始审计时生成器仍是离线模板，按照原决策树应优先解决真实生成能力，不应为了绕开增强 A 的前置失败而临时切换到增强 B。
 
 ## 初始决定（已由下方复验更新）
 
@@ -70,7 +70,7 @@ AnswerPayload 无法从正式答案字段解析
 
 ## 重新进入复验：qwen3:4b
 
-在不修改 Agent 主链路的前提下，已新增并完成纯文本模型复验：
+在当时尚未修改 Agent 主链路的前提下，已新增并完成纯文本模型复验：
 
 - 新建分支 `experiment/llm-agent-v2`，基线提交仍为 `02a122c`；
 - 将新 Ollama 模型目录固定为 `E:\ollama-models`，C 盘原 `qwen3-vl:8b` 文件未删除；
@@ -102,13 +102,13 @@ AnswerPayload 无法从正式答案字段解析
 
 1. 允许进入 LLM Answer Generator 的实现阶段；
 2. 暂不实现 LLM Query Planner，继续使用现有规则 Router；
-3. 独立 23 题 `extension_holdout` 和评分合同已经冻结；其后已完成统一 Schema 与 Client，尚未修改 Generator 主链路；
+3. 独立 23 题 `extension_holdout` 和评分合同已经冻结；其后已完成统一 Schema、Client、Generator、Verifier 与 fallback 接线；
 4. final 继续只读，原 v1.0 结果、配置指纹和归档哈希不变；
 5. 不实施 Dense Retrieval，也不把 Planner 描述为已经可用。
 
 ## 重新进入条件
 
-以下条件用于完成增强 A。当前条件 1、2、5 已满足；下一阶段实现和验证条件 3～4，条件 6 始终有效：
+以下条件用于完成增强 A。当前条件 1～5 已满足，条件 6 始终有效；但 dev 结果尚未证明增强效果：
 
 1. 使用适合纯文本指令的本地模型，或修复当前 Ollama/model 组合，使 JSON Schema 输出进入 `message.content`；
 2. 在合成探针和 dev 上连续执行至少 20 次结构化输出，成功不少于 19 次；
@@ -128,4 +128,4 @@ python scripts/validate_extension_holdout.py
 python scripts/smoke_llm_client.py --timeout 180
 ```
 
-`check_enhancement_readiness.py` 只输出环境变量名称和模型清单，不输出密钥值；正式探针报告保存结构化解析结果、哈希和计时，但不保存 thinking 内容。统一 Client 的合成 smoke 已分别完成一次冷启动和一次热调用，均一次成功，耗时约 21.14 s 与 0.58 s；该结果只证明 Client 合同可用，不代表 LLM 已进入 Agent 主链路。
+`check_enhancement_readiness.py` 只输出环境变量名称和模型清单，不输出密钥值；正式探针报告保存结构化解析结果、哈希和计时，但不保存 thinking 内容。统一 Client 的合成 smoke 已分别完成一次冷启动和一次热调用，均一次成功，耗时约 21.14 s 与 0.58 s。随后默认主链路已接入 LLM Generator；候选 dev 为 10/10 结构成功、0 fallback、6/10 决策正确，不能据此声称增强优于规则基线。

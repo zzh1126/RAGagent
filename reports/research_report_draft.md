@@ -6,7 +6,7 @@
 > - 项目路径：`E:\RAGagent`
 > - 基线版本：`v1.0-baseline`
 > - 当前实验分支：`experiment/llm-agent-v2`
-> - 写作状态：方法、基线、主实验、消融、用户确认语义评分和误差分析已填入；`qwen3:4b` 已通过 Generator 前置门槛，extension 保留集已锁定，统一 Schema 与 LLM Client 已完成，但 Generator 主链路和新实验尚未完成。
+> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、Verifier 与规则 fallback，extension 保留集仍锁定，尚无独立增强实验结论。
 
 ## 摘要
 
@@ -243,13 +243,13 @@ Graph 路径先进行实体链接，再根据问题标记约束关系类型，�
 
 ## 5.4 Hybrid 融合
 
-Hybrid 同时调用 Graph 与 Vector。融合过程先放入图路径绑定的证据，再加入文本检索结果，以 `chunk_id` 去重并重新编号为 E1...En。当前融合采用稳定顺序与最高分保留策略，没有实现学习式重排序或 RRF；若后续选择 Dense 技术增强，必须在独立 extension holdout 上评估后才能写入本章。
+Hybrid 同时调用 Graph 与 Vector。融合过程先放入图路径绑定的证据，再加入文本检索结果，以 `chunk_id` 去重并重新编号为 E1...En。v1.0 融合采用稳定顺序与最高分保留策略，没有实现学习式重排序或 RRF；当前 LLM 生成上下文在不改变 RetrievalResult 的前提下，为图路径证据保留一半预算，并按查询改写词重排其余候选。若后续选择 Dense 技术增强，必须在独立 extension holdout 上评估后才能写入本章。
 
-## 5.5 离线回答生成
+## 5.5 回答生成
 
-当前 `GroundedAnswerGenerator` 不调用在线 LLM。它将 approved 图关系转换为中文 Claim，并把每条 Claim 绑定到一个或多个 Evidence ID；定义题可使用图实体的中文描述和对应文本证据。若没有可用 Claim 和文本证据，则生成明确的“当前知识库证据不足”文本。
+v1.0 使用的 `GroundedAnswerGenerator` 不调用在线 LLM。它将 approved 图关系转换为中文 Claim，并把每条 Claim 绑定到一个或多个 Evidence ID；定义题可使用图实体的中文描述和对应文本证据。若没有可用 Claim 和文本证据，则生成明确的“当前知识库证据不足”文本。
 
-该生成器的优势是确定、快速、离线和便于审计；局限是语言综合能力弱，复杂多跳题可能只覆盖部分关系，且引用存在不代表回答目标完全匹配。
+当前分支默认使用 `qwen3:4b` 的 `LLMAnswerGenerator`。模型只能看到长度受控的文本证据和图路径，并输出强类型 Claim、E/P/R ID 与 `supporting_quotes`；程序检查 quote 是否属于对应 Chunk，并对关键中英术语做保守覆盖校验。服务不可达、超时、空 content 或两次 Schema 失败时自动回退 `GroundedAnswerGenerator`。该机制提高了语言组织能力和运行时可用性，但 quote/术语检查不等同于完整语义蕴含判断。
 
 ## 5.6 Evidence Verifier
 
@@ -274,13 +274,13 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 ## 5.8 技术增强决策
 
-**当前状态：统一 Schema 与 LLM Client 已完成，Generator 主链路尚未接线，Planner No-Go。**
+**当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go，extension 仍锁定。**
 
 初始审计中，Ollama `0.32.1` 与 `qwen3-vl:8b` 的 5 次手工受控调用和 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空，因此该视觉模型组合仍为 No-Go，且没有读取 thinking 绕过接口合同。
 
 随后在独立分支安装纯文本 `qwen3:4b` 并执行三类各 20 次正式探针。结构化 Schema 成功为 60/60，空 `message.content` 和非空 thinking 均为 0；简单状态与嵌套 AnswerPayload 的语义成功均为 20/20，但 QueryPlan 语义成功仅为 1/20。冷启动约 20.698 s，全部热请求平均约 0.930 s、P95 约 1.294 s。因此当前只批准 LLM Answer Generator，继续使用规则 Router，不实现或宣称 LLM Planner。
 
-在任何业务实现前，项目已冻结 23 题 `extension_holdout` 和评分合同，题集 SHA-256 为 `7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5`。当前执行锁仍生效，没有 extension 输出或 enhanced 指标。项目现已完成强类型 `AnswerClaim` / `AnswerPayload`、统一 `LLMClient`、Ollama 实现、错误分类、一次超时或 Schema 修复重试以及脱敏调用记录；合成 smoke 的冷、热调用分别约为 21.14 s 和 0.58 s。现有正式生成器仍是 `GroundedAnswerGenerator`，配置仍为 `generator_backend: offline_rule`；LLM Answer Generator、fallback、Verifier 接线和独立实验尚未完成，因此 Client 可用性不能作为增强有效性的结论。Sparse + Dense + Graph 也未启动。完整依据见 `reports/technical_enhancement_decision.md` 与 `reports/extension_holdout_freeze.md`。
+在任何业务实现前，项目已冻结 23 题 `extension_holdout` 和评分合同，题集 SHA-256 为 `7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5`。当前执行锁仍生效，没有 extension 输出或 enhanced 指标。统一 Client、LLM Generator、quote/ID 校验、Verifier 和离线 fallback 已完成；模拟服务不可用时，已知题可自动回退并继续 pass。候选 dev 的结构化输出成功率为 1.0000、fallback rate 为 0.0000、pass/refuse 决策准确率为 0.6000，4 个错误均为 answerable 问题的过度拒答；规则 dev 基线为 1.0000。该结果只用于开发调试，不能证明 LLM 增强有效。完整依据见 `reports/llm_generator_dev_audit.md`、`reports/technical_enhancement_decision.md` 与 `reports/extension_holdout_freeze.md`。
 
 ---
 
@@ -507,7 +507,7 @@ $$
 
 ## 8.4 当前可提交性
 
-LLM Generator 已通过模型前置门槛，extension 保留集已经冻结，统一 Schema 与 Client 也已完成；但 Generator 主链路、fallback 和独立实验尚未完成。v1.0 仍包含完整知识库、三路检索、LangGraph、Verifier、Streamlit、冻结结果、主实验、消融和误差分析，可继续作为科研实践保底版本提交。
+LLM Generator、统一 Schema、Client、Verifier 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；但目前只有 dev 调试结果，决策表现低于规则基线，独立 extension 实验尚未执行。v1.0 继续作为可提交保底版本，当前增强分支不能提前宣称效果提升。
 
 ---
 
@@ -565,7 +565,8 @@ python scripts/validate_scoring.py
 - [x] 完成 `qwen3-vl:8b` 初始 No-Go 与 `qwen3:4b` Generator Go / Planner No-Go 复验；
 - [x] 在业务实现前冻结 23 题 extension holdout、评分合同和 SHA-256，当前保持执行锁；
 - [x] 实现强类型 AnswerPayload、统一 LLM Client、错误分类、一次重试、脱敏调用记录与合成 smoke；
-- [ ] 实现 LLM Answer Generator、规则 fallback 与 Verifier 接线，冻结实现后再解除 extension 执行锁；
+- [x] 实现 LLM Answer Generator、规则 fallback、quote/ID 校验与 Verifier 接线；
+- [ ] 冻结实现、Prompt 和配置哈希，建立一次性 release record 后再解除 extension 执行锁；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；
 - [ ] 制作答辩 PPT、演示脚本和录屏。

@@ -13,12 +13,23 @@ except ImportError:
     load_dotenv = None
 
 from src.agent.answer_generator import GroundedAnswerGenerator
+from src.agent.generators.base import AnswerGenerator
+from src.agent.generators.factory import create_answer_generator
 from src.graph.networkx_repository import NetworkXGraphRepository
+from src.llm.base import LLMClient
+from src.llm.config import AgentLLMSettings, LLMSettings
+from src.llm.factory import create_llm_client
 from src.retrieval.graph_retriever import GraphRetriever
 from src.retrieval.hybrid_retriever import HybridRetriever
 from src.retrieval.intent_router import IntentRouter, RouteDecision
 from src.retrieval.vector_retriever import TfidfVectorRetriever
-from src.schemas import AnswerPayload, FinalResponse, RetrievalResult, VerifyResult
+from src.schemas import (
+    AnswerPayload,
+    FinalResponse,
+    GenerationCall,
+    RetrievalResult,
+    VerifyResult,
+)
 from src.verification.evidence_verifier import EvidenceVerifier
 
 try:
@@ -36,6 +47,7 @@ class AgentState(TypedDict, total=False):
     route: RouteDecision
     retrieval: RetrievalResult
     answer_payload: AnswerPayload
+    generation_trace: list[GenerationCall]
     verification: VerifyResult
     retry_count: int
     started_at: float
@@ -48,7 +60,7 @@ class QAWorkflow:
         retriever: HybridRetriever,
         graph_repo,
         router: IntentRouter | None = None,
-        answer_generator: GroundedAnswerGenerator | None = None,
+        answer_generator: AnswerGenerator | None = None,
         verifier: EvidenceVerifier | None = None,
         top_k: int = 8,
     ):
@@ -98,7 +110,30 @@ class QAWorkflow:
         return {"retrieval": self._retrieve(state["query"], route, state.get("retry_count", 0))}
 
     def _answer_node(self, state: AgentState) -> dict:
-        return {"answer_payload": self.answer_generator.generate(state["query"], state["retrieval"])}
+        payload = self.answer_generator.generate(state["query"], state["retrieval"])
+        requested_backend = (
+            "ollama"
+            if payload.generator_backend == "ollama" or payload.fallback_used
+            else "offline_rule"
+        )
+        call = GenerationCall(
+            requested_backend=requested_backend,
+            actual_backend=payload.generator_backend,
+            fallback_used=payload.fallback_used,
+            fallback_reason=payload.fallback_reason,
+            attempts=payload.generation_attempts,
+            latency_ms=payload.generation_latency_ms,
+            structured_output_success=bool(
+                requested_backend == "ollama"
+                and payload.generator_backend == "ollama"
+                and not payload.fallback_used
+                and payload.generation_attempts > 0
+            ),
+        )
+        return {
+            "answer_payload": payload,
+            "generation_trace": [*state.get("generation_trace", []), call],
+        }
 
     def _verify_node(self, state: AgentState) -> dict:
         return {
@@ -136,8 +171,10 @@ class QAWorkflow:
             "final_response": FinalResponse(
                 query=state["query"],
                 answer=answer,
+                answer_payload=state["answer_payload"],
                 retrieval=state["retrieval"],
                 verification=verification,
+                generation_trace=state.get("generation_trace", []),
                 latency_ms=latency_ms,
                 retry_count=state.get("retry_count", 0),
             )
@@ -164,6 +201,9 @@ def build_default_workflow(
     *,
     router: IntentRouter | None = None,
     verifier=None,
+    answer_generator: AnswerGenerator | None = None,
+    llm_client: LLMClient | None = None,
+    generator_backend: str | None = None,
 ) -> QAWorkflow:
     root = project_root or Path(__file__).resolve().parents[2]
     settings = yaml.safe_load((root / "config" / "settings.yaml").read_text(encoding="utf-8"))
@@ -174,6 +214,11 @@ def build_default_workflow(
 
     if load_dotenv:
         load_dotenv(root / ".env")
+    agent_values = dict(settings.get("agent", {}))
+    backend_override = generator_backend or os.environ.get("AGENT_GENERATOR_BACKEND")
+    if backend_override:
+        agent_values["generator_backend"] = backend_override
+    agent_settings = AgentLLMSettings.model_validate(agent_values)
     backend = os.environ.get("GRAPH_BACKEND", settings["project"].get("graph_backend", "networkx")).lower()
     if backend == "networkx":
         graph_repo = NetworkXGraphRepository(entities_path, relations_path, approved_only=True)
@@ -207,10 +252,20 @@ def build_default_workflow(
     )
     if verifier is None:
         verifier = default_verifier
+    if answer_generator is None:
+        if agent_settings.generator_backend == "llm" and llm_client is None:
+            llm_settings = LLMSettings.model_validate(settings.get("llm", {}))
+            llm_client = create_llm_client(llm_settings)
+        answer_generator = create_answer_generator(
+            agent_settings,
+            graph_repo=graph_repo,
+            llm_client=llm_client,
+        )
     return QAWorkflow(
         hybrid_retriever,
         graph_repo,
         router=router,
+        answer_generator=answer_generator,
         verifier=verifier,
         top_k=int(settings["retrieval"].get("final_top_k", 8)),
     )

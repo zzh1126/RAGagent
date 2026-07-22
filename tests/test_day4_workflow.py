@@ -17,7 +17,7 @@ def test_intent_router_selects_three_modes():
 
 
 def test_hybrid_workflow_answers_with_verified_evidence():
-    workflow = build_default_workflow(ROOT)
+    workflow = build_default_workflow(ROOT, generator_backend="offline_rule")
     response = workflow.invoke("随机森林为什么更稳定")
 
     assert response.retrieval.mode == "hybrid"
@@ -28,7 +28,7 @@ def test_hybrid_workflow_answers_with_verified_evidence():
 
 
 def test_hybrid_workflow_uses_incoming_metric_relations():
-    workflow = build_default_workflow(ROOT)
+    workflow = build_default_workflow(ROOT, generator_backend="offline_rule")
     response = workflow.invoke("类别不平衡时用什么指标")
 
     assert response.verification.decision == "pass"
@@ -37,7 +37,7 @@ def test_hybrid_workflow_uses_incoming_metric_relations():
 
 
 def test_workflow_refuses_unknown_question():
-    workflow = build_default_workflow(ROOT)
+    workflow = build_default_workflow(ROOT, generator_backend="offline_rule")
     response = workflow.invoke("如何烤蛋糕")
 
     assert response.verification.decision == "refuse"
@@ -45,22 +45,23 @@ def test_workflow_refuses_unknown_question():
 
 
 def test_workflow_refuses_entity_attribute_not_supported_by_sources():
-    workflow = build_default_workflow(ROOT)
+    workflow = build_default_workflow(ROOT, generator_backend="offline_rule")
     response = workflow.invoke("随机森林的学习率是多少")
 
     assert response.verification.decision == "refuse"
     assert response.retry_count == 1
+    assert len(response.generation_trace) == 2
 
 
 def test_workflow_refuses_external_algorithm_mentioned_only_as_reference():
-    workflow = build_default_workflow(ROOT)
+    workflow = build_default_workflow(ROOT, generator_backend="offline_rule")
     response = workflow.invoke("XGBoost 如何处理缺失值")
 
     assert response.verification.decision == "refuse"
 
 
 def test_workflow_refuses_false_graph_premise():
-    workflow = build_default_workflow(ROOT)
+    workflow = build_default_workflow(ROOT, generator_backend="offline_rule")
     response = workflow.invoke("KMeans 是监督分类算法吗")
 
     assert response.verification.decision == "refuse"
@@ -68,7 +69,7 @@ def test_workflow_refuses_false_graph_premise():
 
 
 def test_workflow_accepts_true_graph_premise():
-    workflow = build_default_workflow(ROOT)
+    workflow = build_default_workflow(ROOT, generator_backend="offline_rule")
     response = workflow.invoke("随机森林是否使用 Bootstrap 抽样？")
 
     assert response.verification.decision == "pass"
