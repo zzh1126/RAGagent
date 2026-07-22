@@ -1,0 +1,1705 @@
+{
+  "schema_version": "1.0",
+  "run_id": "graph_only-pilot-20260722T074606Z",
+  "experiment_id": "graph_only",
+  "experiment_config": {
+    "id": "graph_only",
+    "display_name": "Graph Only",
+    "enabled": true,
+    "retrieval_mode": "graph",
+    "router_mode": "fixed_graph",
+    "verifier_enabled": false,
+    "answer_generator": "offline_rule",
+    "requires_network": false,
+    "purpose": "Structured relation baseline with a fixed graph route."
+  },
+  "dataset_split": "pilot",
+  "dataset_path": "data\\evaluation\\pilot_questions.jsonl",
+  "dataset_sha256": "fa48ddcb3e7f4ec794b9b95c0415b5f1ddbc937d6f2918987a29dd9abb7a19b0",
+  "config_fingerprint": "56dd6a55fd05a01490322283926a722a3fe0260d4b4b6534f21d2900ba04c44a",
+  "engine": "langgraph",
+  "started_at": "2026-07-22T07:46:06.590781+00:00",
+  "completed_at": "2026-07-22T07:46:06.644789+00:00",
+  "question_count": 40,
+  "metrics": {
+    "decision_accuracy": {
+      "value": 0.9,
+      "numerator": 36.0,
+      "denominator": 40.0,
+      "status": "computed",
+      "note": ""
+    },
+    "answer_correctness": {
+      "value": null,
+      "numerator": null,
+      "denominator": null,
+      "status": "pending_human_review",
+      "note": "requires manual 0/1/2 correctness scoring"
+    },
+    "evidence_faithfulness": {
+      "value": null,
+      "numerator": null,
+      "denominator": null,
+      "status": "pending_human_review",
+      "note": "requires manual 0/1/2 faithfulness scoring"
+    },
+    "retrieval_recall_at_5": {
+      "value": 0.9655,
+      "numerator": 28.0,
+      "denominator": 29.0,
+      "status": "computed",
+      "note": "computed only for questions with conservative graph-derived gold Chunk IDs"
+    },
+    "path_validity": {
+      "value": 1.0,
+      "numerator": 38.0,
+      "denominator": 38.0,
+      "status": "computed",
+      "note": "computed independently of the Verifier setting"
+    },
+    "refusal_accuracy": {
+      "value": 0.0,
+      "numerator": 0.0,
+      "denominator": 4.0,
+      "status": "computed",
+      "note": ""
+    },
+    "hallucination_rate": {
+      "value": null,
+      "numerator": null,
+      "denominator": null,
+      "status": "pending_human_review",
+      "note": "requires manual review of unsupported professional claims"
+    },
+    "over_refusal_rate": {
+      "value": 0.0,
+      "numerator": 0.0,
+      "denominator": 36.0,
+      "status": "computed",
+      "note": ""
+    },
+    "citation_rate": {
+      "value": 1.0,
+      "numerator": 36.0,
+      "denominator": 36.0,
+      "status": "computed",
+      "note": "citation presence among answerable questions"
+    },
+    "latency_ms": {
+      "value": 1.0,
+      "numerator": 40.0,
+      "denominator": 40.0,
+      "status": "computed",
+      "note": "local workflow total latency; stage timers are not yet instrumented"
+    }
+  },
+  "results": [
+    {
+      "question_id": "F-SH-01",
+      "question": "随机森林属于什么模型族？",
+      "category": "single_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 随机森林属于集成学习。 [E1][E2]\n\n官方证据：\n[E1] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | https://scikit-learn.org/stable/modules/ensemble.html#ensembles-gradient-boosting-random-forests-bagging-voting-stacking\n[E2] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-SH-02",
+      "question": "支持向量分类属于什么模型族？",
+      "category": "single_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 支持向量分类属于核方法。 [E1][E2]\n\n官方证据：\n[E1] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # | https://scikit-learn.org/stable/modules/svm.html#support-vector-machines\n[E2] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # > 1.4.1. Classification # | https://scikit-learn.org/stable/modules/svm.html#classification",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001",
+        "SKL-S2-1_4_1_CLASSIFICATION-002"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001",
+        "SKL-S2-1_4_1_CLASSIFICATION-002"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-SH-03",
+      "question": "KMeans 解决什么任务？",
+      "category": "single_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- KMeans可用于解决聚类。 [E1][E2]\n\n官方证据：\n[E1] 2.3. Clustering # | 2.3. Clustering # > 2.3.1. Overview of clustering methods # | https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods\n[E2] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # | https://scikit-learn.org/stable/modules/clustering.html#k-means",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002",
+        "SKL-S5-2_3_2_K_MEANS-003"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002",
+        "SKL-S5-2_3_2_K_MEANS-003"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-SH-04",
+      "question": "岭回归使用什么技术？",
+      "category": "single_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 线性回归可用于解决回归。 [E1][E2]\n- Ridge回归可用于解决回归。 [E3][E1]\n- Lasso回归可用于解决回归。 [E2][E4]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.2. Ridge regression and classification # > 1.1.2.1. Regression # | https://scikit-learn.org/stable/modules/linear_model.html#regression\n[E2] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.4. Multi-task Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#multi-task-lasso\n[E3] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.10. Bayesian Regression # > 1.1.10.1. Bayesian Ridge Regression # | https://scikit-learn.org/stable/modules/linear_model.html#bayesian-ridge-regression\n[E4] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.3. Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#lasso",
+      "intent": "recommendation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_2_1_REGRESSION-005",
+        "SKL-S1-1_1_4_MULTI_TASK_LASSO-012",
+        "SKL-S1-1_1_10_1_BAYESIAN_RIDGE_REGRESSION-019",
+        "SKL-S1-1_1_3_LASSO-008"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S1-1_1_10_1_BAYESIAN_RIDGE_REGRESSION-019",
+        "SKL-S1-1_1_2_1_REGRESSION-005"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-SH-05",
+      "question": "支持向量分类需要什么预处理技术？",
+      "category": "single_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 支持向量分类需要特征缩放。 [E1][E2]\n\n官方证据：\n[E1] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # > 1.4.1. Classification # | https://scikit-learn.org/stable/modules/svm.html#classification\n[E2] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # | https://scikit-learn.org/stable/modules/svm.html#support-vector-machines",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S2-1_4_1_CLASSIFICATION-002",
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S2-1_4_1_CLASSIFICATION-002",
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-SH-06",
+      "question": "决策树可用于哪些监督学习任务？",
+      "category": "single_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 决策树可用于解决分类。 [E1][E2]\n- 决策树可用于解决回归。 [E1][E3]\n\n官方证据：\n[E1] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees\n[E2] 1.10. Decision Trees # | 1.10. Decision Trees # > 1.10.1. Classification # | https://scikit-learn.org/stable/modules/tree.html#classification\n[E3] 1.10. Decision Trees # | 1.10. Decision Trees # > 1.10.2. Regression # | https://scikit-learn.org/stable/modules/tree.html#regression",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-001",
+        "SKL-S3-1_10_1_CLASSIFICATION-004",
+        "SKL-S3-1_10_2_REGRESSION-005"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-001",
+        "SKL-S3-1_10_1_CLASSIFICATION-004",
+        "SKL-S3-1_10_2_REGRESSION-005"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-SH-07",
+      "question": "逻辑回归可以用什么指标评估？",
+      "category": "single_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 逻辑回归可用来评估ROC AUC。 [E1][E2]\n- 逻辑回归可用来评估F1分数。 [E3][E4]\n- 回归可用来评估均方误差。 [E5][E6]\n- 回归可用来评估R2分数。 [E7][E8]\n\n官方证据：\n[E1] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.15. Receiver operating characteristic (ROC) # | https://scikit-learn.org/stable/modules/model_evaluation.html#receiver-operating-characteristic-roc\n[E2] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # | https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics\n[E3] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.3. The scoring parameter: defining model evaluation rules # > 3.4.3.1. String name scorers # | https://scikit-learn.org/stable/modules/model_evaluation.html#string-name-scorers\n[E4] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.2. Scoring API overview # | https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-api-overview\n[E5] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.6. Regression metrics # > 3.4.6.3. Mean squared error # | https://scikit-learn.org/stable/modules/model_evaluation.html#mean-squared-error",
+      "intent": "recommendation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S6-3_4_4_15_RECEIVER_OPERATING_CHARACTERISTIC_ROC-028",
+        "SKL-S6-3_4_4_CLASSIFICATION_METRICS-009",
+        "SKL-S6-3_4_3_1_STRING_NAME_SCORERS-005",
+        "SKL-S6-3_4_2_SCORING_API_OVERVIEW-003",
+        "SKL-S6-3_4_6_3_MEAN_SQUARED_ERROR-046"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S6-3_4_4_15_RECEIVER_OPERATING_CHARACTERISTIC_ROC-028",
+        "SKL-S6-3_4_4_CLASSIFICATION_METRICS-009"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P1",
+        "P2"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-SH-08",
+      "question": "随机森林是否使用 Bootstrap 抽样？",
+      "category": "single_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 随机森林使用决策树。 [E1][E2]\n- 随机森林使用Bootstrap抽样。 [E1][E3]\n- 随机森林使用特征子采样。 [E1][E4]\n\n官方证据：\n[E1] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests\n[E2] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles\n[E3] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests\n[E4] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.1. Gradient-boosted trees # > 1.11.1.2. GradientBoostingClassifier and GradientBoostingRegressor # | https://scikit-learn.org/stable/modules/ensemble.html#gradientboostingclassifier-and-gradientboostingregressor",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+        "SKL-S4-1_11_2_RANDOM_FORESTS_AND_OTHER_RANDOMIZED_TREE_-014",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-016",
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-012"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-016"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-01",
+      "question": "随机森林通过决策树属于哪个模型族？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 随机森林属于集成学习。 [E1][E2]\n\n官方证据：\n[E1] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | https://scikit-learn.org/stable/modules/ensemble.html#ensembles-gradient-boosting-random-forests-bagging-voting-stacking\n[E2] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-001",
+        "SKL-S3-1_10_DECISION_TREES-002",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+        "SKL-S4-1_11_2_RANDOM_FORESTS_AND_OTHER_RANDOMIZED_TREE_-014"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-02",
+      "question": "岭回归使用的正则化属于什么概念？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- Ridge回归使用正则化。 [E1][E2]\n- Lasso回归使用正则化。 [E3][E4]\n- 逻辑回归使用正则化。 [E5][E6]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.10. Bayesian Regression # > 1.1.10.1. Bayesian Ridge Regression # | https://scikit-learn.org/stable/modules/linear_model.html#bayesian-ridge-regression\n[E2] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.2. Ridge regression and classification # > 1.1.2.1. Regression # | https://scikit-learn.org/stable/modules/linear_model.html#regression\n[E3] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.3. Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#lasso\n[E4] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.3. Lasso # > 1.1.3.2. Setting regularization parameter # | https://scikit-learn.org/stable/modules/linear_model.html#setting-regularization-parameter\n[E5] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.11. Logistic regression # | https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_10_1_BAYESIAN_RIDGE_REGRESSION-019",
+        "SKL-S1-1_1_2_1_REGRESSION-005",
+        "SKL-S1-1_1_3_LASSO-008",
+        "SKL-S1-1_1_3_2_SETTING_REGULARIZATION_PARAMETER-010",
+        "SKL-S1-1_1_11_LOGISTIC_REGRESSION-021"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S1-1_1_10_1_BAYESIAN_RIDGE_REGRESSION-019",
+        "SKL-S1-1_1_2_1_REGRESSION-005"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-03",
+      "question": "支持向量分类需要的特征缩放与什么问题有关？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 支持向量分类需要特征缩放。 [E1][E2]\n\n官方证据：\n[E1] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # > 1.4.1. Classification # | https://scikit-learn.org/stable/modules/svm.html#classification\n[E2] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # | https://scikit-learn.org/stable/modules/svm.html#support-vector-machines",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S2-1_4_1_CLASSIFICATION-002",
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S2-1_4_1_CLASSIFICATION-002",
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001",
+        "SKL-S2-1_4_5_TIPS_ON_PRACTICAL_USE-010"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-04",
+      "question": "随机森林使用的 Bootstrap 抽样有什么优势？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 随机森林使用决策树。 [E1][E2]\n- 随机森林使用Bootstrap抽样。 [E1][E3]\n- 随机森林使用特征子采样。 [E1][E4]\n\n官方证据：\n[E1] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests\n[E2] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles\n[E3] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests\n[E4] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.1. Gradient-boosted trees # > 1.11.1.2. GradientBoostingClassifier and GradientBoostingRegressor # | https://scikit-learn.org/stable/modules/ensemble.html#gradientboostingclassifier-and-gradientboostingregressor",
+      "intent": "explanation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+        "SKL-S4-1_11_2_RANDOM_FORESTS_AND_OTHER_RANDOMIZED_TREE_-014",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-016",
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-012"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-016",
+        "SKL-S4-1_11_2_3_PARAMETERS-018"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-05",
+      "question": "剪枝可以缓解什么风险？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 剪枝有助于缓解“过拟合风险”。 [E1][E2]\n\n官方证据：\n[E1] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees\n[E2] 1.10. Decision Trees # | 1.10. Decision Trees # > 1.10.6. Tree algorithms: ID3, C4.5, C5.0 and CART # | https://scikit-learn.org/stable/modules/tree.html#tree-algorithms-id3-c4-5-c5-0-and-cart",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-002",
+        "SKL-S3-1_10_6_TREE_ALGORITHMS_ID3_C4_5_C5_0_AND_CART-011"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-002",
+        "SKL-S3-1_10_6_TREE_ALGORITHMS_ID3_C4_5_C5_0_AND_CART-011"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-06",
+      "question": "KMeans 使用特征缩放与聚类任务有什么关系？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- KMeans需要特征缩放。 [E1][E2]\n- KMeans可用于解决聚类。 [E3][E2]\n\n官方证据：\n[E1] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # > 2.3.2.2. Mini Batch K-Means # | https://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means\n[E2] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # | https://scikit-learn.org/stable/modules/clustering.html#k-means\n[E3] 2.3. Clustering # | 2.3. Clustering # > 2.3.1. Overview of clustering methods # | https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods",
+      "intent": "multi_hop",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S5-2_3_2_2_MINI_BATCH_K_MEANS-006",
+        "SKL-S5-2_3_2_K_MEANS-003",
+        "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002",
+        "SKL-S5-2_3_2_K_MEANS-003",
+        "SKL-S5-2_3_2_2_MINI_BATCH_K_MEANS-006"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-07",
+      "question": "逻辑回归与正则化、ROC AUC 之间有哪些关系？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 逻辑回归可用来评估ROC AUC。 [E1][E2]\n\n官方证据：\n[E1] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.15. Receiver operating characteristic (ROC) # | https://scikit-learn.org/stable/modules/model_evaluation.html#receiver-operating-characteristic-roc\n[E2] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # | https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics",
+      "intent": "multi_hop",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S6-3_4_4_15_RECEIVER_OPERATING_CHARACTERISTIC_ROC-028",
+        "SKL-S6-3_4_4_CLASSIFICATION_METRICS-009"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S1-1_1_11_LOGISTIC_REGRESSION-021",
+        "SKL-S1-1_1_11_3_SOLVERS-024",
+        "SKL-S6-3_4_4_15_RECEIVER_OPERATING_CHARACTERISTIC_ROC-028",
+        "SKL-S6-3_4_4_CLASSIFICATION_METRICS-009"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-08",
+      "question": "决策树的可解释性与过拟合风险如何关联？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 决策树的一个已标注局限与“过拟合风险”有关。 [E1][E2]\n\n官方证据：\n[E1] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees\n[E2] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees",
+      "intent": "multi_hop",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-002",
+        "SKL-S3-1_10_DECISION_TREES-001"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-002",
+        "SKL-S3-1_10_DECISION_TREES-001"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MH-09",
+      "question": "DBSCAN 与聚类方法和聚类任务的关系是什么？",
+      "category": "multi_hop",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- DBSCAN可用于解决聚类。 [E1][E2]\n- DBSCAN属于聚类方法。 [E3][E4]\n\n官方证据：\n[E1] 2.3. Clustering # | 2.3. Clustering # > 2.3.8. HDBSCAN # > 2.3.8.2. Hierarchical Clustering # | https://scikit-learn.org/stable/modules/clustering.html#id11\n[E2] 2.3. Clustering # | 2.3. Clustering # > 2.3.5. Spectral clustering # > 2.3.5.2. Spectral Clustering Graphs # | https://scikit-learn.org/stable/modules/clustering.html#spectral-clustering-graphs\n[E3] 2.3. Clustering # | 2.3. Clustering # > 2.3.1. Overview of clustering methods # | https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods\n[E4] 2.3. Clustering # | 2.3. Clustering # | https://scikit-learn.org/stable/modules/clustering.html#clustering",
+      "intent": "multi_hop",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S5-2_3_8_2_HIERARCHICAL_CLUSTERING-023",
+        "SKL-S5-2_3_5_2_SPECTRAL_CLUSTERING_GRAPHS-011",
+        "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002",
+        "SKL-S5-2_3_CLUSTERING-001"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002",
+        "SKL-S5-2_3_CLUSTERING-001",
+        "SKL-S5-2_3_8_2_HIERARCHICAL_CLUSTERING-023",
+        "SKL-S5-2_3_5_2_SPECTRAL_CLUSTERING_GRAPHS-011"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-DF-01",
+      "question": "什么是线性回归？",
+      "category": "definition",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 线性回归属于线性模型。 [E1][E2]\n- 线性回归可用于解决回归。 [E3][E4]\n- 线性回归：用于连续目标的普通最小二乘线性模型。 [E1][E2]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # | https://scikit-learn.org/stable/modules/linear_model.html#linear-models\n[E2] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.12. Generalized Linear Models # | https://scikit-learn.org/stable/modules/linear_model.html#generalized-linear-models\n[E3] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.2. Ridge regression and classification # > 1.1.2.1. Regression # | https://scikit-learn.org/stable/modules/linear_model.html#regression\n[E4] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.4. Multi-task Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#multi-task-lasso",
+      "intent": "definition",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_LINEAR_MODELS-001",
+        "SKL-S1-1_1_12_GENERALIZED_LINEAR_MODELS-027",
+        "SKL-S1-1_1_2_1_REGRESSION-005",
+        "SKL-S1-1_1_4_MULTI_TASK_LASSO-012"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-DF-02",
+      "question": "什么是 Ridge 回归？",
+      "category": "definition",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- Ridge回归属于线性模型。 [E1][E2]\n- Ridge回归可用于解决回归。 [E1][E3]\n- Ridge回归使用正则化。 [E1][E3]\n- Ridge回归对噪声数据具有一定鲁棒性。 [E1][E4]\n- Ridge回归有助于缓解“过拟合风险”。 [E1][E3]\n- Ridge回归与Lasso回归在方法机制上存在差异。 [E1][E5]\n- Ridge回归：带L2正则化的线性回归模型。 [E1][E2]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.10. Bayesian Regression # > 1.1.10.1. Bayesian Ridge Regression # | https://scikit-learn.org/stable/modules/linear_model.html#bayesian-ridge-regression\n[E2] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.12. Generalized Linear Models # | https://scikit-learn.org/stable/modules/linear_model.html#generalized-linear-models\n[E3] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.2. Ridge regression and classification # > 1.1.2.1. Regression # | https://scikit-learn.org/stable/modules/linear_model.html#regression\n[E4] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.7. Least Angle Regression # | https://scikit-learn.org/stable/modules/linear_model.html#least-angle-regression\n[E5] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.3. Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#lasso",
+      "intent": "definition",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_10_1_BAYESIAN_RIDGE_REGRESSION-019",
+        "SKL-S1-1_1_12_GENERALIZED_LINEAR_MODELS-027",
+        "SKL-S1-1_1_2_1_REGRESSION-005",
+        "SKL-S1-1_1_7_LEAST_ANGLE_REGRESSION-015",
+        "SKL-S1-1_1_3_LASSO-008"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-DF-03",
+      "question": "什么是 Lasso 回归？",
+      "category": "definition",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- Lasso回归属于线性模型。 [E1][E2]\n- Lasso回归可用于解决回归。 [E3][E2]\n- Lasso回归使用正则化。 [E2][E4]\n- Lasso回归具有可解释性方面的优势。 [E2][E5]\n- Lasso回归有助于缓解“过拟合风险”。 [E2][E6]\n- Ridge回归与Lasso回归在方法机制上存在差异。 [E7][E2]\n- Lasso回归：带L1正则化且可产生稀疏系数的线性模型。 [E1][E2]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # | https://scikit-learn.org/stable/modules/linear_model.html#linear-models\n[E2] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.3. Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#lasso\n[E3] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.4. Multi-task Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#multi-task-lasso\n[E4] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.3. Lasso # > 1.1.3.2. Setting regularization parameter # | https://scikit-learn.org/stable/modules/linear_model.html#setting-regularization-parameter\n[E5] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.7. Least Angle Regression # | https://scikit-learn.org/stable/modules/linear_model.html#least-angle-regression",
+      "intent": "definition",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_LINEAR_MODELS-001",
+        "SKL-S1-1_1_3_LASSO-008",
+        "SKL-S1-1_1_4_MULTI_TASK_LASSO-012",
+        "SKL-S1-1_1_3_2_SETTING_REGULARIZATION_PARAMETER-010",
+        "SKL-S1-1_1_7_LEAST_ANGLE_REGRESSION-015"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-DF-04",
+      "question": "什么是逻辑回归？",
+      "category": "definition",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 逻辑回归属于线性模型。 [E1][E2]\n- 逻辑回归可用于解决分类。 [E1][E3]\n- 逻辑回归使用正则化。 [E1][E4]\n- 逻辑回归需要特征缩放。 [E1][E4]\n- 逻辑回归可用来评估ROC AUC。 [E5][E6]\n- 逻辑回归可用来评估F1分数。 [E7][E8]\n- 逻辑回归：用于分类任务的线性模型。 [E1][E2]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.11. Logistic regression # | https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression\n[E2] 1.1. Linear Models # | 1.1. Linear Models # | https://scikit-learn.org/stable/modules/linear_model.html#linear-models\n[E3] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.2. Ridge regression and classification # > 1.1.2.2. Classification # | https://scikit-learn.org/stable/modules/linear_model.html#classification\n[E4] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.11. Logistic regression # > 1.1.11.3. Solvers # | https://scikit-learn.org/stable/modules/linear_model.html#solvers\n[E5] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.15. Receiver operating characteristic (ROC) # | https://scikit-learn.org/stable/modules/model_evaluation.html#receiver-operating-characteristic-roc",
+      "intent": "definition",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_11_LOGISTIC_REGRESSION-021",
+        "SKL-S1-1_1_LINEAR_MODELS-001",
+        "SKL-S1-1_1_2_2_CLASSIFICATION-006",
+        "SKL-S1-1_1_11_3_SOLVERS-024",
+        "SKL-S6-3_4_4_15_RECEIVER_OPERATING_CHARACTERISTIC_ROC-028"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-DF-05",
+      "question": "什么是支持向量机分类？",
+      "category": "definition",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 逻辑回归可用于解决分类。 [E1][E2]\n- 线性支持向量分类器可用于解决分类。 [E3][E4]\n- 支持向量分类可用于解决分类。 [E3][E4]\n- 决策树可用于解决分类。 [E5][E6]\n- 随机森林可用于解决分类。 [E7][E8]\n- 分类：预测离散类别标签的任务。 [E1][E2]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.11. Logistic regression # | https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression\n[E2] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.2. Ridge regression and classification # > 1.1.2.2. Classification # | https://scikit-learn.org/stable/modules/linear_model.html#classification\n[E3] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # | https://scikit-learn.org/stable/modules/svm.html#support-vector-machines\n[E4] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # > 1.4.1. Classification # > 1.4.1.1. Multi-class classification # | https://scikit-learn.org/stable/modules/svm.html#multi-class-classification\n[E5] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees",
+      "intent": "definition",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_11_LOGISTIC_REGRESSION-021",
+        "SKL-S1-1_1_2_2_CLASSIFICATION-006",
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001",
+        "SKL-S2-1_4_1_1_MULTI_CLASS_CLASSIFICATION-003",
+        "SKL-S3-1_10_DECISION_TREES-001"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-DF-06",
+      "question": "什么是决策树？",
+      "category": "definition",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 决策树属于树模型。 [E1][E2]\n- 决策树可用于解决分类。 [E1][E3]\n- 决策树可用于解决回归。 [E1][E4]\n- 决策树使用可解释性。 [E1][E2]\n- 随机森林使用决策树。 [E5][E6]\n- 决策树的一个已标注局限与“过拟合风险”有关。 [E2][E1]\n- 决策树：可解释的树结构监督学习模型。 [E1][E2]\n\n官方证据：\n[E1] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees\n[E2] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees\n[E3] 1.10. Decision Trees # | 1.10. Decision Trees # > 1.10.1. Classification # | https://scikit-learn.org/stable/modules/tree.html#classification\n[E4] 1.10. Decision Trees # | 1.10. Decision Trees # > 1.10.2. Regression # | https://scikit-learn.org/stable/modules/tree.html#regression\n[E5] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests",
+      "intent": "definition",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-001",
+        "SKL-S3-1_10_DECISION_TREES-002",
+        "SKL-S3-1_10_1_CLASSIFICATION-004",
+        "SKL-S3-1_10_2_REGRESSION-005",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-DF-07",
+      "question": "什么是 KMeans？",
+      "category": "definition",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- KMeans属于聚类方法。 [E1][E2]\n- KMeans可用于解决聚类。 [E1][E3]\n- KMeans使用方差。 [E3][E4]\n- KMeans需要特征缩放。 [E4][E3]\n- KMeans可用来评估轮廓系数。 [E3][E5]\n- KMeans与DBSCAN在方法机制上存在差异。 [E6][E7]\n- KMeans：基于质心的聚类算法。 [E1][E2]\n\n官方证据：\n[E1] 2.3. Clustering # | 2.3. Clustering # > 2.3.1. Overview of clustering methods # | https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods\n[E2] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # | https://scikit-learn.org/stable/modules/clustering.html#k-means\n[E3] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # | https://scikit-learn.org/stable/modules/clustering.html#k-means\n[E4] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # > 2.3.2.2. Mini Batch K-Means # | https://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means\n[E5] 2.3. Clustering # | 2.3. Clustering # > 2.3.11. Clustering performance evaluation # > 2.3.11.4. Fowlkes-Mallows scores # | https://scikit-learn.org/stable/modules/clustering.html#fowlkes-mallows-scores",
+      "intent": "definition",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002",
+        "SKL-S5-2_3_2_K_MEANS-004",
+        "SKL-S5-2_3_2_K_MEANS-003",
+        "SKL-S5-2_3_2_2_MINI_BATCH_K_MEANS-006",
+        "SKL-S5-2_3_11_4_FOWLKES_MALLOWS_SCORES-038"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-CM-01",
+      "question": "Bagging 和 AdaBoost 有什么区别？",
+      "category": "comparison",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 装袋法与AdaBoost在方法机制上存在差异。 [E1][E2]\n- AdaBoost的定义特征是：逐步强调错误样本的提升方法。 [E1][E2]\n- 装袋法的定义特征是：基于自助采样并聚合多个基学习器的集成方法。 [E1][E2]\n\n官方证据：\n[E1] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | https://scikit-learn.org/stable/modules/ensemble.html#ensembles-gradient-boosting-random-forests-bagging-voting-stacking\n[E2] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.1. Gradient-boosted trees # > 1.11.1.2. GradientBoostingClassifier and GradientBoostingRegressor # | https://scikit-learn.org/stable/modules/ensemble.html#gradientboostingclassifier-and-gradientboostingregressor",
+      "intent": "comparison",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-012"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-012"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-CM-02",
+      "question": "精确率和召回率有什么区别？",
+      "category": "comparison",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 精确率与召回率在方法机制上存在差异。 [E1][E2]\n- 精确率的定义特征是：预测为正的样本中真正例比例。 [E1][E2]\n- 召回率的定义特征是：真实正例中被识别出的比例。 [E1][E2]\n\n官方证据：\n[E1] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.9. Precision, recall and F-measures # | https://scikit-learn.org/stable/modules/model_evaluation.html#precision-recall-and-f-measures\n[E2] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.9. Precision, recall and F-measures # | https://scikit-learn.org/stable/modules/model_evaluation.html#precision-recall-and-f-measures",
+      "intent": "comparison",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S6-3_4_4_9_PRECISION_RECALL_AND_F_MEASURES-021",
+        "SKL-S6-3_4_4_9_PRECISION_RECALL_AND_F_MEASURES-020"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S6-3_4_4_9_PRECISION_RECALL_AND_F_MEASURES-021",
+        "SKL-S6-3_4_4_9_PRECISION_RECALL_AND_F_MEASURES-020"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-CM-03",
+      "question": "均方误差和 R2 分数有什么区别？",
+      "category": "comparison",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 均方误差与R2分数在方法机制上存在差异。 [E1][E2]\n- 均方误差的定义特征是：回归误差平方的平均值。 [E2]\n- R2分数的定义特征是：回归模型解释方差的指标。 [E1]\n\n官方证据：\n[E1] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.6. Regression metrics # > 3.4.6.1. R² score, the coefficient of determination # | https://scikit-learn.org/stable/modules/model_evaluation.html#r2-score-the-coefficient-of-determination\n[E2] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.6. Regression metrics # > 3.4.6.3. Mean squared error # | https://scikit-learn.org/stable/modules/model_evaluation.html#mean-squared-error",
+      "intent": "comparison",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S6-3_4_6_1_R_SCORE_THE_COEFFICIENT_OF_DETERMINATION-044",
+        "SKL-S6-3_4_6_3_MEAN_SQUARED_ERROR-046"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S6-3_4_6_1_R_SCORE_THE_COEFFICIENT_OF_DETERMINATION-044",
+        "SKL-S6-3_4_6_3_MEAN_SQUARED_ERROR-046"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-CM-04",
+      "question": "Ridge 回归和 Lasso 回归有什么区别？",
+      "category": "comparison",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- Ridge回归与Lasso回归在方法机制上存在差异。 [E1][E2]\n- Ridge回归的定义特征是：带L2正则化的线性回归模型。 [E1]\n- Lasso回归的定义特征是：带L1正则化且可产生稀疏系数的线性模型。 [E2]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.10. Bayesian Regression # > 1.1.10.1. Bayesian Ridge Regression # | https://scikit-learn.org/stable/modules/linear_model.html#bayesian-ridge-regression\n[E2] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.3. Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#lasso",
+      "intent": "comparison",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_10_1_BAYESIAN_RIDGE_REGRESSION-019",
+        "SKL-S1-1_1_3_LASSO-008"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S1-1_1_10_1_BAYESIAN_RIDGE_REGRESSION-019",
+        "SKL-S1-1_1_3_LASSO-008"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-CM-05",
+      "question": "KMeans 和 DBSCAN 有什么区别？",
+      "category": "comparison",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- KMeans与DBSCAN在方法机制上存在差异。 [E1][E2]\n- KMeans的定义特征是：基于质心的聚类算法。 [E1]\n- DBSCAN的定义特征是：基于密度的聚类算法。 [E2]\n\n官方证据：\n[E1] 2.3. Clustering # | 2.3. Clustering # > 2.3.6. Hierarchical clustering # > 2.3.6.5. Bisecting K-Means # | https://scikit-learn.org/stable/modules/clustering.html#bisecting-k-means\n[E2] 2.3. Clustering # | 2.3. Clustering # > 2.3.7. DBSCAN # | https://scikit-learn.org/stable/modules/clustering.html#dbscan",
+      "intent": "comparison",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S5-2_3_6_5_BISECTING_K_MEANS-017",
+        "SKL-S5-2_3_7_DBSCAN-020"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S5-2_3_6_5_BISECTING_K_MEANS-017",
+        "SKL-S5-2_3_7_DBSCAN-020"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-PC-01",
+      "question": "随机森林为什么更稳定？",
+      "category": "principle_pros_cons",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 随机森林有助于降低方差，因此通常比单一估计器更稳定。 [E1][E2]\n- 随机森林对噪声数据具有一定鲁棒性。 [E1][E2]\n- 随机森林有助于缓解“过拟合风险”。 [E1][E2]\n\n官方证据：\n[E1] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests\n[E2] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests",
+      "intent": "explanation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-016"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-016"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-PC-02",
+      "question": "决策树有什么局限？",
+      "category": "principle_pros_cons",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 决策树的一个已标注局限与“过拟合风险”有关。 [E1][E2]\n\n官方证据：\n[E1] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees\n[E2] 1.10. Decision Trees # | 1.10. Decision Trees # | https://scikit-learn.org/stable/modules/tree.html#decision-trees",
+      "intent": "explanation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-002",
+        "SKL-S3-1_10_DECISION_TREES-001"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S3-1_10_DECISION_TREES-002",
+        "SKL-S3-1_10_DECISION_TREES-001"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-PC-03",
+      "question": "支持向量分类为什么通常需要特征缩放？",
+      "category": "principle_pros_cons",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 支持向量分类需要特征缩放。 [E1][E2]\n\n官方证据：\n[E1] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # > 1.4.1. Classification # | https://scikit-learn.org/stable/modules/svm.html#classification\n[E2] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # | https://scikit-learn.org/stable/modules/svm.html#support-vector-machines",
+      "intent": "explanation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S2-1_4_1_CLASSIFICATION-002",
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S2-1_4_1_CLASSIFICATION-002",
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-PC-04",
+      "question": "DBSCAN 在噪声数据上有什么优势？",
+      "category": "principle_pros_cons",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- DBSCAN对噪声数据具有一定鲁棒性。 [E1][E2]\n- DBSCAN对噪声数据具有一定鲁棒性。 [E1][E2]\n\n官方证据：\n[E1] 2.3. Clustering # | 2.3. Clustering # > 2.3.7. DBSCAN # | https://scikit-learn.org/stable/modules/clustering.html#dbscan\n[E2] 2.3. Clustering # | 2.3. Clustering # > 2.3.8. HDBSCAN # > 2.3.8.2. Hierarchical Clustering # | https://scikit-learn.org/stable/modules/clustering.html#id11",
+      "intent": "explanation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S5-2_3_7_DBSCAN-020",
+        "SKL-S5-2_3_8_2_HIERARCHICAL_CLUSTERING-023"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S5-2_3_7_DBSCAN-020",
+        "SKL-S5-2_3_8_2_HIERARCHICAL_CLUSTERING-023"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-PC-05",
+      "question": "梯度提升有什么局限？",
+      "category": "principle_pros_cons",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 梯度提升的一个已标注局限与“过拟合风险”有关。 [E1][E2]\n\n官方证据：\n[E1] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.1. Gradient-boosted trees # > 1.11.1.2. GradientBoostingClassifier and GradientBoostingRegressor # | https://scikit-learn.org/stable/modules/ensemble.html#gradientboostingclassifier-and-gradientboostingregressor\n[E2] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.1. Gradient-boosted trees # > 1.11.1.2. GradientBoostingClassifier and GradientBoostingRegressor # | https://scikit-learn.org/stable/modules/ensemble.html#gradientboostingclassifier-and-gradientboostingregressor",
+      "intent": "explanation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-009",
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-010"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-009",
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-010"
+      ],
+      "graph_path_ids": [
+        "P1"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MS-01",
+      "question": "类别不平衡时应该优先关注哪些指标？",
+      "category": "metric_selection",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 准确率在类别不平衡场景下存在局限。 [E1][E2]\n- 平衡准确率适合用于类别不平衡场景的评估。 [E1][E3]\n- F1分数适合用于类别不平衡场景的评估。 [E4][E1]\n\n官方证据：\n[E1] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.4. Balanced accuracy score # | https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score\n[E2] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.19. Class likelihood ratios # | https://scikit-learn.org/stable/modules/model_evaluation.html#class-likelihood-ratios\n[E3] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.4. Balanced accuracy score # | https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score\n[E4] 3.4. Metrics and scoring: quantifying the quality of predictions # | 3.4. Metrics and scoring: quantifying the quality of predictions # > 3.4.4. Classification metrics # > 3.4.4.1. From binary to multiclass and multilabel # | https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S6-3_4_4_4_BALANCED_ACCURACY_SCORE-014",
+        "SKL-S6-3_4_4_19_CLASS_LIKELIHOOD_RATIOS-034",
+        "SKL-S6-3_4_4_4_BALANCED_ACCURACY_SCORE-015",
+        "SKL-S6-3_4_4_1_FROM_BINARY_TO_MULTICLASS_AND_MULTILABEL-010"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S6-3_4_4_4_BALANCED_ACCURACY_SCORE-014",
+        "SKL-S6-3_4_4_4_BALANCED_ACCURACY_SCORE-015",
+        "SKL-S6-3_4_4_1_FROM_BINARY_TO_MULTICLASS_AND_MULTILABEL-010"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-MS-02",
+      "question": "回归任务通常可以用哪些指标评估？",
+      "category": "metric_selection",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answer": "- 线性回归可用于解决回归。 [E1][E2]\n- Ridge回归可用于解决回归。 [E3][E1]\n- Lasso回归可用于解决回归。 [E2][E4]\n- 支持向量回归可用于解决回归。 [E5][E6]\n- 决策树可用于解决回归。 [E7][E8]\n\n官方证据：\n[E1] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.2. Ridge regression and classification # > 1.1.2.1. Regression # | https://scikit-learn.org/stable/modules/linear_model.html#regression\n[E2] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.4. Multi-task Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#multi-task-lasso\n[E3] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.10. Bayesian Regression # > 1.1.10.1. Bayesian Ridge Regression # | https://scikit-learn.org/stable/modules/linear_model.html#bayesian-ridge-regression\n[E4] 1.1. Linear Models # | 1.1. Linear Models # > 1.1.3. Lasso # | https://scikit-learn.org/stable/modules/linear_model.html#lasso\n[E5] 1.4. Support Vector Machines # | 1.4. Support Vector Machines # | https://scikit-learn.org/stable/modules/svm.html#support-vector-machines",
+      "intent": "relation",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S1-1_1_2_1_REGRESSION-005",
+        "SKL-S1-1_1_4_MULTI_TASK_LASSO-012",
+        "SKL-S1-1_1_10_1_BAYESIAN_RIDGE_REGRESSION-019",
+        "SKL-S1-1_1_3_LASSO-008",
+        "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001"
+      ],
+      "gold_chunk_ids": [
+        "SKL-S6-3_4_6_3_MEAN_SQUARED_ERROR-046",
+        "SKL-S6-3_4_6_2_MEAN_ABSOLUTE_ERROR-045",
+        "SKL-S6-3_4_6_1_R_SCORE_THE_COEFFICIENT_OF_DETERMINATION-044",
+        "SKL-S6-3_4_4_10_JACCARD_SIMILARITY_COEFFICIENT_SCORE-023"
+      ],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-NA-01",
+      "question": "如何烤蛋糕？",
+      "category": "no_answer",
+      "expected_decision": "refuse",
+      "actual_decision": "pass",
+      "decision_correct": false,
+      "answer": "当前六页 scikit-learn 官方文档中没有检索到足以支持该问题的证据。",
+      "intent": "general",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 0.0,
+      "citation_present": false,
+      "retrieved_chunk_ids": [],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-NA-02",
+      "question": "XGBoost 如何处理缺失值？",
+      "category": "no_answer",
+      "expected_decision": "refuse",
+      "actual_decision": "pass",
+      "decision_correct": false,
+      "answer": "当前六页 scikit-learn 官方文档中没有检索到足以支持该问题的证据。",
+      "intent": "general",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 0.0,
+      "citation_present": false,
+      "retrieved_chunk_ids": [],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-NA-03",
+      "question": "随机森林的学习率是多少？",
+      "category": "no_answer",
+      "expected_decision": "refuse",
+      "actual_decision": "pass",
+      "decision_correct": false,
+      "answer": "- 随机森林属于集成学习。 [E1][E2]\n- 随机森林可用于解决分类。 [E2][E3]\n- 随机森林可用于解决回归。 [E2][E3]\n- 随机森林使用决策树。 [E2][E4]\n- 随机森林使用Bootstrap抽样。 [E2][E3]\n- 随机森林使用特征子采样。 [E2][E5]\n\n官方证据：\n[E1] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | https://scikit-learn.org/stable/modules/ensemble.html#ensembles-gradient-boosting-random-forests-bagging-voting-stacking\n[E2] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests\n[E3] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # > 1.11.2.1. Random Forests # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests\n[E4] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.2. Random forests and other randomized tree ensembles # | https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles\n[E5] 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # | 1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking # > 1.11.1. Gradient-boosted trees # > 1.11.1.2. GradientBoostingClassifier and GradientBoostingRegressor # | https://scikit-learn.org/stable/modules/ensemble.html#gradientboostingclassifier-and-gradientboostingregressor",
+      "intent": "general",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+        "SKL-S4-1_11_2_1_RANDOM_FORESTS-016",
+        "SKL-S4-1_11_2_RANDOM_FORESTS_AND_OTHER_RANDOMIZED_TREE_-014",
+        "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-012"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    },
+    {
+      "question_id": "F-NA-04",
+      "question": "KMeans 是监督分类算法吗？",
+      "category": "no_answer",
+      "expected_decision": "refuse",
+      "actual_decision": "pass",
+      "decision_correct": false,
+      "answer": "- KMeans属于聚类方法。 [E1][E2]\n- KMeans可用于解决聚类。 [E1][E3]\n- KMeans使用方差。 [E3][E4]\n- KMeans需要特征缩放。 [E4][E3]\n- KMeans可用来评估轮廓系数。 [E3][E5]\n- KMeans与DBSCAN在方法机制上存在差异。 [E6][E7]\n\n官方证据：\n[E1] 2.3. Clustering # | 2.3. Clustering # > 2.3.1. Overview of clustering methods # | https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods\n[E2] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # | https://scikit-learn.org/stable/modules/clustering.html#k-means\n[E3] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # | https://scikit-learn.org/stable/modules/clustering.html#k-means\n[E4] 2.3. Clustering # | 2.3. Clustering # > 2.3.2. K-means # > 2.3.2.2. Mini Batch K-Means # | https://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means\n[E5] 2.3. Clustering # | 2.3. Clustering # > 2.3.11. Clustering performance evaluation # > 2.3.11.4. Fowlkes-Mallows scores # | https://scikit-learn.org/stable/modules/clustering.html#fowlkes-mallows-scores",
+      "intent": "general",
+      "retrieval_mode": "graph",
+      "retry_count": 0,
+      "evidence_score": 0.0,
+      "claim_coverage": 0.0,
+      "citation_validity": 0.0,
+      "path_validity": 1.0,
+      "citation_present": true,
+      "retrieved_chunk_ids": [
+        "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002",
+        "SKL-S5-2_3_2_K_MEANS-004",
+        "SKL-S5-2_3_2_K_MEANS-003",
+        "SKL-S5-2_3_2_2_MINI_BATCH_K_MEANS-006",
+        "SKL-S5-2_3_11_4_FOWLKES_MALLOWS_SCORES-038"
+      ],
+      "gold_chunk_ids": [],
+      "graph_path_ids": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "unsupported_claims": [],
+      "latency": {
+        "route_ms": 0.0,
+        "retrieval_ms": 0.0,
+        "generation_ms": 0.0,
+        "verification_ms": 0.0,
+        "total_ms": 1.0
+      },
+      "human_assessment": null,
+      "error_stage": null
+    }
+  ],
+  "notes": [
+    "Generated by the configured offline experiment runner.",
+    "Human correctness, faithfulness, and hallucination metrics remain pending manual review.",
+    "The final holdout is read-only and is not executable by this command."
+  ]
+}

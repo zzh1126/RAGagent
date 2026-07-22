@@ -1,0 +1,5 @@
+method,display_name,split,question_count,decision_accuracy,citation_rate,refusal_accuracy,over_refusal_rate,retrieval_recall_at_5,path_validity,mean_latency_ms,wrong_count,wrong_question_ids,answer_correctness_status,faithfulness_status,hallucination_status
+vector_rag,Vector RAG,pilot,40,0.9,1.0,0.0,0.0,0.8276,,1.325,4,F-NA-01;F-NA-02;F-NA-03;F-NA-04,pending_human_review,pending_human_review,pending_human_review
+graph_only,Graph Only,pilot,40,0.9,1.0,0.0,0.0,0.9655,1.0,1.0,4,F-NA-01;F-NA-02;F-NA-03;F-NA-04,pending_human_review,pending_human_review,pending_human_review
+proposed,Proposed,pilot,40,1.0,1.0,1.0,0.0,0.9655,1.0,1.7,0,,pending_human_review,pending_human_review,pending_human_review
+no_verifier,No Verifier,pilot,40,0.9,1.0,0.0,0.0,0.9655,1.0,1.225,4,F-NA-01;F-NA-02;F-NA-03;F-NA-04,pending_human_review,pending_human_review,pending_human_review

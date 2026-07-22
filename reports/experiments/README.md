@@ -18,4 +18,14 @@ Validate the protocol without running an experiment:
 python scripts/validate_experiments.py
 ```
 
-No experiment result has been generated in this stage.
+At the initial contract-freeze stage this directory contained no experiment result; the pilot artifacts below were generated only after the runner passed its regression tests.
+
+After the pilot run, the directory contains:
+
+- `vector_rag_pilot.json`
+- `graph_only_pilot.json`
+- `proposed_pilot.json`
+- `no_verifier_pilot.json`
+- `pilot_comparison.csv`, `pilot_comparison.json`, and `pilot_comparison.md`
+
+The blank 160-row manual review sheet is `reports/human_scoring.csv`. Empty score fields are intentional; they must be reviewed and filled separately.

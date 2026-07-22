@@ -617,3 +617,68 @@ python scripts/freeze_baseline.py --verify
 ### 当前状态
 
 实验运行器已经可以安全执行，但本阶段按分步要求只完成实现和 dry-run 验证。下一步运行四组 `pilot` 主实验并保存 JSON 结果，随后再做人工评分表，不触碰 `final` 保留集。
+
+## 2026-07-22 阶段 6.4：Pilot 主实验、No Verifier 消融与比较材料
+
+### 完成事项
+
+- 使用冻结配置在 `pilot` 40 题上正式运行四组离线实验：
+  - `reports/experiments/vector_rag_pilot.json`；
+  - `reports/experiments/graph_only_pilot.json`；
+  - `reports/experiments/proposed_pilot.json`；
+  - `reports/experiments/no_verifier_pilot.json`。
+- 四份报告均满足统一 `ExperimentRunReport` Schema，并具有相同的：
+  - pilot 数据集 SHA-256：`fa48ddcb3e7f4ec794b9b95c0415b5f1ddbc937d6f2918987a29dd9abb7a19b0`；
+  - 配置指纹：`56dd6a55fd05a01490322283926a722a3fe0260d4b4b6534f21d2900ba04c44a`；
+  - 题目数量和顺序：每种方法 40 题。
+- 新增 `scripts/compare_experiments.py`，对四份报告执行交叉校验并生成：
+  - `reports/experiments/pilot_comparison.csv`；
+  - `reports/experiments/pilot_comparison.json`；
+  - `reports/experiments/pilot_comparison.md`。
+- 新增 `scripts/build_human_scoring_template.py`，生成 `reports/human_scoring.csv`：
+  - 共 160 行，即 4 种方法 × 40 题；
+  - 已预填问题、题型、期望决策和实际决策；
+  - `correctness_score`、`faithfulness_score`、`hallucination`、`over_refusal`、`reviewer` 均保持空白；
+  - 当前文件是待人工评审模板，未伪装成已完成的人工作分。
+
+### 自动实验结果
+
+| 方法 | 决策准确率 | 引用率（可回答题） | 无答案拒答准确率 | Recall@5 | 路径有效率 | 平均本地耗时 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Vector RAG | 0.9000 | 1.0000 | 0.0000 | 0.8276 | 不适用 | 1.325 ms |
+| Graph Only | 0.9000 | 1.0000 | 0.0000 | 0.9655 | 1.0000 | 1.000 ms |
+| Proposed | 1.0000 | 1.0000 | 1.0000 | 0.9655 | 1.0000 | 1.700 ms |
+| No Verifier | 0.9000 | 1.0000 | 0.0000 | 0.9655 | 1.0000 | 1.225 ms |
+
+结果解释边界：
+
+- 四种方法在 36 道可回答题上均作出了正确的 pass 决策，但这不等于人工回答正确性均为 100%。
+- Proposed 正确拒答 4/4 无答案题；Vector RAG、Graph Only 和 No Verifier 均对 4 道无答案题作答，因此其 pilot 决策准确率为 36/40。
+- No Verifier 结果说明仅有引用并不能保证回答与问题匹配；相关幻觉和忠实度仍需人工审查。
+- Vector RAG 在保守图关系 gold Chunk 子集上的 Recall@5 为 0.8276，低于包含图检索的三种配置 0.9655。
+- 耗时为本地离线热路径测量，不代表在线 LLM 延迟。
+- 以上是 pilot 方法比较，不替代 v1.0 的 final 唯一一次冻结结果。
+
+### 验证结果
+
+```bash
+python scripts/run_experiments.py --split pilot
+python scripts/compare_experiments.py --split pilot
+python scripts/build_human_scoring_template.py --split pilot
+python -m compileall -q app src scripts tests
+pytest -q
+python scripts/validate_experiments.py
+python scripts/validate_evaluation.py
+python -m pip check
+python scripts/freeze_baseline.py --verify
+```
+
+- Pytest：`26 passed`；
+- 四份报告均通过 Pydantic Schema 校验；
+- 比较脚本确认题量、题序、数据集哈希和配置指纹一致；
+- 评测集、依赖和 v1.0 归档完整性继续通过；
+- `reports/evaluation_final.json` 未重新生成，SHA-256 仍为 `BB468FD0E3B63CFEA6A3319D1C9AEB0573C8842B18FED17931545A7D906D55FC`。
+
+### 当前状态
+
+主实验和必做 No Verifier 消融的自动结果已经保存，横向比较材料可直接用于报告。下一阶段集中完成人工正确性/忠实度评分，并据此计算 Answer Correctness、Evidence Faithfulness、Hallucination Rate，随后整理至少 8 个错误或边界案例。
