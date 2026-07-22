@@ -51,9 +51,9 @@ class NoVerifier:
         unsupported = list(answer.unsupported_claims)
         if not unsupported:
             unsupported = [
-                str(claim.get("claim", "未标注 claim"))
+                claim.claim
                 for claim in answer.claims
-                if not claim.get("evidence_ids")
+                if not claim.evidence_ids
             ]
         return VerifyResult(
             decision="pass",

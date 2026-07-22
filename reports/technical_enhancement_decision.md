@@ -11,7 +11,7 @@
 | 理论首选增强 | 增强 A：可插拔真实 LLM 结构化生成 + 离线规则 fallback |
 | 初始决定 | `qwen3-vl:8b` 为 **No-Go**，保留 v1.0 |
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
-| 当前实施范围 | 仅批准 LLM Answer Generator；暂不接入 LLM Query Planner |
+| 当前实施范围 | 统一 Schema 与 LLM Client 已完成；Answer Generator 尚未接线；不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
 | extension holdout | 23 题已冻结并锁定，尚未运行 |
 
@@ -102,7 +102,7 @@ AnswerPayload 无法从正式答案字段解析
 
 1. 允许进入 LLM Answer Generator 的实现阶段；
 2. 暂不实现 LLM Query Planner，继续使用现有规则 Router；
-3. 独立 23 题 `extension_holdout` 和评分合同已经冻结；下一阶段才允许修改 Schema、Client 或生成器业务代码；
+3. 独立 23 题 `extension_holdout` 和评分合同已经冻结；其后已完成统一 Schema 与 Client，尚未修改 Generator 主链路；
 4. final 继续只读，原 v1.0 结果、配置指纹和归档哈希不变；
 5. 不实施 Dense Retrieval，也不把 Planner 描述为已经可用。
 
@@ -125,6 +125,7 @@ python scripts/check_enhancement_readiness.py --probe-ollama --model qwen3-vl:8b
 python scripts/probe_llm_structured.py --model qwen3:4b --runs-per-schema 20 --target-gate generator --unload-before-run
 python scripts/validate_llm_probe.py
 python scripts/validate_extension_holdout.py
+python scripts/smoke_llm_client.py --timeout 180
 ```
 
-`check_enhancement_readiness.py` 只输出环境变量名称和模型清单，不输出密钥值；正式探针报告保存结构化解析结果、哈希和计时，但不保存 thinking 内容。
+`check_enhancement_readiness.py` 只输出环境变量名称和模型清单，不输出密钥值；正式探针报告保存结构化解析结果、哈希和计时，但不保存 thinking 内容。统一 Client 的合成 smoke 已分别完成一次冷启动和一次热调用，均一次成功，耗时约 21.14 s 与 0.58 s；该结果只证明 Client 合同可用，不代表 LLM 已进入 Agent 主链路。

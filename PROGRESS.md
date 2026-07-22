@@ -1127,3 +1127,86 @@ python scripts/validate_report_claims.py
 - `python -m pip check` 返回 `No broken requirements found`，`git diff --check` 未发现空白错误；
 - v1.0 归档的 23 个 payload 校验通过，Manifest SHA-256 仍为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
 - 用户提供的方案 DOCX 保持未跟踪、未修改，不纳入提交；没有生成 extension 输出或 release record。
+
+## 2026-07-22 阶段 7.2：统一 Schema 与 LLM Client
+
+### 完成事项
+
+- 将 `AnswerPayload.claims` 从无约束的 `list[dict]` 迁移为强类型 `AnswerClaim`：
+  - 固定 `claim`、`evidence_ids`、`graph_path_ids` 和 `relation_id` 字段；
+  - 未知字段使用 Pydantic `extra="forbid"` 拒绝；
+  - `confidence` 限制在 0～1；
+  - 新增 `generator_backend`，当前正式规则生成器固定为 `offline_rule`；
+  - 同步迁移 `GroundedAnswerGenerator`、`EvidenceVerifier` 和 `NoVerifier`，没有改变原打分公式、路由或重试决策。
+- 新建统一 `src/llm/` 模块：
+  - `base.py`：泛型 `LLMClient` Protocol 和统一事件回调类型；
+  - `config.py`：严格 `LLMSettings` 与 `AgentLLMSettings`；
+  - `exceptions.py`：区分服务不可用、超时、正式 content 为空、Schema 失败和策略失败；
+  - `schemas.py`：严格 `ChatMessage` 与脱敏 `LLMCallRecord`；
+  - `ollama_client.py`：生产 Ollama `/api/chat` 结构化 Client；
+  - `factory.py`：统一 Factory，并允许通过 `OLLAMA_BASE_URL`、`OLLAMA_MODEL` 覆盖非敏感本地配置。
+- Ollama Client 固定执行以下合同：
+  - `think=false`、`stream=false`；
+  - `format=response_model.model_json_schema()`；
+  - 只解析 `message.content`，content 为空时不读取 thinking，立即抛出 `LLMEmptyResponseError`；
+  - 超时或 Schema 失败最多重试一次；Schema 修复提示不回传无效原文；
+  - 服务不可达或 HTTP 错误立即抛出 `LLMUnavailableError`；
+  - `base_url` 禁止嵌入用户名或密码，空白模型名、keep-alive 和节点名在发送请求前失败；
+  - 日志和事件只记录 request ID、节点、provider、model、Schema、成功状态、尝试次数、延迟、token 数和错误类型，不记录 Prompt、content、thinking、URL 凭据或 API Key。
+- 在 `config/settings.yaml` 中登记 `ollama/qwen3:4b` 的正式参数，同时保持：
+  - `planner_backend: rule`；
+  - `generator_backend: offline_rule`；
+  - `planner_fallback: rule`；
+  - `generator_fallback: offline_rule`。
+- `scripts/validate_config.py` 现在会使用强类型 Schema 校验 LLM 与 Agent 配置，并拒绝 `think=true`、超过一次重试或未知配置字段。
+- 新增 `tests/test_llm_client.py` 的 11 个合同测试，覆盖：
+  - 正常严格 Schema 输出；
+  - 空 content 且 thinking 含 JSON 时仍严格失败；
+  - Schema 一次修复成功与二次失败；
+  - 超时一次恢复与二次失败；
+  - 服务关闭和 HTTP 错误立即失败；
+  - Factory 环境覆盖与配置约束；
+  - URL 凭据与空白节点在网络请求前被拒绝；
+  - Prompt/content 不进入日志；
+  - `AnswerPayload` 强类型 Claim 与未知字段拒绝。
+- 新增 `scripts/smoke_llm_client.py`，只使用合成状态 Schema 复验生产 Client，不读取任何业务题集：
+  - 冷启动调用一次成功，`attempts=1`，约 `21140.4 ms`；
+  - 热调用一次成功，`attempts=1`，约 `584.7 ms`；
+  - 两次均通过 Schema 和固定语义检查，只使用正式 content，不记录 thinking 内容。
+- README、研究报告、技术增强决策和事实声明清单已同步：统一 Client 可用不等于 LLM 已进入 Agent；当前正式生成器仍为 `GroundedAnswerGenerator`。
+
+### 验证结果
+
+```bash
+python scripts/validate_config.py
+python scripts/smoke_llm_client.py --timeout 180
+python scripts/smoke_llm_client.py --timeout 30
+pytest -q
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_chunks.py
+python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试：`46 passed`；
+- 配置校验确认 `llm=ollama/qwen3:4b planner=rule generator=offline_rule`；
+- 图谱仍为 50 个实体、100 条 approved 关系，100 条关系证据全部有效；
+- 文档数据仍为 164 个 Section、180 个 Chunk；
+- 正式探针结论保持 Schema `60/60`、Generator Go、Planner No-Go；
+- extension 仍为 23 题锁定状态，题集与评分合同哈希保持不变，没有 release record 或输出；
+- 旧实验配置指纹、160 行用户确认评分、5 张报告图均保持一致；
+- v1.0 的 23 个归档 payload 全部通过，Manifest SHA-256 仍为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `pip check` 无损坏依赖，`git diff --check` 无空白错误。
+
+### 当前状态与下一步
+
+模块 2 已完成，但 LLM 尚未进入 `QAWorkflow`。下一阶段实现 `AnswerGenerator` Protocol、证据上下文序列化、`LLMAnswerGenerator` 和 `FallbackAnswerGenerator`，并用 dev/合成测试验证无效引用与服务关闭回退；在 Generator、fallback、Verifier 接线和配置全部冻结前，继续禁止运行 extension。

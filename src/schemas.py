@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 ReviewStatus = Literal["pending", "approved", "rejected"]
 RetrievalMode = Literal["vector", "graph", "hybrid"]
 VerifyDecision = Literal["pass", "retry", "refuse"]
+GeneratorBackend = Literal["offline_rule", "ollama"]
 
 
 class TextEvidence(BaseModel):
@@ -56,12 +57,24 @@ class RetrievalResult(BaseModel):
     text_evidence: list[TextEvidence] = Field(default_factory=list)
 
 
+class AnswerClaim(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    claim: str = Field(min_length=1)
+    evidence_ids: list[str] = Field(default_factory=list)
+    graph_path_ids: list[str] = Field(default_factory=list)
+    relation_id: str = ""
+
+
 class AnswerPayload(BaseModel):
-    answer: str
-    claims: list[dict] = Field(default_factory=list)
+    model_config = ConfigDict(extra="forbid")
+
+    answer: str = Field(min_length=1)
+    claims: list[AnswerClaim] = Field(default_factory=list)
     graph_paths: list[str] = Field(default_factory=list)
     unsupported_claims: list[str] = Field(default_factory=list)
-    confidence: float = 0.0
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    generator_backend: GeneratorBackend = "offline_rule"
 
 
 class ClaimResult(BaseModel):

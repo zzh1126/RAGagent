@@ -32,6 +32,20 @@ The workflow routes each query to vector, graph, or hybrid retrieval, generates 
 
 Set `GRAPH_BACKEND=neo4j` together with `NEO4J_URI`, `NEO4J_USER`, and `NEO4J_PASSWORD` to switch the graph repository. The default remains `networkx`.
 
+## LLM Client Readiness
+
+The shared Ollama Client and strict structured-output contracts are available, with `qwen3:4b` configured locally:
+
+```bash
+python scripts/validate_config.py
+python scripts/smoke_llm_client.py --timeout 180
+pytest -q tests/test_llm_client.py
+```
+
+The Client always sends `think=false` and `stream=false`, reads only `message.content`, retries timeout or schema failure at most once, and emits metadata without prompts, generated content, thinking, or credentials. `OLLAMA_BASE_URL` and `OLLAMA_MODEL` can override the non-secret local endpoint and model settings.
+
+The QA workflow still uses `GroundedAnswerGenerator` with `agent.generator_backend: offline_rule`. The LLM Answer Generator and fallback wiring are a separate implementation stage; the locked extension holdout must not be run during Client development.
+
 ## Streamlit Demo
 
 ```bash

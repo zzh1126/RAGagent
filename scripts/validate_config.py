@@ -4,8 +4,12 @@ import sys
 from pathlib import Path
 
 import yaml
+from pydantic import ValidationError
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.llm.config import AgentLLMSettings, LLMSettings
 
 
 def fail(message: str) -> None:
@@ -56,8 +60,19 @@ def main() -> None:
     if missing_paths:
         fail(f"settings.paths missing keys: {missing_paths}")
 
+    try:
+        llm_settings = LLMSettings.model_validate(settings.get("llm", {}))
+        agent_settings = AgentLLMSettings.model_validate(settings.get("agent", {}))
+    except ValidationError as exc:
+        fail(f"invalid LLM or Agent settings: {exc}")
+
     print("OK: config files are valid")
     print(f"OK: sources={len(source_rows)} node_types={len(required_node_types)}")
+    print(
+        f"OK: llm={llm_settings.provider}/{llm_settings.model} "
+        f"planner={agent_settings.planner_backend} "
+        f"generator={agent_settings.generator_backend}"
+    )
 
 
 if __name__ == "__main__":

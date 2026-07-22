@@ -20,6 +20,8 @@
 | `reports/llm_probe_qwen3_4b.json` | 60 次正式结构化与语义探针明细 |
 | `data/evaluation/extension_holdout_manifest.json` | extension 题集、评分合同哈希与执行锁 |
 | `reports/extension_holdout_freeze.md` | extension 冻结范围、方法和人工评分披露 |
+| `src/llm/ollama_client.py` | 统一 Client 的正式 content、一次重试和脱敏调用记录合同 |
+| `config/settings.yaml` | 当前 LLM 参数及 rule/offline_rule 主链路开关 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
 
@@ -46,6 +48,7 @@
 | C17 | Manifest SHA-256 为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` | 已核验 |
 | C18 | `qwen3-vl:8b` 仍为 No-Go；`qwen3:4b` 只通过 Generator 前置门槛，Planner 为 No-Go | 已核验 |
 | C19 | 23 题 extension holdout 已在业务实现前冻结并锁定，尚未生成任何 extension 或 enhanced 结果 | 已核验 |
+| C20 | 统一 Schema 与 LLM Client 已完成，但当前 Agent 仍使用规则 Router 和 `GroundedAnswerGenerator`，不能据此声称 LLM 已进入主链路 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -60,6 +63,7 @@
 - 在技术增强尚未完成和独立评测前宣称增强有效。
 - 将 thinking 字段中的 JSON 当作已经通过正式 `AnswerPayload` 输出合同。
 - 将 `qwen3:4b` 的探针成功描述为已经接入 Agent 主链路或完成 enhanced 实验。
+- 将统一 Client 的合成 smoke 成功描述为已经完成 LLM Answer Generator、fallback 或 Agent 主链路接线。
 
 ## 发布前检查
 

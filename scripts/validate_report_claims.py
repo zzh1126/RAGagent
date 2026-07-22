@@ -35,13 +35,18 @@ REQUIRED_RULES = (
     TextRule("R12", "1.48 ms must be separated from online LLM latency", r"1\.48 ms[^\n]{0,50}不是在线 LLM 延迟"),
     TextRule(
         "R13",
-        "Generator readiness and Planner No-Go status must remain explicit",
-        r"当前状态：Generator 前置门槛通过，Planner No-Go，业务增强尚未实现",
+        "Client readiness, missing Generator wiring, and Planner No-Go must remain explicit",
+        r"当前状态：统一 Schema 与 LLM Client 已完成，Generator 主链路尚未接线，Planner No-Go",
     ),
     TextRule(
         "R14",
         "the extension holdout must be described as frozen and locked without outputs",
         r"23 题 `extension_holdout`[\s\S]{0,300}(?:执行锁仍生效|锁定)[\s\S]{0,100}(?:没有 extension 输出|尚未生成任何 extension)",
+    ),
+    TextRule(
+        "R15",
+        "the production workflow must remain identified as offline after Client-only work",
+        r"现有正式生成器仍是 `GroundedAnswerGenerator`，配置仍为 `generator_backend: offline_rule`",
     ),
 )
 
@@ -66,6 +71,11 @@ FORBIDDEN_RULES = (
         "F12",
         "probe readiness incorrectly described as completed Agent integration",
         r"qwen3:4b[^。\n]{0,50}(?:已接入 Agent 主链路|已完成 enhanced 实验|已证明增强有效)",
+    ),
+    TextRule(
+        "F13",
+        "Client smoke incorrectly described as completed Generator integration",
+        r"(?:统一 (?:LLM )?Client|合成 smoke)[^。\n]{0,60}(?:已接入 Agent 主链路|已完成 LLM Answer Generator|已证明增强有效)",
     ),
 )
 

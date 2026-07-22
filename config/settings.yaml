@@ -31,3 +31,21 @@ verification:
   retry_threshold: 0.55
   max_retries: 1
   min_vector_score: 0.08
+
+llm:
+  provider: ollama
+  base_url: http://127.0.0.1:11434
+  model: qwen3:4b
+  think: false
+  temperature: 0.0
+  timeout_seconds: 120
+  keep_alive: 30m
+  num_predict: 768
+  seed: 42
+  max_retries: 1
+
+agent:
+  planner_backend: rule
+  generator_backend: offline_rule
+  planner_fallback: rule
+  generator_fallback: offline_rule

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.retrieval.query_rewrite import rewrite_query_to_english
-from src.schemas import AnswerPayload, RetrievalResult, VerifyResult
+from src.schemas import AnswerClaim, AnswerPayload, RetrievalResult, VerifyResult
 
 
 class EvidenceVerifier:
@@ -35,8 +35,8 @@ class EvidenceVerifier:
         reference_count = 0
         supported_claim_count = 0
         for claim in answer.claims:
-            claim_text = str(claim.get("claim", "")).strip()
-            refs = [str(ref) for ref in claim.get("evidence_ids", [])]
+            claim_text = claim.claim.strip()
+            refs = [str(ref) for ref in claim.evidence_ids]
             reference_count += len(refs)
             valid_refs = [ref for ref in refs if ref in evidence_by_id]
             valid_reference_count += len(valid_refs)
@@ -103,12 +103,18 @@ class EvidenceVerifier:
             if graph_repo.validate_path([triple.model_dump() for triple in path.triples])
         )
 
-    def _has_relevant_evidence(self, refs: list[str], evidence_by_id: dict, claim: dict, retrieval: RetrievalResult) -> bool:
+    def _has_relevant_evidence(
+        self,
+        refs: list[str],
+        evidence_by_id: dict,
+        claim: AnswerClaim,
+        retrieval: RetrievalResult,
+    ) -> bool:
         if not refs:
             return False
-        if claim.get("relation_id") and retrieval.graph_paths:
+        if claim.relation_id and retrieval.graph_paths:
             return any(
-                claim.get("relation_id") == triple.relation_id
+                claim.relation_id == triple.relation_id
                 for path in retrieval.graph_paths
                 for triple in path.triples
             )
