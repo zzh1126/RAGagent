@@ -6,11 +6,14 @@
 | --- | --- |
 | 审计日期 | 2026-07-22 |
 | 审计分支 | `experiment/day6-main-ablation` |
+| 重新进入分支 | `experiment/llm-agent-v2` |
 | 当前生成器 | `GroundedAnswerGenerator`，离线规则/模板 |
 | 理论首选增强 | 增强 A：可插拔真实 LLM 结构化生成 + 离线规则 fallback |
-| 本阶段决定 | **No-Go：不实施增强 A 或 B，保留 v1.0** |
+| 初始决定 | `qwen3-vl:8b` 为 **No-Go**，保留 v1.0 |
+| 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
+| 当前实施范围 | 仅批准 LLM Answer Generator；暂不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
-| extension holdout | 当前不创建；只有增强重新获准后才冻结 |
+| extension holdout | 下一阶段先冻结，再开始业务实现 |
 
 ## 前置条件审计
 
@@ -59,15 +62,53 @@ AnswerPayload 无法从正式答案字段解析
 
 此外，当前生成器仍是离线模板，按照原决策树应优先解决真实生成能力，不应为了绕开增强 A 的前置失败而临时切换到增强 B。
 
-## 正式决定
+## 初始决定（已由下方复验更新）
 
 本轮不实现任何技术增强，不生成伪造的 enhanced 指标，也不把预检结果写成科研贡献。项目继续以 `v1.0-baseline` 和已完成的主实验、No Verifier 消融、用户确认语义复核及误差分析作为可交付版本。
 
 当前也不创建 `extension_holdout`。该数据集的用途是对一个已经选定且通过前置检查的增强做一次性独立比较；在 No-Go 状态下提前创建会增加调试或误用风险，没有实验价值。
 
+## 重新进入复验：qwen3:4b
+
+在不修改 Agent 主链路的前提下，已新增并完成纯文本模型复验：
+
+- 新建分支 `experiment/llm-agent-v2`，基线提交仍为 `02a122c`；
+- 将新 Ollama 模型目录固定为 `E:\ollama-models`，C 盘原 `qwen3-vl:8b` 文件未删除；
+- 安装纯文本模型 `qwen3:4b`，Q4_K_M，模型文件约 2.5 GB；
+- 先完成三类各 1 次烟测，再完成三类各 20 次正式探针；
+- `think=false`，所有请求均只读取 `message.content`，不记录 thinking 内容；
+- 初始 Full Agent 门槛失败报告保留为 `reports/llm_probe_qwen3_4b_full_agent_initial.json`；
+- 当前正式报告为 `reports/llm_probe_qwen3_4b.json`。
+
+正式 60 次结果：
+
+| 探针类型 | Schema 成功 | 语义成功 | 结论 |
+| --- | ---: | ---: | --- |
+| 简单状态 Schema | 20/20 | 20/20 | 通过 |
+| QueryPlan | 20/20 | 1/20 | Planner 不通过 |
+| 嵌套 AnswerPayload | 20/20 | 20/20 | Generator 通过 |
+| **合计** | **60/60** | **41/60** | Generator-only Go |
+
+其他观测：
+
+- 空 `message.content`：0/60；
+- 非空 thinking：0/60；
+- 冷启动墙钟耗时：20.698 s；
+- 热请求平均耗时：0.930 s；
+- 热请求 P95：1.294 s；
+- QueryPlan 的 19 次语义失败均为合法 JSON，但把关系题误判为 `comparison` 且漏掉实体，因此不能用 Schema 成功率替代 Planner 准确率。
+
+复验后的正式决定：
+
+1. 允许进入 LLM Answer Generator 的实现阶段；
+2. 暂不实现 LLM Query Planner，继续使用现有规则 Router；
+3. 下一阶段先冻结独立 `extension_holdout`，再修改 Schema、Client 或生成器业务代码；
+4. final 继续只读，原 v1.0 结果、配置指纹和归档哈希不变；
+5. 不实施 Dense Retrieval，也不把 Planner 描述为已经可用。
+
 ## 重新进入条件
 
-只有同时满足以下条件，才重新启用增强 A：
+以下条件用于完成增强 A。当前仅条件 1～2 已满足；下一阶段先完成条件 5，再实现和验证条件 3～4，条件 6 始终有效：
 
 1. 使用适合纯文本指令的本地模型，或修复当前 Ollama/model 组合，使 JSON Schema 输出进入 `message.content`；
 2. 在合成探针和 dev 上连续执行至少 20 次结构化输出，成功不少于 19 次；
@@ -81,6 +122,8 @@ AnswerPayload 无法从正式答案字段解析
 ```bash
 python scripts/check_enhancement_readiness.py
 python scripts/check_enhancement_readiness.py --probe-ollama --model qwen3-vl:8b
+python scripts/probe_llm_structured.py --model qwen3:4b --runs-per-schema 20 --target-gate generator --unload-before-run
+python scripts/validate_llm_probe.py
 ```
 
-脚本只输出环境变量名称和模型清单，不输出密钥值，也不会把 thinking 内容写入日志。
+`check_enhancement_readiness.py` 只输出环境变量名称和模型清单，不输出密钥值；正式探针报告保存结构化解析结果、哈希和计时，但不保存 thinking 内容。

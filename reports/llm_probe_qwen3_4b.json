@@ -1,0 +1,2021 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-07-22T12:51:38.178951+00:00",
+  "endpoint": "http://127.0.0.1:11434",
+  "model": "qwen3:4b",
+  "model_info": {
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen3",
+      "families": [
+        "qwen3"
+      ],
+      "parameter_size": "4.0B",
+      "quantization_level": "Q4_K_M"
+    },
+    "capabilities": [
+      "completion",
+      "tools",
+      "thinking"
+    ],
+    "parameters": "top_k                          20\ntop_p                          0.95\nrepeat_penalty                 1\nstop                           \"<|im_start|>\"\nstop                           \"<|im_end|>\"\ntemperature                    0.6"
+  },
+  "probe_contract": {
+    "think": false,
+    "stream": false,
+    "temperature": 0,
+    "seed": 42,
+    "num_predict": 512,
+    "keep_alive": "30m",
+    "runs_per_schema": 20,
+    "scenario_names": [
+      "simple_status",
+      "query_plan",
+      "nested_answer"
+    ],
+    "target_gate": "generator",
+    "thinking_content_recorded": false
+  },
+  "summary": {
+    "total_runs": 60,
+    "total_schema_successes": 60,
+    "total_semantic_successes": 41,
+    "per_scenario": {
+      "simple_status": {
+        "runs": 20,
+        "schema_successes": 20,
+        "schema_success_rate": 1.0,
+        "semantic_successes": 20,
+        "semantic_success_rate": 1.0
+      },
+      "query_plan": {
+        "runs": 20,
+        "schema_successes": 20,
+        "schema_success_rate": 1.0,
+        "semantic_successes": 1,
+        "semantic_success_rate": 0.05
+      },
+      "nested_answer": {
+        "runs": 20,
+        "schema_successes": 20,
+        "schema_success_rate": 1.0,
+        "semantic_successes": 20,
+        "semantic_success_rate": 1.0
+      }
+    },
+    "empty_content_count": 0,
+    "thinking_nonempty_count": 0,
+    "cold_start_wall_ms": 20698.1,
+    "warm_latency_mean_ms": 930.3,
+    "warm_latency_p95_ms": 1293.5,
+    "minimum_success_rate": 0.95,
+    "structured_output_gate_passed": true,
+    "generator_gate_passed": true,
+    "planner_gate_passed": false,
+    "full_agent_gate_passed": false,
+    "target_gate": "generator",
+    "gate_passed": true
+  },
+  "results": [
+    {
+      "run_index": 1,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 20288.0,
+      "total_ms": 20692.3,
+      "wall_ms": 20698.1,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 2,
+      "scenario": "query_plan",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 232,
+      "thinking_length": 0,
+      "content_sha256": "18757d30cf980822f39ee5882421c3867e033bc4da811cc9d24f0b10145feecd",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "intent": "relation",
+        "entities": [
+          "Random Forest"
+        ],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 78,
+      "load_ms": 114.6,
+      "total_ms": 1394.3,
+      "wall_ms": 1400.5,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 3,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 106.1,
+      "total_ms": 1122.6,
+      "wall_ms": 1126.2,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 4,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 106.5,
+      "total_ms": 402.4,
+      "wall_ms": 403.8,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 5,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 106.1,
+      "total_ms": 1292.3,
+      "wall_ms": 1293.5,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 6,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 115.7,
+      "total_ms": 1120.1,
+      "wall_ms": 1121.8,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 7,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 125.0,
+      "total_ms": 414.1,
+      "wall_ms": 417.0,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 8,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 109.5,
+      "total_ms": 1256.3,
+      "wall_ms": 1258.7,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 9,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 110.3,
+      "total_ms": 1087.9,
+      "wall_ms": 1092.8,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 10,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 108.7,
+      "total_ms": 394.4,
+      "wall_ms": 399.0,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 11,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 110.4,
+      "total_ms": 1262.9,
+      "wall_ms": 1267.2,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 12,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 111.9,
+      "total_ms": 1088.3,
+      "wall_ms": 1090.8,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 13,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 107.9,
+      "total_ms": 408.0,
+      "wall_ms": 409.0,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 14,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 108.7,
+      "total_ms": 1249.1,
+      "wall_ms": 1253.5,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 15,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 109.7,
+      "total_ms": 1092.5,
+      "wall_ms": 1097.3,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 16,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 110.6,
+      "total_ms": 410.9,
+      "wall_ms": 415.4,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 17,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 109.0,
+      "total_ms": 1288.5,
+      "wall_ms": 1290.7,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 18,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 109.3,
+      "total_ms": 1099.0,
+      "wall_ms": 1100.5,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 19,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 107.5,
+      "total_ms": 408.2,
+      "wall_ms": 410.6,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 20,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 108.9,
+      "total_ms": 1286.0,
+      "wall_ms": 1290.5,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 21,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 107.7,
+      "total_ms": 1088.9,
+      "wall_ms": 1090.8,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 22,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 108.4,
+      "total_ms": 408.7,
+      "wall_ms": 411.1,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 23,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 107.7,
+      "total_ms": 1297.5,
+      "wall_ms": 1299.7,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 24,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 108.3,
+      "total_ms": 1084.9,
+      "wall_ms": 1088.9,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 25,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 106.6,
+      "total_ms": 395.2,
+      "wall_ms": 399.4,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 26,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 106.7,
+      "total_ms": 1238.6,
+      "wall_ms": 1240.9,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 27,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 108.0,
+      "total_ms": 1080.4,
+      "wall_ms": 1084.5,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 28,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 109.5,
+      "total_ms": 402.8,
+      "wall_ms": 404.5,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 29,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 107.9,
+      "total_ms": 1239.4,
+      "wall_ms": 1243.8,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 30,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 107.9,
+      "total_ms": 1082.6,
+      "wall_ms": 1087.1,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 31,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 110.8,
+      "total_ms": 423.5,
+      "wall_ms": 428.0,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 32,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 111.1,
+      "total_ms": 1279.0,
+      "wall_ms": 1281.5,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 33,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 112.5,
+      "total_ms": 1084.0,
+      "wall_ms": 1089.0,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 34,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 106.3,
+      "total_ms": 394.8,
+      "wall_ms": 399.6,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 35,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 106.8,
+      "total_ms": 1242.2,
+      "wall_ms": 1244.6,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 36,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 105.3,
+      "total_ms": 1079.1,
+      "wall_ms": 1083.8,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 37,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 109.0,
+      "total_ms": 403.6,
+      "wall_ms": 406.1,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 38,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 107.4,
+      "total_ms": 1251.8,
+      "wall_ms": 1256.5,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 39,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 109.5,
+      "total_ms": 1084.9,
+      "wall_ms": 1087.6,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 40,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 107.0,
+      "total_ms": 402.7,
+      "wall_ms": 407.2,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 41,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 109.3,
+      "total_ms": 1256.8,
+      "wall_ms": 1261.2,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 42,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 107.5,
+      "total_ms": 1080.7,
+      "wall_ms": 1086.3,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 43,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 107.1,
+      "total_ms": 403.2,
+      "wall_ms": 407.7,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 44,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 106.4,
+      "total_ms": 1244.1,
+      "wall_ms": 1248.4,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 45,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 108.5,
+      "total_ms": 1086.4,
+      "wall_ms": 1090.9,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 46,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 108.9,
+      "total_ms": 393.3,
+      "wall_ms": 398.1,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 47,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 106.8,
+      "total_ms": 1236.6,
+      "wall_ms": 1241.1,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 48,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 109.9,
+      "total_ms": 1079.6,
+      "wall_ms": 1081.9,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 49,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 107.2,
+      "total_ms": 391.0,
+      "wall_ms": 395.6,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 50,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 107.0,
+      "total_ms": 1246.1,
+      "wall_ms": 1250.4,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 51,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 106.9,
+      "total_ms": 1080.0,
+      "wall_ms": 1084.8,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 52,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 108.8,
+      "total_ms": 391.4,
+      "wall_ms": 395.8,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 53,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 113.3,
+      "total_ms": 1246.0,
+      "wall_ms": 1248.7,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 54,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 108.3,
+      "total_ms": 1083.6,
+      "wall_ms": 1088.3,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 55,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 105.9,
+      "total_ms": 386.6,
+      "wall_ms": 388.1,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 56,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 106.4,
+      "total_ms": 1230.9,
+      "wall_ms": 1232.5,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 57,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 106.6,
+      "total_ms": 1077.1,
+      "wall_ms": 1082.0,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 58,
+      "scenario": "simple_status",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 40,
+      "thinking_length": 0,
+      "content_sha256": "ee0d1b7cf44fe58c850f8a3c68d6ab3f1dc8849ae12c05811d04ece1d8cf21c1",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "status": "ok",
+        "evidence_ids": [
+          "E1"
+        ]
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 35,
+      "completion_tokens": 17,
+      "load_ms": 108.5,
+      "total_ms": 397.1,
+      "wall_ms": 401.3,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "run_index": 59,
+      "scenario": "query_plan",
+      "success": false,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 193,
+      "thinking_length": 0,
+      "content_sha256": "27ac06d9d63c9ac25a191df417f2ed2f20eed545129eb7bb2d9506d5df11ae97",
+      "schema_valid": true,
+      "semantic_valid": false,
+      "semantic_errors": [
+        "intent must be relation",
+        "entities must include random forest"
+      ],
+      "parsed_output": {
+        "intent": "comparison",
+        "entities": [],
+        "retrieval_mode": "graph",
+        "query_en": "What model family does Random Forest belong to?",
+        "required_aspects": [
+          "model_family"
+        ],
+        "confidence": 0.9
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 81,
+      "completion_tokens": 70,
+      "load_ms": 108.5,
+      "total_ms": 1244.4,
+      "wall_ms": 1248.7,
+      "error_type": "semantic_validation",
+      "error_message": "intent must be relation; entities must include random forest"
+    },
+    {
+      "run_index": 60,
+      "scenario": "nested_answer",
+      "success": true,
+      "content_nonempty": true,
+      "thinking_empty": true,
+      "content_length": 220,
+      "thinking_length": 0,
+      "content_sha256": "8d245d76d43a7ecc200e91b06e3d8259afbe43a47afc2dde07d8fa0805313c5b",
+      "schema_valid": true,
+      "semantic_valid": true,
+      "semantic_errors": [],
+      "parsed_output": {
+        "answer": "随机森林属于集成学习模型族",
+        "claims": [
+          {
+            "claim": "随机森林属于集成学习模型族",
+            "text_evidence_ids": [
+              "E1"
+            ],
+            "graph_path_ids": [
+              "P1"
+            ]
+          }
+        ],
+        "unsupported_claims": []
+      },
+      "done_reason": "stop",
+      "prompt_tokens": 129,
+      "completion_tokens": 77,
+      "load_ms": 107.3,
+      "total_ms": 1078.7,
+      "wall_ms": 1083.1,
+      "error_type": null,
+      "error_message": null
+    }
+  ]
+}

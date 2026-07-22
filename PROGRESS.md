@@ -972,3 +972,67 @@ pilot 语义评分现在可以作为报告正式结果使用，但应准确称�
 ### 当前状态
 
 评分确认清理已验收，可以提交阶段 6.8/6.9 改动。下一步进入 Markdown 报告定稿、DOCX 排版和答辩材料制作；技术增强仍保持 No-Go，不生成 enhanced 结果。
+
+## 2026-07-22 阶段 7.0：纯文本 LLM 重新进入审计与 Generator Go
+
+### 完成事项
+
+- 从已推送基线提交 `02a122c` 创建独立分支 `experiment/llm-agent-v2`；用户提供的 LLM 完善方案 DOCX 保持未跟踪、未修改状态。
+- 核对本机资源与 Ollama 启动方式：
+  - Ollama `0.32.1`；
+  - RTX 4060 8 GB；
+  - 系统内存约 16 GB；
+  - 原模型目录位于 C 盘，C 盘剩余约 12.5 GB。
+- 新建 E 盘模型目录 `E:\ollama-models` 并写入用户级 `OLLAMA_MODELS`：
+  - 通过独立隐藏 `ollama.exe serve` 进程验证配置生效；
+  - 服务日志明确记录 `OLLAMA_MODELS:E:\ollama-models`；
+  - 原 C 盘 `qwen3-vl:8b` 模型没有删除或迁移；
+  - 新服务不再读取旧目录。
+- 下载并验证纯文本 `qwen3:4b`：
+  - 架构 `qwen3`，参数量 4.0B，量化 Q4_K_M；
+  - 主权重约 2.5 GB，实际 E 盘 blob 约 2.33 GB；
+  - 单次 readiness 探针首次让正式 JSON 进入 `message.content`，thinking 长度为 0。
+- 新增 `scripts/probe_llm_structured.py`：
+  - 简单状态、QueryPlan、嵌套 AnswerPayload 三类严格 Pydantic Schema；
+  - 每类默认执行 20 次，使用 `think=false`、`stream=false`、temperature 0 和固定 seed；
+  - 不记录 thinking 内容，只记录长度、Schema、语义结果、哈希和延迟；
+  - 分离 Structured、Generator、Planner 和 Full Agent 四个门槛；
+  - Generator 门槛不能被 Planner 的 Schema 成功误导，Planner 门槛也不能被答案生成成功掩盖。
+- 新增 `tests/test_llm_probe.py`，覆盖 Planner 语义约束、未知引用拒绝和门槛拆分逻辑。
+- 保留第一次 Full Agent 门槛失败报告 `reports/llm_probe_qwen3_4b_full_agent_initial.json`，不覆盖失败证据。
+- 生成当前正式报告 `reports/llm_probe_qwen3_4b.json`，并新增 `scripts/validate_llm_probe.py` 执行离线重算校验。
+
+### 正式探针结果
+
+| 类型 | Schema 成功 | 语义成功 | 判定 |
+| --- | ---: | ---: | --- |
+| 简单状态 | 20/20 | 20/20 | 通过 |
+| QueryPlan | 20/20 | 1/20 | Planner No-Go |
+| 嵌套 AnswerPayload | 20/20 | 20/20 | Generator Go |
+| **合计** | **60/60** | **41/60** | **仅批准 Generator** |
+
+- 空正式 content：0；
+- 非空 thinking：0；
+- 冷启动：20.698 s；
+- 热请求均值：0.930 s；
+- 热请求 P95：1.294 s；
+- QueryPlan 的 19 次失败均能通过 JSON/Pydantic，但固定误判 intent 并漏掉实体，证明结构化成功率不等于 Planner 准确率。
+
+### 验证结果
+
+```bash
+python scripts/check_enhancement_readiness.py --probe-ollama --model qwen3:4b --timeout 180
+pytest -q tests/test_llm_probe.py
+python -m py_compile scripts/probe_llm_structured.py tests/test_llm_probe.py
+python scripts/probe_llm_structured.py --model qwen3:4b --runs-per-schema 20 --minimum-success-rate 0.95 --target-gate generator --unload-before-run --output reports/llm_probe_qwen3_4b.json
+python scripts/validate_llm_probe.py
+```
+
+- 探针明细与汇总已独立重算，结果完全一致；
+- 4 个新增单元测试通过；
+- 本阶段没有修改 LangGraph、Retriever、Verifier、实验配置或 Streamlit；
+- 未运行或修改 final，未创建 extension holdout，未生成 enhanced 实验成绩。
+
+### 当前决定
+
+LLM Answer Generator 的前置门槛已经通过，可以进入下一阶段；LLM Query Planner 仍为 No-Go，继续使用规则 Router。下一阶段必须先冻结独立 23 题 `extension_holdout` 和评分合同，之后才允许修改统一 Schema、LLM Client 与 Generator 主链路。
