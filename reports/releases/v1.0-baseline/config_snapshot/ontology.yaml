@@ -1,0 +1,37 @@
+node_types:
+  - Algorithm
+  - Concept
+  - Task
+  - Metric
+  - MethodFamily
+  - Technique
+  - Problem
+
+relations:
+  BELONGS_TO:
+    source_types: [Algorithm]
+    target_types: [MethodFamily]
+  SOLVES:
+    source_types: [Algorithm]
+    target_types: [Task]
+  USES:
+    source_types: [Algorithm]
+    target_types: [Concept, Technique, Algorithm]
+  REQUIRES:
+    source_types: [Algorithm]
+    target_types: [Concept, Technique]
+  EVALUATED_BY:
+    source_types: [Task, Algorithm]
+    target_types: [Metric]
+  DIFFERS_FROM:
+    source_types: [Algorithm, Technique, Metric]
+    target_types: [Algorithm, Technique, Metric]
+  HAS_ADVANTAGE:
+    source_types: [Algorithm, Technique, Metric]
+    target_types: [Concept, Problem]
+  HAS_LIMITATION:
+    source_types: [Algorithm, Technique, Metric]
+    target_types: [Problem, Concept]
+  MITIGATES:
+    source_types: [Technique, Algorithm, Metric]
+    target_types: [Problem]

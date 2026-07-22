@@ -1,0 +1,50 @@
+[
+  {
+    "source_id": "S1",
+    "name": "linear_models",
+    "url": "https://scikit-learn.org/stable/modules/linear_model.html",
+    "html_path": "data\\raw\\html\\S1_linear_models.html",
+    "status": "cached",
+    "retrieved_at": "2026-07-22T02:09:15.321502+00:00"
+  },
+  {
+    "source_id": "S2",
+    "name": "svm",
+    "url": "https://scikit-learn.org/stable/modules/svm.html",
+    "html_path": "data\\raw\\html\\S2_svm.html",
+    "status": "cached",
+    "retrieved_at": "2026-07-22T02:09:16.599933+00:00"
+  },
+  {
+    "source_id": "S3",
+    "name": "decision_trees",
+    "url": "https://scikit-learn.org/stable/modules/tree.html",
+    "html_path": "data\\raw\\html\\S3_decision_trees.html",
+    "status": "cached",
+    "retrieved_at": "2026-07-22T02:09:17.856144+00:00"
+  },
+  {
+    "source_id": "S4",
+    "name": "ensembles",
+    "url": "https://scikit-learn.org/stable/modules/ensemble.html",
+    "html_path": "data\\raw\\html\\S4_ensembles.html",
+    "status": "cached",
+    "retrieved_at": "2026-07-22T02:09:19.138194+00:00"
+  },
+  {
+    "source_id": "S5",
+    "name": "clustering",
+    "url": "https://scikit-learn.org/stable/modules/clustering.html",
+    "html_path": "data\\raw\\html\\S5_clustering.html",
+    "status": "cached",
+    "retrieved_at": "2026-07-22T02:09:20.485257+00:00"
+  },
+  {
+    "source_id": "S6",
+    "name": "model_evaluation",
+    "url": "https://scikit-learn.org/stable/modules/model_evaluation.html",
+    "html_path": "data\\raw\\html\\S6_model_evaluation.html",
+    "status": "cached",
+    "retrieved_at": "2026-07-22T02:09:21.752549+00:00"
+  }
+]

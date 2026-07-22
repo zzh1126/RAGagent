@@ -1,0 +1,15 @@
+langgraph>=0.2,<1.1
+pydantic>=2
+requests
+beautifulsoup4
+lxml
+chromadb
+sentence-transformers
+neo4j
+networkx
+streamlit
+pandas
+numpy
+python-dotenv
+PyYAML
+pytest

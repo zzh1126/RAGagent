@@ -1,0 +1,491 @@
+P001 [Normal] 机器学习 GraphRAG 知识问答 Agent 剩余四天冲刺执行方案
+P002 [Normal] 先完成科研闭环，再增加一个技术增强点
+P003 [Normal] 消融实验 · 人工评分 · 误差分析 · 技术增强 · 报告与答辩
+
+TABLE 1 rows=7 cols=2
+R01: 当前项目状态 || Day 1～Day 5 已完成；核心系统、真实 LangGraph、三路检索、Verifier、Streamlit 和冻结评测集均已具备
+R02: 现有知识库 || 6 个 scikit-learn 官方页面；180 个 Chunk；50 个实体；100 条 approved 关系并绑定真实证据
+R03: 当前评测 || 冻结保留集 40 题；39 题决策正确；4 道无答案题全部正确拒答
+R04: 剩余时间 || 4 天
+R05: 执行优先级 || 科研实验与报告保底 > 单个技术增强 > 演示包装
+R06: 推荐增强 || 优先确认真实 LLM 生成器；若已具备，则做 Sparse + Dense + Graph 三源融合与图谱感知重排序
+R07: 版本 || V1.0 · 2026-07-22
+
+TABLE 2 rows=1 cols=1
+R01: 总原则：今天先冻结一个绝对可交付的 v1.0 基线版本，完成消融、人工评分、误差分析和报告骨架；随后仅在独立分支增加一个技术增强。增强失败时，项目仍可按 v1.0 完整交付。
+P007 [Heading 1] 目录
+P008 [Normal] 0. 结论与四天总策略
+P009 [Normal] 1. 当前进度审计与项目成熟度判断
+P010 [Normal] 2. 今天必须完成的版本冻结
+P011 [Normal] 3. Day 1：消融实验、人工评分与误差分析
+P012 [Normal] 4. 技术增强的选择决策树
+P013 [Normal] 5. 推荐增强 A：可插拔真实 LLM 结构化生成
+P014 [Normal] 6. 推荐增强 B：Sparse + Dense + Graph 三源融合
+P015 [Normal] 7. 增强实验与防止测试集泄漏
+P016 [Normal] 8. Day 2～Day 4 逐时实施计划
+P017 [Normal] 9. 实验指标、表格与可视化方案
+P018 [Normal] 10. 科研报告详细写作方案
+P019 [Normal] 11. AdaBoost 错误案例的标准分析
+P020 [Normal] 12. 延迟、后端和技术表述修正
+P021 [Normal] 13. 答辩演示与常见追问
+P022 [Normal] 14. 风险止损与最终验收清单
+P023 [Normal] 附录 A. Git 冻结与分支命令
+P024 [Normal] 附录 B. 消融实验配置模板
+P025 [Normal] 附录 C. 新增评测集格式
+P026 [Normal] 附录 D. 技术增强代码骨架
+P027 [Heading 1] 0. 结论与四天总策略
+P028 [Heading 2] 0.1 现在应该先做什么
+
+TABLE 3 rows=1 cols=1
+R01: 明确结论：不要现在直接在主分支继续堆功能。先完成 Day 6 的核心科研工作并冻结 v1.0，再在独立分支增加一个技术增强点。
+P030 [Heading 2] 0.2 四天的正确顺序
+
+TABLE 4 rows=1 cols=1
+R01: 冻结 v1.0-baseline ↓ 完成主实验、No Verifier 消融、人工评分和误差分析 ↓ 完成科研报告骨架，确保任何时候都能提交 ↓ 选择且只选择一个技术增强 ↓ 在独立评测集上验证增强效果 ↓ 最后一天停止开发，只做报告、答辩、录屏和备份
+P032 [Heading 2] 0.3 为什么不能先继续加功能
+P033 [Normal] 1. 当前核心系统已完成，项目主要风险已经从“做不出来”转为“科研论证不完整”。
+P034 [Normal] 2. 冻结保留集已经运行一次，继续根据错误改动再重复使用会造成测试泄漏。
+P035 [Normal] 3. 没有消融、人工正确性评分和误差分析，即使功能更多，也难以证明模块真正有效。
+P036 [Normal] 4. 技术增强可能引发依赖、模型下载、结果波动或现有功能回归，必须有稳定版本作为保底。
+P037 [Normal] 5. 报告和答辩需要真实实验表、失败案例和严谨表述，这些比再加一个界面功能更能提升得分。
+P038 [Heading 1] 1. 当前进度审计与项目成熟度判断
+P039 [Heading 2] 1.1 已完成的核心能力
+
+TABLE 5 rows=11 cols=3
+R01: 模块 || 当前状态 || 评价
+R02: 项目骨架与统一 Schema || 已完成；路径、Pydantic 数据结构、GraphRepository 接口齐全 || 工程基础扎实
+R03: 文本知识库 || 6 页官方文档、164 Sections、180 Chunks || 范围符合冻结方案
+R04: 向量检索 || 离线 Chroma + TF-IDF，可中文检索英文证据 || 稳定可复现，但语义能力可增强
+R05: 知识图谱 || 50 实体、100 approved 关系、全部绑定真实 Chunk || 闭环完整
+R06: 图后端 || NetworkX/Neo4j 可切换 || 容错设计有亮点
+R07: 检索工作流 || Graph / Vector / Hybrid + 动态路由 || 课题核心已完成
+R08: LangGraph || 真实 StateGraph 已启用 || 符合课题要求
+R09: Verifier || 引用、路径、主题属性、一次重试与拒答 || 具备科研创新点
+R10: 前端 || Streamlit 四区、桌面与移动端已验收 || 演示条件成熟
+R11: 评测 || 开发/演示/先导/冻结集分离；冻结集仅运行一次 || 实验设计严谨
+P041 [Heading 2] 1.2 当前结果应该如何表述
+
+TABLE 6 rows=5 cols=3
+R01: 现有结果 || 正确表述 || 禁止表述
+R02: 39/40 决策正确 || 冻结集决策准确率 97.5% || 问答准确率 97.5%
+R03: 4/4 无答案题拒答 || 无答案题拒答准确率 100%，但样本仅 4 道 || 系统不会产生幻觉
+R04: 引用率 97.5% || 39 道输出包含引用 || 证据忠实度 97.5%
+R05: 平均耗时 1.48 ms || 本地工作流/规则路径的热启动测量，需拆分解释 || 完整在线 LLM 问答仅需 1.48 ms
+
+TABLE 7 rows=1 cols=1
+R01: 成熟度判断：项目已经达到“可提交且有优秀潜力”的阶段。接下来的提升主要来自实验严谨性、技术增强的对照结果、报告表达和稳定演示，而不是扩大知识库。
+P044 [Heading 1] 2. 今天必须完成的版本冻结
+P045 [Heading 2] 2.1 冻结 v1.0-baseline
+P046 [Normal] 推荐 Git 命令
+
+TABLE 8 rows=1 cols=1
+R01: git status git add . git commit -m "release: freeze complete GraphRAG QA baseline" git tag v1.0-baseline git switch -c feature/technical-enhancement
+P048 [Heading 2] 2.2 必须归档的文件
+P049 [Normal] ☐ reports/evaluation_final.json。
+P050 [Normal] ☐ reports/evaluation_pilot_postfix.json。
+P051 [Normal] ☐ reports/streamlit_desktop_final.png。
+P052 [Normal] ☐ reports/streamlit_mobile_final.png。
+P053 [Normal] ☐ reports/streamlit_refuse.png。
+P054 [Normal] ☐ 冻结时的 requirements.txt 和 pip freeze 输出。
+P055 [Normal] ☐ 冻结时的 config/settings.yaml、sources.yaml 和 ontology.yaml。
+P056 [Normal] ☐ 冻结时的 entities.csv、relations.csv、chunks_snapshot.jsonl。
+P057 [Heading 2] 2.3 创建发布清单
+
+TABLE 9 rows=1 cols=1
+R01: reports/releases/v1.0-baseline/ ├── evaluation_final.json ├── evaluation_pilot_postfix.json ├── screenshots/ ├── config_snapshot/ ├── data_statistics.json ├── environment.txt ├── git_commit.txt └── release_notes.md
+P059 [Heading 2] 2.4 release_notes.md 应记录
+P060 [List Bullet] 系统功能范围和明确不包含的内容。
+P061 [List Bullet] 当前评测结果与唯一已知失败 T-DF-01。
+P062 [List Bullet] 当前向量检索使用 TF-IDF 表示。
+P063 [List Bullet] LangGraph、Neo4j/NetworkX、Streamlit 的运行状态。
+P064 [List Bullet] 已知限制：语义检索能力、测试集规模、规则生成或 LLM 生成模式。
+P065 [Heading 1] 3. Day 1：消融实验、人工评分与误差分析
+P066 [Heading 2] 3.1 主实验与消融矩阵
+
+TABLE 10 rows=7 cols=6
+R01: 方法 || 文本检索 || 图检索 || 动态路由 || Verifier || 目的
+R02: Direct LLM || 否 || 否 || 否 || 否 || 无知识库基线
+R03: Vector RAG || 是 || 否 || 固定 Vector || 可关闭 || 普通 RAG 基线
+R04: Graph Only || 否/仅绑定证据 || 是 || 固定 Graph || 可关闭 || 结构关系基线
+R05: Proposed || 是 || 是 || 是 || 是 || 完整方案
+R06: No Verifier || 是 || 是 || 是 || 否 || 验证器消融，必做
+R07: No Router（可选） || 是 || 是 || 固定 Hybrid || 是 || 路由消融，有时间再做
+P068 [Heading 2] 3.2 先检查 Direct LLM 是否真实可运行
+P069 [Normal] 若项目当前主要使用离线规则生成器，应将 Direct LLM 标为“需要联网模型接口的实验配置”；如果无法稳定调用真实 LLM，不要伪造 Direct LLM 结果。可以在报告中保留 Vector、Graph、Proposed 和 No Verifier 四组可复现实验，并把 Direct LLM 作为补充实验。
+P070 [Heading 2] 3.3 人工回答正确性评分
+
+TABLE 11 rows=4 cols=3
+R01: 分数 || 定义 || 示例
+R02: 0 || 错误、答非所问、关键结论相反或错误拒答 || 可回答问题被拒答；错误说明算法用途
+R03: 1 || 部分正确，但遗漏关键点或存在轻微不准确 || 对比题只说一个维度
+R04: 2 || 关键答案点完整、无实质错误、表达清晰 || 覆盖 gold_answer_points
+P072 [Heading 2] 3.4 忠实度评分
+
+TABLE 12 rows=4 cols=2
+R01: 分数 || 定义
+R02: 0 || 关键结论无证据，或引用与结论明显不匹配
+R03: 1 || 部分 Claim 有证据，仍包含 unsupported 专业事实
+R04: 2 || 所有关键 Claim 均由当前文本证据或图路径支持
+P074 [Heading 2] 3.5 推荐人工评分文件
+P075 [Normal] reports/human_scoring.csv
+
+TABLE 13 rows=1 cols=1
+R01: question_id,method,correctness_score,faithfulness_score, hallucination,over_refusal,notes,reviewer T-DF-01,Proposed,0,2,0,1, "AdaBoost 定义题证据不足导致保守拒答",student
+P077 [Heading 2] 3.6 必须计算的指标
+
+TABLE 14 rows=10 cols=3
+R01: 指标 || 计算方式 || 说明
+R02: Decision Accuracy || 决策正确题数 / 总题数 || 路由后的 pass/refuse 是否正确
+R03: Answer Correctness || 人工得分总和 / (2×题数) || 真正的回答质量
+R04: Evidence Faithfulness || 忠实度得分总和 / (2×题数) || 不能用引用率代替
+R05: Retrieval Recall@5 || gold Chunk 进入 Top-5 的题数 / 可回答题 || 检索模块指标
+R06: Path Validity || 真实路径数 / 输出路径数 || 图检索可信度
+R07: Refusal Accuracy || 正确拒答 / 无答案题 || 注明样本数
+R08: Hallucination Rate || 含无证据事实的回答 / 总回答 || 越低越好
+R09: Over-refusal Rate || 可回答但拒答 / 可回答题 || 反映保守性
+R10: Latency || 分阶段和端到端时间 || 区分本地和 LLM 模式
+P079 [Heading 2] 3.7 误差分析最低要求
+P080 [Normal] ☐ 至少分析 8～10 个案例，不只分析唯一错误。
+P081 [Normal] ☐ 包含真正错误、险些失败、过度拒答和低质量证据案例。
+P082 [Normal] ☐ 每个案例标注错误发生阶段：实体链接、路由、图检索、文本检索、融合、生成、验证。
+P083 [Normal] ☐ 每个案例写出原因、证据和可行改进，不能只写“模型能力不足”。
+P084 [Normal] ☐ 保留 T-DF-01 原结果，不针对它修改后重新声称为冻结集成绩。
+P085 [Heading 1] 4. 技术增强的选择决策树
+P086 [Heading 2] 4.1 先检查当前答案生成器
+
+TABLE 15 rows=1 cols=1
+R01: 当前 answer_generator 是否真实调用 LLM？ | |-- 否：优先做增强 A | 可插拔 LLMAnswerGenerator + OfflineRule fallback | `-- 是：优先做增强 B Sparse + Dense + Graph 三源融合与图谱感知重排序
+P088 [Heading 2] 4.2 两个增强的优先级
+
+TABLE 16 rows=4 cols=3
+R01: 情况 || 首选增强 || 原因
+R02: 目前答案主要由规则模板拼接 || 增强 A：真实 LLM 结构化生成 || 课题是知识问答 Agent，真实生成能力优先于检索锦上添花
+R03: 已经稳定调用真实 LLM，并有结构化输出 || 增强 B：Sparse + Dense + Graph || 当前 TF-IDF 是主要技术短板，三源融合有清晰实验价值
+R04: 网络或模型下载不稳定 || 保留 v1.0，不强行增强 || 稳定、可复现和按时交付优先
+P090 [Heading 2] 4.3 选择规则
+P091 [Normal] 1. 只选一个增强，不并行开发两个。
+P092 [Normal] 2. 增强代码必须放独立分支或独立 backend，不替换 v1.0。
+P093 [Normal] 3. 开发时间上限 4～6 小时；超过即停止。
+P094 [Normal] 4. 增强必须有对应对照实验，否则不算科研贡献。
+P095 [Normal] 5. 增强不允许使用原冻结集调参。
+P096 [Heading 1] 5. 推荐增强 A：可插拔真实 LLM 结构化生成
+P097 [Heading 2] 5.1 适用条件
+P098 [Normal] 如果当前 answer_generator 主要依赖离线规则和图关系模板，则应优先增加真实 LLM 生成器，同时保留规则生成器作为离线 fallback。这一增强能让项目更符合“知识问答 Agent”的定位。
+P099 [Heading 2] 5.2 统一接口
+
+TABLE 17 rows=1 cols=1
+R01: from typing import Protocol class AnswerGenerator(Protocol): def generate( self, query: str, retrieval_result: RetrievalResult, ) -> AnswerPayload: ...
+P101 [Heading 2] 5.3 两个实现
+
+TABLE 18 rows=1 cols=1
+R01: src/agent/generators/ ├── base.py ├── llm_generator.py ├── offline_rule_generator.py └── factory.py
+P103 [Heading 2] 5.4 配置
+
+TABLE 19 rows=1 cols=1
+R01: answer_generator: backend: llm fallback: offline_rule temperature: 0.0 max_retries: 1 timeout_seconds: 30
+P105 [Heading 2] 5.5 LLM 输出模型
+
+TABLE 20 rows=1 cols=1
+R01: class Claim(BaseModel): claim: str evidence_ids: list[str] class AnswerPayload(BaseModel): answer: str claims: list[Claim] graph_paths: list[str] unsupported_claims: list[str]
+P107 [Heading 2] 5.6 技术要点
+P108 [List Bullet] 使用 Pydantic/JSON Schema 约束输出。
+P109 [List Bullet] Prompt 中明确禁止使用模型记忆补充专业事实。
+P110 [List Bullet] 输出解析失败最多重试一次。
+P111 [List Bullet] 调用失败、超时或密钥缺失时自动回退规则生成器。
+P112 [List Bullet] 前端显示 generator_backend，便于答辩说明。
+P113 [List Bullet] Verifier 对 LLM 输出执行与规则输出相同的验证。
+P114 [Heading 2] 5.7 对应实验
+
+TABLE 21 rows=4 cols=4
+R01: 方法 || 检索 || 生成 || 验证
+R02: Rule Generator || Proposed Retrieval || 离线规则 || Verifier
+R03: LLM Generator || 完全相同 || 真实 LLM || Verifier
+R04: LLM No Verifier || 完全相同 || 真实 LLM || 关闭
+P116 [Heading 2] 5.8 成功标准
+P117 [Normal] ☐ 结构化输出成功率≥95%。
+P118 [Normal] ☐ 答案可读性和完整性优于规则生成。
+P119 [Normal] ☐ 忠实度不低于规则模式，或通过 Verifier 显著修正。
+P120 [Normal] ☐ 网络故障时可以无感回退到离线模式。
+P121 [Heading 1] 6. 推荐增强 B：Sparse + Dense + Graph 三源融合
+P122 [Heading 2] 6.1 适用条件
+P123 [Normal] 如果当前已经稳定调用真实 LLM，则最值得增强的是检索层。当前 Chroma 使用 TF-IDF 特征，优点是离线可复现，但对同义改写和语义表达的泛化有限。可以增加多语言 Dense Embedding，并与现有稀疏检索和图谱路径融合。
+P124 [Heading 2] 6.2 增强架构
+
+TABLE 22 rows=1 cols=1
+R01: 中文问题 ├── Sparse Retriever（现有 TF-IDF） ├── Dense Retriever（多语言 Embedding） ├── 英文查询改写后的 Dense Retriever └── Graph Retriever（Neo4j / NetworkX） ↓ Reciprocal Rank Fusion ↓ Graph-aware Reranker ↓ Top-K Evidence
+P126 [Heading 2] 6.3 RRF
+
+TABLE 23 rows=1 cols=1
+R01: RRF(d) = Σ 1 / (k + rank_r(d)) 推荐： - k = 60 - sparse Top-10 - dense zh Top-10 - dense en Top-10 - 合并后保留 12 条，再重排到 6～8 条
+P128 [Heading 2] 6.4 图谱感知重排序
+
+TABLE 24 rows=1 cols=1
+R01: final_score = 0.45 * normalized_rrf + 0.20 * entity_overlap + 0.15 * graph_path_relevance + 0.10 * direct_evidence_bonus + 0.10 * heading_match
+
+TABLE 25 rows=5 cols=3
+R01: 特征 || 含义 || 实现方式
+R02: entity_overlap || 问题实体与 Chunk 实体重合 || 别名归一后计算覆盖率
+R03: graph_path_relevance || Chunk 是否绑定本次图路径 || chunk_id 是否存在于 path evidence
+R04: direct_evidence_bonus || 是否直接回答目标属性 || 定义/优势/局限关键词或结构标签
+R05: heading_match || 标题路径是否包含实体或问题属性 || 标准化字符串匹配
+P131 [Heading 2] 6.5 Dense 模型选择原则
+P132 [List Bullet] 优先使用已能在本机加载的多语言模型，不在最后四天尝试超大模型。
+P133 [List Bullet] 模型下载和构建超过 2 小时立即止损。
+P134 [List Bullet] 保留现有 Sparse Retriever，不替换；Dense 失败时自动退回 v1.0。
+P135 [List Bullet] 缓存 Embedding，避免每次运行重新计算。
+P136 [Heading 2] 6.6 对应消融
+
+TABLE 26 rows=5 cols=5
+R01: 方法 || Sparse || Dense || Graph || 融合/重排
+R02: Sparse Only || 是 || 否 || 否 || 无
+R03: Dense Only || 否 || 是 || 否 || 无
+R04: Sparse + Dense || 是 || 是 || 否 || RRF
+R05: Full Enhanced || 是 || 是 || 是 || RRF + Graph-aware
+P138 [Heading 2] 6.7 成功标准
+P139 [Normal] ☐ 在新 extension holdout 上 Retrieval Recall@5 有实际提升。
+P140 [Normal] ☐ 复杂改写和中英混合术语题明显改善。
+P141 [Normal] ☐ 端到端正确性或忠实度提高，而不是只增加复杂度。
+P142 [Normal] ☐ 延迟增加可接受，并在报告中如实说明。
+P143 [Heading 1] 7. 增强实验与防止测试集泄漏
+P144 [Heading 2] 7.1 原冻结集的地位
+
+TABLE 27 rows=1 cols=1
+R01: 不可变规则：原 final_questions.jsonl 的 40 题结果必须保留为 v1.0 唯一一次冻结评测。任何针对 T-DF-01 或阈值的后续修改，都不能重新把该数据集称为未见最终测试。
+P146 [Heading 2] 7.2 新建 extension holdout
+
+TABLE 28 rows=7 cols=3
+R01: 题型 || 建议数量 || 重点
+R02: 复杂改写定义题 || 5 || 同义表达、长句、术语省略
+R03: 中英混合术语题 || 4 || Random Forest、F1、SVM 等
+R04: 多跳关系题 || 5 || 实体—方法族—任务—指标
+R05: 对比与原因题 || 5 || 多来源证据融合
+R06: 无答案/错误前提 || 4 || 拒答和事实校验
+R07: 合计 || 23 || 编码前冻结
+P148 [Heading 2] 7.3 数据文件
+
+TABLE 29 rows=1 cols=1
+R01: data/evaluation/extension_holdout.jsonl data/evaluation/extension_readme.md reports/extension_baseline.json reports/extension_enhanced.json reports/extension_comparison.csv
+P150 [Heading 2] 7.4 调试边界
+P151 [List Bullet] 增强开发只允许使用 dev 和 pilot。
+P152 [List Bullet] extension_holdout 在代码完成后运行一次。
+P153 [List Bullet] 运行 extension_holdout 后不再调整增强参数。
+P154 [List Bullet] 若确实需要继续调整，需再创建一套新的测试集并明确标注。
+P155 [Heading 1] 8. Day 2～Day 4 逐时实施计划
+P156 [Heading 2] 8.1 第 1 天：科研保底版本
+
+TABLE 30 rows=8 cols=3
+R01: 时间 || 任务 || 输出
+R02: 09:00–09:30 || 冻结 v1.0、Git tag、归档配置和结果 || v1.0-baseline
+R03: 09:30–11:30 || 实现/检查实验配置，运行主实验 || main_results
+R04: 13:00–14:30 || 运行 No Verifier 消融 || ablation_no_verifier
+R05: 14:30–17:00 || 40 题人工正确性与忠实度评分 || human_scoring.csv
+R06: 17:00–18:00 || 计算指标与分题型统计 || metrics_summary.csv
+R07: 19:00–20:30 || 整理 8～10 个错误/边界案例 || error_analysis.md
+R08: 20:30–21:30 || 完成报告方法与实验章节骨架 || report_outline.docx/md
+
+TABLE 31 rows=1 cols=1
+R01: 第 1 天结束标准：即使后面技术增强完全失败，项目也已经具有完整实验、误差分析和报告骨架，可以按时提交。
+P159 [Heading 2] 8.2 第 2 天：只做一个技术增强
+
+TABLE 32 rows=9 cols=3
+R01: 时间 || 任务 || 输出
+R02: 09:00–09:30 || 确认答案生成器状态并选择增强 A 或 B || decision.md
+R03: 09:30–10:00 || 冻结 extension_holdout || 23 题新保留集
+R04: 10:00–12:00 || 完成增强模块最小实现 || backend prototype
+R05: 13:00–15:00 || 接入统一接口和配置开关 || 可切换实现
+R06: 15:00–16:00 || 运行现有回归测试 || pytest 全通过
+R07: 16:00–17:00 || 在 dev/pilot 上调试 || 初步结果
+R08: 17:00 || 止损检查：未稳定则回退 v1.0 || go/no-go
+R09: 19:00–21:00 || 若通过，补单元测试、日志和 README || 增强候选版
+
+TABLE 33 rows=1 cols=1
+R01: 增强止损：累计开发 4～6 小时仍无法稳定运行，立即停止。禁止牺牲第 3、4 天的报告和答辩时间。
+P162 [Heading 2] 8.3 第 3 天：增强评测与科研报告
+
+TABLE 34 rows=9 cols=3
+R01: 时间 || 任务 || 输出
+R02: 09:00–10:00 || 运行 extension baseline || baseline JSON
+R03: 10:00–11:00 || 运行 enhanced，测试集只运行一次 || enhanced JSON
+R04: 11:00–12:00 || 计算增强前后指标和代价 || comparison.csv
+R05: 13:00–14:30 || 生成实验表和图 || figures/tables
+R06: 14:30–16:00 || 写技术增强方法与算法描述 || 报告第 5 章
+R07: 16:00–17:30 || 写主实验、消融、增强实验与误差分析 || 报告第 7 章
+R08: 19:00–20:30 || 整理系统截图、图谱截图和典型案例 || 报告素材
+R09: 20:30–21:30 || 报告第一次完整通读 || draft v1
+P164 [Heading 2] 8.4 第 4 天：停止开发，只做交付
+
+TABLE 35 rows=8 cols=3
+R01: 时间 || 任务 || 输出
+R02: 09:00–10:30 || 从干净环境按 README 复现 || 复现记录
+R03: 10:30–12:00 || 报告定稿、参考文献、图表编号 || final report
+R04: 13:00–14:30 || 制作 8～10 页答辩 PPT || slides
+R05: 14:30–16:00 || 固定演示脚本和问题顺序 || demo script
+R06: 16:00–17:30 || 完整彩排 3 次并计时 || rehearsal notes
+R07: 19:00–20:00 || 录制 3～5 分钟演示视频 || demo video
+R08: 20:00–21:00 || 最终打包、双重备份、Git release || submission package
+P166 [Heading 1] 9. 实验指标、表格与可视化方案
+P167 [Heading 2] 9.1 主结果表
+
+TABLE 36 rows=5 cols=8
+R01: 方法 || Correctness↑ || Faithfulness↑ || Recall@5↑ || Path Validity↑ || Refusal Acc.↑ || Hallucination↓ || Latency↓
+R02: Direct LLM || 待填 || 待填 || — || — || 待填 || 待填 || 待填
+R03: Vector RAG || 待填 || 待填 || 待填 || — || 待填 || 待填 || 待填
+R04: Graph Only || 待填 || 待填 || 待填 || 待填 || 待填 || 待填 || 待填
+R05: Proposed || 待填 || 待填 || 待填 || 待填 || 待填 || 待填 || 待填
+P169 [Heading 2] 9.2 消融表
+
+TABLE 37 rows=4 cols=7
+R01: 方法 || 动态路由 || Verifier || Correctness↑ || Faithfulness↑ || Over-refusal↓ || Hallucination↓
+R02: Proposed || 是 || 是 || 待填 || 待填 || 待填 || 待填
+R03: No Verifier || 是 || 否 || 待填 || 待填 || 待填 || 待填
+R04: No Router（可选） || 否 || 是 || 待填 || 待填 || 待填 || 待填
+P171 [Heading 2] 9.3 推荐图表
+P172 [Normal] ☐ 各方法总体正确性、忠实度柱状图。
+P173 [Normal] ☐ 按题型的 Proposed vs Vector RAG 正确性图。
+P174 [Normal] ☐ No Verifier 对幻觉率、拒答准确率的影响图。
+P175 [Normal] ☐ 检索 Recall@5 与端到端正确性的对应图。
+P176 [Normal] ☐ 错误类型分布图：实体、检索、融合、生成、验证。
+P177 [Normal] ☐ 增强前后 extension holdout 指标对比图。
+P178 [Heading 2] 9.4 结果结论模板
+P179 [Normal] 主实验应回答“完整方案在哪些题型优于基线”；消融应回答“去掉 Verifier 后具体损失什么”；增强实验应回答“新增模块是否带来统计上可观察的收益，以及代价是什么”。不要只写 Proposed 最好。
+P180 [Heading 1] 10. 科研报告详细写作方案
+P181 [Heading 2] 10.1 推荐章节
+
+TABLE 38 rows=9 cols=3
+R01: 章节 || 本项目内容 || 建议页数
+R02: 第 1 章 绪论 || 背景、问题、研究目标、RQ1～RQ3、贡献 || 2～3
+R03: 第 2 章 相关技术 || RAG、知识图谱、GraphRAG 思想、LangGraph、证据验证 || 3～4
+R04: 第 3 章 数据与知识库 || 六页来源、Chunk、Chroma、图谱本体与证据绑定 || 4～5
+R05: 第 4 章 总体架构 || 统一接口、三路检索、状态图和后端切换 || 3～4
+R06: 第 5 章 核心方法 || 路由、Hybrid、生成、Verifier；新增增强点 || 5～7
+R07: 第 6 章 系统实现 || 模块、Streamlit、异常回退、工程测试 || 3～4
+R08: 第 7 章 实验 || 数据划分、基线、指标、主实验、消融、增强、误差分析 || 6～8
+R09: 第 8 章 总结 || 结论、局限和展望 || 1～2
+P183 [Heading 2] 10.2 贡献点推荐表述
+P184 [Normal] 1. 构建了一个以 scikit-learn 官方文档为文本证据、以预定义知识图谱为结构知识的机器学习领域问答知识库。
+P185 [Normal] 2. 设计了基于 LangGraph 的查询理解、动态三路检索、证据融合、答案生成和验证回退流程。
+P186 [Normal] 3. 设计了引用合法性、Claim 覆盖和图路径真实性联合验证机制，并支持无证据问题拒答。
+P187 [Normal] 4. 实现了 Neo4j 与 NetworkX 统一图仓储接口，提高了系统离线可运行性和容错性。
+P188 [Normal] 5. 通过严格分割的开发、先导和冻结测试集，完成基线、消融和错误分析。
+P189 [Heading 2] 10.3 增强点写法
+P190 [Normal] 如果实施增强 A，将贡献写成“可插拔结构化 LLM 生成与离线规则回退”；如果实施增强 B，将贡献写成“稀疏—稠密—图谱三源融合与图谱感知重排序”。不要同时把两个未完成模块写成贡献。
+P191 [Heading 2] 10.4 实验章节必须说明
+P192 [Normal] ☐ 首套 40 题作为 pilot 用于发现实现缺口，不能作为无泄漏最终结果。
+P193 [Normal] ☐ 重新构建的 40 题 final 保留集与开发/先导集题面不重合。
+P194 [Normal] ☐ final 冻结后仅运行一次，未根据结果继续调参。
+P195 [Normal] ☐ 唯一错误 T-DF-01 被保留并用于过度拒答分析。
+P196 [Normal] ☐ 若新增 extension_holdout，也要说明在增强完成后仅运行一次。
+P197 [Heading 1] 11. AdaBoost 错误案例的标准分析
+P198 [Heading 2] 11.1 案例描述
+
+TABLE 39 rows=6 cols=2
+R01: 项目 || 内容
+R02: 问题 ID || T-DF-01
+R03: 问题类型 || 定义解释题
+R04: 期望行为 || 回答 AdaBoost 的基本定义并引用 Ensemble 页面
+R05: 实际行为 || Verifier 判定证据不足，系统保守拒答
+R06: 错误类型 || Over-refusal / 检索充分度判断过严
+P200 [Heading 2] 11.2 可能原因
+P201 [Normal] 1. 实体链接正确，但直接定义 Chunk 在稀疏检索中的排序不够高。
+P202 [Normal] 2. 检索结果包含 AdaBoost 相关信息，但未命中 Verifier 要求的“直接定义属性”。
+P203 [Normal] 3. 标题路径或实体匹配奖励不足，泛化段落排在定义段落之前。
+P204 [Normal] 4. Verifier 阈值偏保守，导致可回答问题被拒答。
+P205 [Heading 2] 11.3 改进方向
+P206 [List Bullet] 定义题增加实体名称与标题路径匹配奖励。
+P207 [List Bullet] 对定义意图优先检索实体对应页面和 Section。
+P208 [List Bullet] 将“定义充分度”与其他解释题的阈值分开。
+P209 [List Bullet] 使用 Dense Retrieval 改善同义描述召回。
+P210 [Heading 2] 11.4 报告中的价值
+
+TABLE 40 rows=1 cols=1
+R01: 科研价值：这个案例证明 Verifier 在降低幻觉的同时可能产生过度拒答，体现了安全性与可回答率之间的权衡。保留该错误比把结果修成 40/40 更有研究说服力。
+P212 [Heading 1] 12. 延迟、后端和技术表述修正
+P213 [Heading 2] 12.1 延迟必须拆分
+
+TABLE 41 rows=1 cols=1
+R01: latency = { "normalize_ms": ..., "entity_link_ms": ..., "graph_retrieval_ms": ..., "vector_retrieval_ms": ..., "fusion_ms": ..., "generation_ms": ..., "verification_ms": ..., "end_to_end_ms": ... }
+
+TABLE 42 rows=5 cols=2
+R01: 测量条件 || 报告写法
+R02: 离线规则生成 + 热启动 || 本地离线工作流延迟
+R03: 真实 LLM API || 在线完整问答延迟，单独统计
+R04: 首次加载 Chroma/图谱 || 冷启动延迟
+R05: 后续连续查询 || 热启动延迟
+P216 [Heading 2] 12.2 Neo4j 与 NetworkX 的正确定位
+P217 [Normal] 主演示优先使用 Neo4j。NetworkX 不应被描述为主数据库，而应描述为统一 GraphRepository 接口下的离线降级后端，用于提升系统容错性和无数据库环境下的可复现性。
+P218 [Heading 2] 12.3 GraphRAG 表述
+
+TABLE 43 rows=1 cols=1
+R01: 准确表述：本项目是基于预定义知识图谱的轻量化混合 GraphRAG / Knowledge-Graph-Enhanced RAG，借鉴图结构与文本证据结合的思想，但未实现 Microsoft GraphRAG 的完整社区检测和全局摘要流水线。
+P220 [Heading 1] 13. 答辩演示与常见追问
+P221 [Heading 2] 13.1 三分钟演示顺序
+
+TABLE 44 rows=8 cols=3
+R01: 时间 || 演示 || 讲解重点
+R02: 0:00–0:25 || 系统首页与数据统计 || 小型但完整：180 Chunk、50 实体、100 关系
+R03: 0:25–0:55 || 定义题 || Vector/Dense 与官方引用
+R04: 0:55–1:25 || 关系题 || Graph 路径和证据回指
+R05: 1:25–1:55 || 原因/对比题 || Hybrid 与 LangGraph 路由
+R06: 1:55–2:20 || 错误前提或知识库外题 || Verifier 与拒答
+R07: 2:20–2:45 || 实验表 || 主实验、No Verifier 和错误分析
+R08: 2:45–3:00 || 技术增强 || 仅展示有实验结果的增强
+P223 [Heading 2] 13.2 常见追问
+
+TABLE 45 rows=7 cols=2
+R01: 问题 || 回答要点
+R02: 为什么先做实验再加功能？ || 核心系统已完成，科研项目必须证明模块价值；先冻结确保可交付。
+R03: 为什么不修复唯一错误再跑一次？ || 冻结集已经被观察，继续调参会造成测试泄漏；错误被保留作科研分析。
+R04: 97.5% 是什么准确率？ || 是 pass/refuse 决策准确率，不等同于回答正确率；回答质量另有人工评分。
+R05: 技术增强是什么？ || 只回答实际完成并评测的 A 或 B，不夸大。
+R06: NetworkX 是不是主图数据库？ || 不是；Neo4j 为主，NetworkX 是统一接口下的离线降级后端。
+R07: 为什么有拒答？ || 证据不足时拒答可减少无依据结论，但会带来过度拒答，需要实验权衡。
+P225 [Heading 1] 14. 风险止损与最终验收清单
+P226 [Heading 2] 14.1 增强风险
+
+TABLE 46 rows=6 cols=3
+R01: 风险 || 止损信号 || 处理
+R02: LLM 接口不稳定 || 2 小时仍无法稳定结构化输出 || 保留规则生成器，不做增强 A
+R03: Dense 模型无法下载 || 2 小时仍失败 || 保留 Sparse；不继续换多个模型
+R04: 增强导致回归 || 现有 14+ 测试失败或拒答失控 || 回退 v1.0 分支
+R05: 实验耗时过长 || 第 3 天上午仍未完成 || 缩小 extension 集，不动原 final
+R06: 报告时间不足 || 第 3 天晚上报告未成型 || 停止增强，专注交付
+P228 [Heading 2] 14.2 最终验收
+P229 [Normal] ☐ v1.0-baseline tag 可独立运行。
+P230 [Normal] ☐ 主实验和 No Verifier 消融结果已保存。
+P231 [Normal] ☐ 40 题人工正确性和忠实度评分完成。
+P232 [Normal] ☐ 误差分析至少 8 个案例。
+P233 [Normal] ☐ 唯一冻结集错误未被掩盖或重复调参。
+P234 [Normal] ☐ 技术增强最多一个，且有独立实验结果。
+P235 [Normal] ☐ 报告清楚区分决策准确率、回答正确性、引用率和忠实度。
+P236 [Normal] ☐ 延迟说明区分离线/在线、冷启动/热启动。
+P237 [Normal] ☐ Neo4j 主演示稳定，NetworkX 降级可用。
+P238 [Normal] ☐ README 可从干净环境复现。
+P239 [Normal] ☐ 答辩 PPT、演示脚本、视频和双重备份完成。
+
+TABLE 47 rows=1 cols=1
+R01: 最后提醒：接下来四天最能提高项目质量的不是功能数量，而是：严谨实验、真实误差分析、一个有对照结果的技术增强，以及稳定清楚的报告和答辩。
+P241 [Heading 1] 附录 A. Git 冻结与分支命令
+
+TABLE 48 rows=1 cols=1
+R01: git status git add . git commit -m "release: freeze complete GraphRAG QA baseline" git tag v1.0-baseline git switch -c feature/technical-enhancement # 查看冻结版本 git show v1.0-baseline --stat # 增强失败后回到保底版本 git switch main git reset --hard v1.0-baseline
+P243 [Heading 1] 附录 B. 消融实验配置模板
+
+TABLE 49 rows=1 cols=1
+R01: experiments: direct_llm: retrieval_mode: none verifier_enabled: false vector_rag: retrieval_mode: vector verifier_enabled: false graph_only: retrieval_mode: graph verifier_enabled: false proposed: retrieval_mode: adaptive verifier_enabled: true no_verifier: retrieval_mode: adaptive verifier_enabled: false no_router: retrieval_mode: hybrid verifier_enabled: true
+P245 [Heading 1] 附录 C. 新增评测集格式
+
+TABLE 50 rows=1 cols=1
+R01: { "id": "EXT-MH-01", "question": "哪些模型属于树模型，并可用于分类？", "question_type": "multi_hop", "answerable": true, "gold_entities": ["Tree Models", "Classification"], "gold_paths": [ "Decision Tree-BELONGS_TO->Tree Models", "Decision Tree-SOLVES->Classification" ], "gold_chunk_ids": ["..."], "gold_answer_points": ["决策树", "随机森林等相关树模型"] }
+P247 [Heading 1] 附录 D. 技术增强代码骨架
+P248 [Heading 2] D.1 生成器工厂
+
+TABLE 51 rows=1 cols=1
+R01: def create_answer_generator(settings): backend = settings.answer_generator.backend if backend == "llm": try: return LLMAnswerGenerator(settings) except Exception: return OfflineRuleAnswerGenerator(settings) return OfflineRuleAnswerGenerator(settings)
+P250 [Heading 2] D.2 RRF
+
+TABLE 52 rows=1 cols=1
+R01: def reciprocal_rank_fusion(result_lists, k=60): scores = {} by_id = {} for results in result_lists: for rank, item in enumerate(results, start=1): chunk_id = item.chunk_id scores[chunk_id] = scores.get(chunk_id, 0.0) + 1.0 / (k + rank) by_id[chunk_id] = item return sorted( by_id.values(), key=lambda item: scores[item.chunk_id], reverse=True, )
+P252 [Heading 2] D.3 阶段耗时
+
+TABLE 53 rows=1 cols=1
+R01: from time import perf_counter start = perf_counter() # run stage latency_ms = (perf_counter() - start) * 1000

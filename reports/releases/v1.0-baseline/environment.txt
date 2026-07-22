@@ -1,0 +1,26 @@
+version=v1.0-baseline
+frozen_at=2026-07-22T14:30:57.321751+08:00
+project_root=E:\RAGagent
+python_executable=D:\ProgramData\anaconda3\python.exe
+python_version=3.12.7
+platform=Windows-11-10.0.26200-SP0
+workflow_engine=langgraph
+graph_backend=networkx
+vector_representation=tfidf
+streamlit_url=http://localhost:8501
+
+[key_packages]
+chromadb==1.5.9
+langgraph==1.0.10
+networkx==3.3
+neo4j==NOT INSTALLED
+numpy==1.26.4
+pydantic==2.8.2
+PyYAML==6.0.3
+scikit-learn==1.5.1
+sentence-transformers==5.6.0
+streamlit==1.37.1
+
+[pip_check]
+exit_code=0
+No broken requirements found.

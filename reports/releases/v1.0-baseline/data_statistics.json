@@ -1,0 +1,79 @@
+{
+  "version": "v1.0-baseline",
+  "frozen_at": "2026-07-22T14:30:57.321751+08:00",
+  "knowledge_base": {
+    "source_count": 6,
+    "section_count": 164,
+    "chunk_count": 180,
+    "chunks_by_source": {
+      "S1": 32,
+      "S2": 18,
+      "S3": 16,
+      "S4": 30,
+      "S5": 38,
+      "S6": 46
+    }
+  },
+  "graph": {
+    "entity_count": 50,
+    "entities_by_type": {
+      "Algorithm": 16,
+      "Concept": 8,
+      "MethodFamily": 5,
+      "Metric": 9,
+      "Problem": 4,
+      "Task": 3,
+      "Technique": 5
+    },
+    "entities_by_review_status": {
+      "pending": 50
+    },
+    "relation_count": 100,
+    "relations_by_type": {
+      "BELONGS_TO": 16,
+      "DIFFERS_FROM": 9,
+      "EVALUATED_BY": 12,
+      "HAS_ADVANTAGE": 14,
+      "HAS_LIMITATION": 7,
+      "MITIGATES": 7,
+      "REQUIRES": 5,
+      "SOLVES": 17,
+      "USES": 13
+    },
+    "relations_by_review_status": {
+      "approved": 100
+    },
+    "relations_with_chunk_evidence": 100
+  },
+  "evaluation": {
+    "split_counts": {
+      "dev": 10,
+      "demo": 8,
+      "pilot": 40,
+      "final": 40
+    },
+    "final_category_counts": {
+      "single_hop": 8,
+      "multi_hop": 9,
+      "definition": 7,
+      "comparison": 5,
+      "principle_pros_cons": 5,
+      "metric_selection": 2,
+      "no_answer": 4
+    },
+    "dev_final_question_overlap": 0,
+    "pilot_final_question_overlap": 0,
+    "final_metrics": {
+      "engine": "langgraph",
+      "question_count": 40,
+      "decision_accuracy": 0.975,
+      "citation_rate": 0.975,
+      "mean_keyword_coverage": 0.8375,
+      "mean_entity_coverage": 0.9208,
+      "mean_latency_ms": 1.48
+    },
+    "known_failure_ids": [
+      "T-DF-01"
+    ]
+  }
+}

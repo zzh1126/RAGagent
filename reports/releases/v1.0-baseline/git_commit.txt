@@ -1,0 +1,5 @@
+Git repository: unavailable
+Commit: unavailable
+Tag: unavailable
+Reason: E:\RAGagent was not initialized as a Git repository at freeze time.
+Integrity fallback: source_snapshot.zip plus manifest.json and MANIFEST_SHA256.txt.

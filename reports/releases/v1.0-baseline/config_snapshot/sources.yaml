@@ -1,0 +1,34 @@
+sources:
+  - id: S1
+    name: linear_models
+    title: Linear Models
+    url: https://scikit-learn.org/stable/modules/linear_model.html
+    include_keywords:
+      - Ordinary Least Squares
+      - Ridge
+      - Lasso
+      - Logistic regression
+  - id: S2
+    name: svm
+    title: Support Vector Machines
+    url: https://scikit-learn.org/stable/modules/svm.html
+    include_keywords:
+      - Classification
+      - Kernel functions
+      - Tips on Practical Use
+  - id: S3
+    name: decision_trees
+    title: Decision Trees
+    url: https://scikit-learn.org/stable/modules/tree.html
+  - id: S4
+    name: ensembles
+    title: Ensembles
+    url: https://scikit-learn.org/stable/modules/ensemble.html
+  - id: S5
+    name: clustering
+    title: Clustering
+    url: https://scikit-learn.org/stable/modules/clustering.html
+  - id: S6
+    name: model_evaluation
+    title: Metrics and scoring
+    url: https://scikit-learn.org/stable/modules/model_evaluation.html

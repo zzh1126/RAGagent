@@ -1,0 +1,33 @@
+project:
+  name: sklearn_ml_qa_agent
+  graph_backend: networkx
+
+paths:
+  sources: config/sources.yaml
+  ontology: config/ontology.yaml
+  entities: data/graph/entities.csv
+  relations: data/graph/relations.csv
+  chunks: data/processed/chunks.jsonl
+  chroma: data/chroma
+
+retrieval:
+  collection: sklearn_ml_knowledge_v1
+  zh_top_k: 8
+  en_top_k: 8
+  final_top_k: 8
+
+chunking:
+  max_chunks_total: 180
+  max_chunks_by_source:
+    S1: 32
+    S2: 18
+    S3: 16
+    S4: 30
+    S5: 38
+    S6: 46
+
+verification:
+  pass_threshold: 0.80
+  retry_threshold: 0.55
+  max_retries: 1
+  min_vector_score: 0.08

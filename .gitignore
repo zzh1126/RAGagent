@@ -1,0 +1,8 @@
+# Local interpreter and test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local secrets and runtime logs
+.env
+*.log

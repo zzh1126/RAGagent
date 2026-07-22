@@ -1,0 +1,51 @@
+entity_id,type,name_en,name_zh,aliases,description_zh,review_status
+ALG_LINREG,Algorithm,Linear Regression,线性回归,LinearRegression|OLS,用于连续目标的普通最小二乘线性模型,pending
+ALG_RIDGE,Algorithm,Ridge Regression,Ridge回归,Ridge|L2 regression,带L2正则化的线性回归模型,pending
+ALG_LASSO,Algorithm,Lasso,Lasso回归,L1 regression,带L1正则化且可产生稀疏系数的线性模型,pending
+ALG_LOGREG,Algorithm,Logistic Regression,逻辑回归,LogisticRegression,用于分类任务的线性模型,pending
+ALG_LINEARSVC,Algorithm,LinearSVC,线性支持向量分类器,Linear Support Vector Classification,线性核支持向量分类器实现,pending
+ALG_SVC,Algorithm,Support Vector Classification,支持向量分类,SVC|SVM,基于支持向量机的分类算法,pending
+ALG_SVR,Algorithm,Support Vector Regression,支持向量回归,SVR,基于支持向量机的回归算法,pending
+ALG_TREE,Algorithm,Decision Tree,决策树,DecisionTreeClassifier|DecisionTreeRegressor,可解释的树结构监督学习模型,pending
+ALG_RF,Algorithm,Random Forest,随机森林,RF|RandomForestClassifier|RandomForestRegressor,由多棵随机化决策树组成的集成方法,pending
+ALG_BAGGING,Algorithm,Bagging,装袋法,Bootstrap aggregating,基于自助采样并聚合多个基学习器的集成方法,pending
+ALG_ADABOOST,Algorithm,AdaBoost,AdaBoost,Adaptive Boosting,逐步强调错误样本的提升方法,pending
+ALG_GBDT,Algorithm,Gradient Boosting,梯度提升,GradientBoostingClassifier|GradientBoostingRegressor,通过顺序拟合残差构建的提升方法,pending
+ALG_HGBDT,Algorithm,HistGradientBoosting,直方图梯度提升,HistGradientBoostingClassifier|HistGradientBoostingRegressor,基于直方图的高效梯度提升实现,pending
+ALG_KMEANS,Algorithm,KMeans,KMeans,K-means|K均值,基于质心的聚类算法,pending
+ALG_DBSCAN,Algorithm,DBSCAN,DBSCAN,Density-Based Spatial Clustering,基于密度的聚类算法,pending
+ALG_AGGLO,Algorithm,Agglomerative Clustering,凝聚层次聚类,AgglomerativeClustering,自底向上的层次聚类算法,pending
+MET_ACC,Metric,Accuracy,准确率,accuracy,分类预测正确比例,pending
+MET_BALACC,Metric,Balanced Accuracy,平衡准确率,balanced accuracy,按类别召回率平均的分类指标,pending
+MET_PREC,Metric,Precision,精确率,precision,预测为正的样本中真正例比例,pending
+MET_REC,Metric,Recall,召回率,recall|sensitivity,真实正例中被识别出的比例,pending
+MET_F1,Metric,F1 Score,F1分数,F1|f1-score,精确率和召回率的调和平均,pending
+MET_ROCAUC,Metric,ROC AUC,ROC AUC,AUC,基于ROC曲线的分类排序指标,pending
+MET_MSE,Metric,Mean Squared Error,均方误差,MSE,回归误差平方的平均值,pending
+MET_R2,Metric,R2 Score,R2分数,R2|R2 score|R-squared|coefficient of determination,回归模型解释方差的指标,pending
+MET_SIL,Metric,Silhouette Coefficient,轮廓系数,silhouette score,衡量聚类簇内紧密与簇间分离的指标,pending
+CON_OVERFIT,Concept,Overfitting,过拟合,overfit,模型过度适应训练数据导致泛化差,pending
+CON_REG,Concept,Regularization,正则化,regularisation,通过惩罚复杂度控制模型的技术,pending
+CON_BIAS,Concept,Bias,偏差,bias,模型假设带来的系统性误差,pending
+CON_VARIANCE,Concept,Variance,方差,variance,模型对训练数据扰动的敏感程度,pending
+CON_KERNEL,Concept,Kernel Function,核函数,kernel trick,支持向量机中用于非线性映射的函数,pending
+CON_MARGIN,Concept,Margin,间隔,maximum margin,支持向量机中分隔边界到样本的距离,pending
+CON_IMBALANCE,Concept,Class Imbalance,类别不平衡,imbalanced classes,不同类别样本数量差异较大的问题,pending
+CON_INTERPRET,Concept,Interpretability,可解释性,explainability,模型决策过程容易被人理解的性质,pending
+TECH_SCALING,Technique,Feature Scaling,特征缩放,standardization|normalization,调整特征尺度以改善模型训练,pending
+TECH_PRUNING,Technique,Pruning,剪枝,tree pruning,限制或裁剪树结构以减少过拟合,pending
+TECH_BOOTSTRAP,Technique,Bootstrap,Bootstrap抽样,bootstrap samples,有放回抽样技术,pending
+TECH_FEATURE_SUBSAMPLE,Technique,Feature Subsampling,特征子采样,random subspace,每次分裂或建模时只考虑部分特征,pending
+TECH_CV,Technique,Cross Validation,交叉验证,cross-validation,通过多次划分数据评估泛化性能,pending
+PROB_OVERFIT,Problem,Overfitting Risk,过拟合风险,risk of overfitting,模型泛化能力下降的风险,pending
+PROB_HIGHDIM,Problem,High Dimensional Data,高维数据,high-dimensional spaces,特征维度较高的数据场景,pending
+PROB_IMBALANCE,Problem,Imbalanced Classes,类别不平衡问题,class imbalance problem,类别样本分布不均带来的评估和训练问题,pending
+PROB_NOISE,Problem,Noisy Data,噪声数据,noise,包含随机扰动或异常模式的数据,pending
+TASK_CLASS,Task,Classification,分类,classification task,预测离散类别标签的任务,pending
+TASK_REG,Task,Regression,回归,regression task,预测连续数值目标的任务,pending
+TASK_CLUSTER,Task,Clustering,聚类,cluster analysis,无监督地发现样本分组的任务,pending
+FAM_LINEAR,MethodFamily,Linear Models,线性模型,linear family,基于线性函数的模型族,pending
+FAM_KERNEL,MethodFamily,Kernel Methods,核方法,kernel machines,基于核函数的模型族,pending
+FAM_TREE,MethodFamily,Tree Models,树模型,tree-based models,基于树结构的模型族,pending
+FAM_ENSEMBLE,MethodFamily,Ensemble Learning,集成学习,ensemble methods,组合多个学习器的模型族,pending
+FAM_CLUSTER,MethodFamily,Clustering Methods,聚类方法,clustering algorithms,无监督聚类算法族,pending
