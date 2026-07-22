@@ -33,7 +33,7 @@ REQUIRED_RULES = (
     TextRule("R10", "NetworkX must be identified as the experiment backend", r"当前(?:冻结评测和 pilot )?实验(?:均)?使用 NetworkX"),
     TextRule("R11", "Neo4j online benchmark must be disclaimed", r"不声称完成了在线 Neo4j 服务基准测试"),
     TextRule("R12", "1.48 ms must be separated from online LLM latency", r"1\.48 ms[^\n]{0,50}不是在线 LLM 延迟"),
-    TextRule("R13", "technical enhancement must remain pending", r"当前状态：待决策，尚未作为项目贡献"),
+    TextRule("R13", "technical enhancement No-Go status must remain explicit", r"当前状态：No-Go，未作为项目贡献"),
 )
 
 

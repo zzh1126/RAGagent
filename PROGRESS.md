@@ -804,3 +804,83 @@ python scripts/freeze_baseline.py --verify
 ### 当前状态
 
 科研保底版本现已具备代码、冻结结果、主实验、消融、初步语义复核、误差分析和完整报告初稿。下一阶段按照冲刺方案先形成技术增强决策文档：核实是否存在稳定真实 LLM 接口，只选择一个增强，并在任何开发前冻结独立 `extension_holdout`；若前置条件不满足，则保留 v1.0，不伪造增强结果。
+
+## 2026-07-22 阶段 6.7：技术增强前置审计、真实 Ollama 探针与 No-Go 止损
+
+### 完成事项
+
+- 完成真实运行环境审计，没有仅凭 Python 包安装状态判断 LLM 可用性：
+  - 本机已安装 Ollama `0.32.1`；
+  - 本地服务真实监听 `127.0.0.1:11434`；
+  - 已安装 `qwen3-vl:8b`，模型文件约 6.1 GB；
+  - 当前没有 OpenAI、Anthropic、DashScope、DeepSeek 或 Azure OpenAI 密钥环境变量；
+  - `openai`、`anthropic` 和 Python `ollama` 客户端未安装，但本地 Ollama HTTP API 可直接访问。
+- 对增强 A“可插拔真实 LLM 结构化生成”执行真实前置探针：
+  - 初始 5 次手工受控调用加 1 次自动复验，共 6 次；
+  - JSON Schema 内容能够生成，但全部进入 `thinking` 字段；
+  - 正式 `response` 或 `message.content` 均为空；
+  - 正式答案字段结构化成功率为 `0/6`；
+  - 冷启动墙钟耗时约 84.7 s，其中模型加载约 67.2 s；
+  - 后续非首次调用耗时约 1.0～12.0 s；
+  - 没有把 thinking 临时当作答案，也没有伪造 `AnswerPayload` 成功结果。
+- 审计增强 B“Sparse + Dense + Graph”的前置条件：
+  - `sentence-transformers` 与 PyTorch 已安装；
+  - 本机 Hugging Face 缓存没有文本 Embedding 模型；
+  - 现有缓存为 CLIP/ViT 图像相关模型，不能作为当前文本 Dense Retriever 的已验证模型；
+  - 按冲刺方案的下载止损规则，本阶段不临时下载新模型绕开增强 A 的失败。
+- 新增 `scripts/check_enhancement_readiness.py`：
+  - 检查 Ollama 可达性、版本、模型清单和本地文本模型缓存；
+  - 只输出已配置的环境变量名称，不输出任何密钥值；
+  - `--probe-ollama` 通过真实 `/api/chat` 和 JSON Schema 检查正式答案字段；
+  - thinking 内容不写入日志，只记录长度和是否包含 JSON；
+  - `--require-ready` 在未满足输出合同时返回退出码 2，阻止误判为可实施状态。
+- 新增独立决策文档 `reports/technical_enhancement_decision.md`：
+  - 正式结论为 No-Go，本轮不实施增强 A 或 B；
+  - 保留 v1.0，不生成 enhanced 指标；
+  - 当前不创建 `extension_holdout`，避免在没有获准增强时产生可被调试或误用的冻结集；
+  - 固定重新进入条件：20 次结构化探针至少成功 19 次、具备离线 fallback、复用 Evidence Verifier，随后才冻结 23 题独立保留集。
+- 同步更新科研报告与事实约束：
+  - `reports/research_report_draft.md` 第 5.8 节从“待决策”更新为有证据的 No-Go；
+  - 第 8.4 节明确 v1.0 在增强 No-Go 状态下仍可提交；
+  - 附录待办标记前置审计已完成，extension holdout 仅在重新获准后创建；
+  - `reports/report_claims_checklist.md` 与 `scripts/validate_report_claims.py` 同步要求 No-Go 表述。
+
+### 正式决定
+
+```text
+增强 A：No-Go，正式答案字段结构化成功率 0/6
+增强 B：No-Go，无已缓存且验证可用的文本 Embedding 模型
+当前版本：保留 v1.0-baseline
+extension_holdout：不创建
+final：不重跑、不调参
+```
+
+### 验证结果
+
+```bash
+python scripts/check_enhancement_readiness.py
+python scripts/check_enhancement_readiness.py --probe-ollama --model qwen3-vl:8b
+python scripts/check_enhancement_readiness.py --require-ready
+python scripts/validate_report_claims.py
+python -m compileall -q app src scripts tests
+pytest -q
+python scripts/validate_scoring.py
+python scripts/validate_experiments.py
+python scripts/validate_evaluation.py
+python -m pip check
+python scripts/freeze_baseline.py --verify
+```
+
+- 自动 Ollama 复验：`schema_success=False`、`content_length=0`、`thinking_contains_json=True`；
+- `--require-ready` 按预期以退出码 2 拒绝当前状态；
+- 报告事实声明校验通过；
+- Pytest：`26 passed`；
+- 初步评分状态继续为 `preliminary_pending_user_confirmation`；
+- 实验配置指纹仍为 `56dd6a55fd05a01490322283926a722a3fe0260d4b4b6534f21d2900ba04c44a`；
+- 依赖无冲突；
+- v1.0 归档 23 个 payload 和 Manifest SHA-256 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` 继续匹配；
+- 未运行 final，未生成 extension holdout 或任何 enhanced 实验结果。
+
+### 当前状态
+
+技术增强已按照冲刺方案完成真实前置审计和及时止损，不再占用报告与交付时间。下一阶段转入实验可视化与报告素材：根据已有 pilot 和初步评分结果生成可追溯图表，将 Mermaid 架构图导出为静态图片，并继续保持初步语义指标的星号与用户确认状态。

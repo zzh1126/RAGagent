@@ -14,6 +14,7 @@
 | `reports/releases/v1.0-baseline/MANIFEST_SHA256.txt` | Manifest SHA-256 |
 | `reports/experiments/pilot_comparison.json` | 四种 pilot 方法的自动指标 |
 | `reports/experiments/pilot_human_metrics.json` | Codex 辅助初步语义评分与评审状态 |
+| `reports/technical_enhancement_decision.md` | 技术增强前置审计、No-Go 原因和重新进入条件 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
 
@@ -38,7 +39,7 @@
 | C15 | pilot 的语义分数是 Codex 辅助初步复核，状态必须为 `preliminary_pending_user_confirmation` | 已核验 |
 | C16 | 初步幻觉率为 0 只描述当前小样本观察，不能推出系统不会产生幻觉 | 已核验 |
 | C17 | Manifest SHA-256 为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` | 已核验 |
-| C18 | 技术增强仍为待决策，不能写入已完成贡献或结果 | 已核验 |
+| C18 | 技术增强前置审计为 No-Go，未生成 enhanced 结果，也未创建 extension holdout | 已核验 |
 
 ## 禁止出现的结论
 
@@ -51,6 +52,7 @@
 - 声称当前正式检索使用 sentence-transformers 或神经 Dense Embedding。
 - 声称完成了 Neo4j 在线性能基准。
 - 在技术增强尚未完成和独立评测前宣称增强有效。
+- 将 thinking 字段中的 JSON 当作已经通过正式 `AnswerPayload` 输出合同。
 
 ## 发布前检查
 
