@@ -238,4 +238,4 @@ $env:AGENT_GENERATOR_BACKEND="offline_rule"
 python -m streamlit run app/streamlit_app.py
 ```
 
-该方式是明确标注的规则基线，不应伪装成 LLM 结果。默认 LLM 模式现在使用 Claim-level Partial-pass；正式演示前仍需完成阶段 8.4 的 trace/UI 和阶段 8.5 的完整 dev 回归。
+该方式是明确标注的规则基线，不应伪装成 LLM 结果。默认 LLM 模式现在使用 Claim-level Partial-pass；阶段 8.4 的 trace/UI、合成预热和四路径 browser smoke 已完成，正式质量结论仍需阶段 8.5 的完整 dev 回归。

@@ -184,7 +184,7 @@ final 与 dev、pilot 题面重合均为 0。final 运行后没有根据 T-DF-01
 
 ## 4.2 统一数据结构
 
-核心运行结构包括 `TextEvidence`、`GraphPath`、`LinkedEntity`、`RetrievalResult`、`EvidencePack`、`EvidencePackingTrace`、`AnswerPayload`、`VerifyResult` 和 `FinalResponse`。`EvidencePack` 只表示本次生成器可见的证据子集，完整 `RetrievalResult` 仍交给 Verifier；`AnswerPayload` 与 `FinalResponse` 分别保留单次和逐次 packing trace。实验层另外定义 `ExperimentRunReport`，记录配置快照、数据集哈希、逐题结果、自动指标和人工指标状态，避免不同实验返回不同格式。
+核心运行结构包括 `TextEvidence`、`GraphPath`、`LinkedEntity`、`RetrievalResult`、`EvidencePack`、`EvidencePackingTrace`、`AnswerPayload`、`VerifyResult` 和 `FinalResponse`。Stage 8.4 进一步增加 `RouteTrace`、`RetrievalCall`、`VerificationCall` 与 `WorkflowLatencyTrace`。`EvidencePack` 只表示本次生成器可见的证据子集，完整 `RetrievalResult` 仍交给 Verifier；`FinalResponse` 保存 routing、全部 retrieval/generation/packing/verification 调用、retry 分支墙钟时间、end-to-end 和 cache status。实验层另外定义 `ExperimentRunReport`，记录配置快照、数据集哈希、逐题结果、自动指标和人工指标状态，避免不同实验返回不同格式。
 
 ## 4.3 GraphRepository 接口
 
@@ -289,6 +289,8 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 阶段 8.3 已接入 Claim-level Verifier 和 `PARTIAL_PASS`。每条 Claim 现在具有 C ID、supported/retained、有效 E/P ID 和 reason codes；默认 LLM 使用 partial-pass，规则基线保持 strict。DEV02 脱敏 smoke 保留 C1/C2、删除 C3/C4，decision=`partial_pass`，Claim coverage=0.5000，citation/path validity=1.0000，retry count=0，generation call count=1，unsupported Claim leakage=0；warm generation latency 为 7275.8 ms，end-to-end latency 为 7288 ms。该单题开发 smoke 只证明过滤机制按设计工作，不是完整 dev/pilot 回归，也不能证明 LLM 增强有效。
 
+阶段 8.4 已补齐运行时可观测性和演示状态。系统按单调时钟记录 routing、全部 retrieval、packing、全部 LLM generation、全部 verification、retry branch 和 end-to-end；retry 是与子阶段重叠的墙钟时间，不能重复相加。Generation trace 同时保存 provider/model、requested/actual backend 和 fallback。Streamlit 启动时执行固定合成预热，不读取任何评测题面；问题响应仍明确 `cache_status=disabled`。CLI、开发评测和 extension runner 使用同一 trace。该阶段没有运行完整 dev/pilot/final/extension，因此只证明 trace 与 UI 合同成立。
+
 初始审计中，Ollama `0.32.1` 与 `qwen3-vl:8b` 的 5 次手工受控调用和 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空，因此该视觉模型组合仍为 No-Go，且没有读取 thinking 绕过接口合同。
 
 随后在独立分支安装纯文本 `qwen3:4b` 并执行三类各 20 次正式探针。结构化 Schema 成功为 60/60，空 `message.content` 和非空 thinking 均为 0；简单状态与嵌套 AnswerPayload 的语义成功均为 20/20，但 QueryPlan 语义成功仅为 1/20。冷启动约 20.698 s，全部热请求平均约 0.930 s、P95 约 1.294 s。因此当前只批准 LLM Answer Generator，继续使用规则 Router，不实现或宣称 LLM Planner。
@@ -309,6 +311,7 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 | NetworkX | 3.3，当前评测后端 |
 | ChromaDB | 1.5.9 |
 | Streamlit | 1.37.1 |
+| Playwright | 1.61.0，仅用于本机 UI smoke |
 | Pydantic | 2.8.2 |
 | 操作系统 | Windows 11 |
 
@@ -329,7 +332,7 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 ## 6.3 Streamlit 演示
 
-界面支持问题输入和 8 道演示题，显示检索模式、意图、证据分数、重试次数和耗时，并分别展示回答、图路径、官方证据和验证详情。桌面 1440×1000 与移动 390×844 视口均完成浏览器验收，正常回答和错误前提拒答均真实点击验证。
+界面支持问题输入和 8 道演示题，显示检索模式、意图、证据分数、Claim coverage、重试次数和端到端耗时，并显示 model、requested/actual backend、fallback、结构化输出、预热、缓存及完整阶段延迟。新增“运行轨迹”页签展示 route/retrieval/generation/verification 调用。`PASS`、`PARTIAL_PASS`、`REFUSE` 和 Ollama 故障 fallback 四条路径均在桌面 1440×1000 与移动 390×844 视口完成浏览器 smoke，自动检查无水平溢出；截图只作为工程验收，不作为答案质量结果。
 
 ## 6.4 可复现与版本冻结
 
@@ -491,7 +494,7 @@ $$
 - 语义评分由 Codex 辅助生成并经用户确认，但未进行独立双人标注或一致性统计；
 - gold Chunk 由图关系保守推导，仅覆盖部分题；
 - v1.0 主实验使用规则生成器，不能据此外推真实 LLM 的幻觉表现；当前 LLM 仅有 dev 工程审计，尚无 extension 独立结果；
-- 延迟为单机热路径，没有冷启动与在线服务基准；
+- 延迟为单机本地服务结果；Stage 8.4 已拆分预热与问题阶段，但尚无完整 dev 的 cold/warm 统计图或跨硬件基准；
 - 知识库仅包含六页文档，结论不应泛化到完整 scikit-learn。
 
 ---
@@ -514,11 +517,11 @@ $$
 
 ## 8.3 后续工作
 
-- 完成逐 Claim 验证和 `PARTIAL_PASS`，在 dev/pilot 回归后冻结配置；
+- 使用完整阶段 trace 在 dev 上复核 DEV02/03/05/10，并在 pilot 回归后冻结配置；
 - 创建新的 v2 implementation manifest 与一次性 release，再在独立 extension holdout 上只运行一次四方法实验；
 - 完善属性级问题对齐和错误前提验证；
 - 改进多目标实体和多跳路径覆盖；
-- 增加冷启动、热启动和分阶段延迟统计；
+- 汇总完整 dev/pilot 的冷启动、热启动和分阶段延迟统计图；
 - 扩大人工标注集并进行双人一致性评估；
 - 在不改变 v1.0 final 结果的前提下研究定义题检索充分度。
 
@@ -589,6 +592,7 @@ python scripts/validate_scoring.py
 - [x] 实现 intent-aware Evidence Packer、题型配额、可见 ID 边界、字符预算和逐次 packing trace，并完成 dev/pilot 只读合同回归；
 - [x] 实现原子 Claim Prompt v2、1～4 条 Claim wire Schema、逐字 quote 合同与 20 次合成探针；
 - [x] 实现 Claim-level Verifier、retained/removed Claim、`PARTIAL_PASS` 与 strict 对照模式；
+- [x] 实现完整运行时 trace、CLI/评测接线、合成预热和 Streamlit 四路径桌面/移动 smoke；
 - [ ] 使用专用 runner 执行一次 extension 并完成用户确认的盲评；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；

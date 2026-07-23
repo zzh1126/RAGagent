@@ -7,6 +7,7 @@ from src.schemas import (
     GenerationCall,
     RetrievalResult,
     VerifyResult,
+    WorkflowLatencyTrace,
 )
 
 
@@ -40,6 +41,8 @@ def test_evaluation_aggregates_all_generation_calls() -> None:
             GenerationCall(
                 requested_backend="ollama",
                 actual_backend="ollama",
+                provider="ollama",
+                model="qwen3:4b-test",
                 attempts=2,
                 latency_ms=20.0,
                 structured_output_success=True,
@@ -47,6 +50,8 @@ def test_evaluation_aggregates_all_generation_calls() -> None:
             GenerationCall(
                 requested_backend="ollama",
                 actual_backend="offline_rule",
+                provider="ollama",
+                model="qwen3:4b-test",
                 fallback_used=True,
                 fallback_reason="LLMUnavailableError",
                 attempts=1,
@@ -54,6 +59,11 @@ def test_evaluation_aggregates_all_generation_calls() -> None:
                 structured_output_success=False,
             ),
         ],
+        latency_trace=WorkflowLatencyTrace(
+            llm_generation_latency_ms=30.0,
+            retry_latency_ms=12.0,
+            end_to_end_latency_ms=35.0,
+        ),
         latency_ms=35,
         retry_count=1,
     )
@@ -77,6 +87,13 @@ def test_evaluation_aggregates_all_generation_calls() -> None:
     assert result["generation_call_count"] == 2
     assert result["generation_attempts"] == 3
     assert result["generation_latency_ms"] == 30.0
+    assert result["llm_generation_latency_ms"] == 30.0
+    assert result["retry_latency_ms"] == 12.0
+    assert result["end_to_end_latency_ms"] == 35.0
+    assert result["generator_provider"] == "ollama"
+    assert result["generator_model"] == "qwen3:4b-test"
+    assert result["generator_requested_backend"] == "ollama"
+    assert result["cache_status"] == "disabled"
     assert result["generator_fallback_used"] is True
     assert result["structured_output_success"] is False
 

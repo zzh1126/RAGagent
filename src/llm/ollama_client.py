@@ -4,9 +4,10 @@ import logging
 import time
 import uuid
 from collections.abc import Mapping, Sequence
+from typing import Literal
 
 import requests
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from src.llm.base import LLMEventSink, StructuredModel
 from src.llm.config import LLMSettings
@@ -17,7 +18,7 @@ from src.llm.exceptions import (
     LLMTimeoutError,
     LLMUnavailableError,
 )
-from src.llm.schemas import ChatMessage, LLMCallRecord
+from src.llm.schemas import ChatMessage, LLMCallRecord, LLMWarmupRecord
 
 
 LOGGER = logging.getLogger(__name__)
@@ -25,6 +26,16 @@ REPAIR_MESSAGE = (
     "The previous response did not match the required JSON Schema. "
     "Return only one corrected JSON object that follows the supplied schema."
 )
+WARMUP_SYSTEM_MESSAGE = (
+    "This is a synthetic startup health check. Return only JSON matching the schema."
+)
+WARMUP_USER_MESSAGE = "Return status ready."
+
+
+class OllamaWarmupResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["ready"]
 
 
 class OllamaClient:
@@ -43,6 +54,53 @@ class OllamaClient:
         self.session = session or requests.Session()
         self.event_sink = event_sink
         self.last_call: LLMCallRecord | None = None
+        self.last_warmup: LLMWarmupRecord | None = None
+
+    def warmup(self) -> LLMWarmupRecord:
+        started_at = time.perf_counter()
+        try:
+            self.generate_structured(
+                messages=[
+                    {"role": "system", "content": WARMUP_SYSTEM_MESSAGE},
+                    {"role": "user", "content": WARMUP_USER_MESSAGE},
+                ],
+                response_model=OllamaWarmupResponse,
+                temperature=0.0,
+                node="llm_startup_warmup",
+            )
+        except LLMError as exc:
+            call = self.last_call
+            record = LLMWarmupRecord(
+                status="failed",
+                provider=self.provider,
+                model=self.model,
+                keep_alive=self.settings.keep_alive,
+                attempts=call.attempts if call else 1,
+                latency_ms=(
+                    call.latency_ms
+                    if call
+                    else round((time.perf_counter() - started_at) * 1000, 1)
+                ),
+                structured_output_success=False,
+                error_type=type(exc).__name__,
+            )
+        else:
+            call = self.last_call
+            record = LLMWarmupRecord(
+                status="ready",
+                provider=self.provider,
+                model=self.model,
+                keep_alive=self.settings.keep_alive,
+                attempts=call.attempts if call else 1,
+                latency_ms=(
+                    call.latency_ms
+                    if call
+                    else round((time.perf_counter() - started_at) * 1000, 1)
+                ),
+                structured_output_success=True,
+            )
+        self.last_warmup = record
+        return record
 
     def generate_structured(
         self,

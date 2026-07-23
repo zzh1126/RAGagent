@@ -7,7 +7,7 @@
 | 评测日期 | 2026-07-23 |
 | 当前分支 | `experiment/llm-agent-v2` |
 | 阶段 8.0 完成提交 | `7fbf566` |
-| 计划状态 | 阶段 8.0～8.3 已完成，准备进入阶段 8.4 |
+| 计划状态 | 阶段 8.0～8.4 已完成，准备进入阶段 8.5 dev 调试 |
 | 当前 extension release | `extension-qwen3-4b-v1-bdedf7dc` |
 | release 有效状态 | `revoked_before_execution`，从未运行 |
 | v2 状态 | 四方法合同已冻结，`locked_no_release` |
@@ -353,7 +353,7 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 
 完成结果：`ClaimResult` 已扩展为 C ID、supported/retained、有效 E/P ID 和 reason codes；`VerifyResult` 已接入保留/删除集合、四状态决策和 verification latency。默认 LLM 使用 partial-pass，离线规则基线保持 strict，显式 strict override 可用于消融。合成合同检查覆盖 pass、partial、retry、refuse、错误前提和无泄漏；DEV02 脱敏 smoke 为 2/4 Claim retained、2/4 removed、retry=0、generation calls=1、unsupported leakage=0。该 smoke 不是整体 dev 或独立效果实验。
 
-### 阶段 8.4：工作流、trace 与 Streamlit
+### 阶段 8.4：工作流、trace 与 Streamlit（已完成）
 
 - LangGraph 增加 `partial_pass -> finalize` 路径；
 - 增加阶段计时和 Claim 诊断 trace；
@@ -362,6 +362,8 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 - 正式评测路径禁用答案缓存。
 
 验收：四种决策均有测试；阶段时间非负且端到端口径一致；前端展示真实 backend、fallback、模型、Verifier 和延迟。
+
+完成结果：`FinalResponse` 已保存 RouteTrace、逐次 RetrievalCall/GenerationCall/EvidencePackingTrace/VerificationCall、retry branch 和 WorkflowLatencyTrace；CLI、普通评测与 extension runner 读取同一合同。Streamlit 已显示 model、requested/actual backend、fallback、structured status、cache、预热和七项延迟，并增加 partial 独立样式。pass、partial-pass、refuse 和 fallback 均通过 1440 px/390 px browser smoke；合成预热不读取评测题面，正式评测仍不预热、不缓存。
 
 ### 阶段 8.5：Dev 调试与误差审计
 
@@ -455,4 +457,4 @@ PROGRESS.md
 
 **No-Go：** LLM Planner、多 Agent、知识库扩充、自动图谱抽取、完整 Microsoft GraphRAG 和框架迁移。
 
-下一步进入阶段 8.4：补齐 routing/retrieval/verification/retry 延迟、CLI/评测 trace、Streamlit 的真实模型/fallback/partial 状态与预热。本阶段仍不会运行 final/extension。
+阶段 8.4 已补齐 routing/retrieval/verification/retry 延迟、CLI/评测 trace、Streamlit 的真实模型/fallback/partial 状态与合成预热，并完成四路径桌面/移动 browser smoke。下一步进入阶段 8.5，只用 dev、合成测试和单元测试复核历史过度拒答案例；仍不会运行 final/extension。

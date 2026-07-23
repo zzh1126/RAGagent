@@ -447,6 +447,11 @@ def test_default_workflow_can_run_injected_llm_generator_path() -> None:
     assert response.verification.decision == "pass"
     assert response.answer_payload.generator_backend == "ollama"
     assert response.answer_payload.fallback_used is False
+    assert response.generation_trace[0].provider == "ollama"
+    assert response.generation_trace[0].model == "qwen3:4b-stub"
+    assert response.latency_trace.llm_generation_latency_ms == 12.5
+    assert response.latency_trace.end_to_end_latency_ms >= 12.5
+    assert workflow.prewarm().status == "unsupported"
     assert response.answer_payload is not None
     assert len(response.generation_trace) == 1
     assert len(response.evidence_packing_trace) == 1

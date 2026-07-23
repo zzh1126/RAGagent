@@ -32,6 +32,7 @@ python scripts/validate_graph_evidence.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_claim_level_verifier.py
+python scripts/validate_runtime_trace.py
 python scripts/run_agent.py "随机森林为什么更稳定"
 python scripts/run_agent.py "类别不平衡时用什么指标"
 pytest -q
@@ -50,6 +51,7 @@ python scripts/validate_config.py
 python scripts/smoke_llm_client.py --timeout 180
 python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_claim_level_verifier.py
+python scripts/validate_runtime_trace.py
 python scripts/run_agent.py "随机森林为什么更稳定"
 pytest -q tests/test_llm_client.py tests/test_answer_generators.py tests/test_atomic_claim_prompt.py tests/test_claim_level_verifier.py
 ```
@@ -70,6 +72,10 @@ Stage 8.3 connects Claim-level verification and adds `partial_pass`. Each genera
 
 The sanitized DEV02 smoke for “随机森林为什么更稳定” now returns `partial_pass`: 2 of 4 Claims are retained, 2 are removed, citation/path validity remain `1.0000`, retry count falls from 1 to 0, and unsupported-Claim leakage is 0. The warm recorded run used one LLM call with 7,275.8 ms generation and 7,288 ms end-to-end latency. This single development smoke demonstrates the filtering mechanism, not overall quality improvement or a new dev/pilot/extension result.
 
+Stage 8.4 adds one response-level runtime contract for routing, every retrieval call, every generation call, Evidence Packer calls, every verification call, retry-branch wall-clock time, and monotonic end-to-end latency. Generation calls now expose provider/model plus requested and actual backend, so a failed Ollama call remains visible when the offline fallback answers. The CLI and development evaluation runner serialize the same trace rather than recomputing incompatible timing fields.
+
+Streamlit now performs one fixed synthetic structured warmup when the cached workflow starts. The warmup never reads demo/dev/pilot/final/extension questions and is excluded from per-question latency. The UI gives `partial_pass` its own warning color and displays model, requested/actual backend, fallback reason, structured-output status, cache status, all stage latencies, and per-call trace tables. Answer caching remains disabled. Browser smoke artifacts cover pass, partial-pass, refuse, and fallback on 1440 px desktop and 390 px mobile viewports; they are engineering UI checks, not evaluation results.
+
 The historical extension implementation is frozen at commit `bdedf7d`. Its release file still preserves the original `authorized_not_executed` value, while the immutable revocation record makes the effective status `revoked_before_execution`. The old command now fails before model inspection, holdout loading, or QA workflow construction. Versioned v2 scoring and trace contracts predeclare a four-method comparison, but no v2 release exists yet.
 
 ```bash
@@ -85,7 +91,13 @@ Both the generic evaluation runner and the controlled extension runner remain lo
 streamlit run app/streamlit_app.py
 ```
 
-Open `http://localhost:8501`. The interface exposes the answer, graph paths, official source chunks, verifier scores, retry count, and downloadable structured response.
+Open `http://localhost:8501`. If that port is occupied, run `streamlit run app/streamlit_app.py --server.port 8502` instead. The interface exposes the answer, retained Claim coverage, graph paths, official source chunks, verifier details, real model/backend/fallback status, startup warmup status, routing/retrieval/packing/generation/verification/retry/end-to-end latency, per-call traces, and the downloadable structured response.
+
+The optional browser smoke helper uses the locally installed Playwright package and Microsoft Edge:
+
+```bash
+python scripts/smoke_streamlit_runtime.py --url http://127.0.0.1:8501 --query "随机森林为什么更稳定" --expected-decision PARTIAL_PASS --expected-fallback false --expected-structured success --expected-prewarm ready --output-prefix reports/streamlit_stage8_4_partial
+```
 
 ## Evaluation
 
@@ -94,6 +106,7 @@ python scripts/validate_evaluation.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_claim_level_verifier.py
+python scripts/validate_runtime_trace.py
 python scripts/validate_extension_holdout.py
 python scripts/run_evaluation.py --split dev --output reports/evaluation_custom_dev.json
 python scripts/validate_scoring.py

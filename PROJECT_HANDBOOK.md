@@ -469,6 +469,8 @@ Client 调用 `/api/chat`，把 Pydantic JSON Schema直接作为 Ollama `format`
 
 日志只记录脱敏元数据：request ID、节点、provider、model、Schema、成功状态、尝试次数、延迟、token 数、done reason、错误类型和有限 validation issues。不会记录 Prompt、生成 content、thinking、凭据或带认证信息的 URL。
 
+Stage 8.4 增加 `warmup()` 合同。Streamlit 缓存工作流首次创建时发送固定的合成结构化健康检查，只要求返回 `{"status":"ready"}`，不读取任何 demo/dev/pilot/final/extension 题目。预热记录只包含 status、provider、model、keep-alive、尝试次数、耗时、结构成功和错误类型；预热耗时不计入后续问题的端到端延迟。CLI、普通评测和 extension runner 都不会自动预热，因此正式冷/热延迟口径不会被演示逻辑污染。
+
 ## 13. Evidence Verifier
 
 ### 13.1 验证内容
@@ -546,6 +548,32 @@ LangGraph 安装时使用真实 `StateGraph`；未安装时有相同转移逻辑
 
 LangGraph 与本地 fallback 状态机都支持 `retry/pass/partial_pass/refuse`。`partial_pass` 直接进入 finalize，不再经过 retry。
 
+### 14.1 运行时 Trace
+
+每个 `FinalResponse` 现在保存：
+
+- 一次 `RouteTrace`；
+- 每次初始/补充检索的 `RetrievalCall`；
+- 每次 answer 节点的 `GenerationCall`；
+- 每次 Packer 的 `EvidencePackingTrace`；
+- 每次 Verifier 的 `VerificationCall`；
+- 聚合的 `WorkflowLatencyTrace`；
+- `cache_status=disabled`。
+
+统一延迟字段为：
+
+```text
+routing_latency_ms
+retrieval_latency_ms
+evidence_packing_latency_ms
+llm_generation_latency_ms
+verification_latency_ms
+retry_latency_ms
+end_to_end_latency_ms
+```
+
+`retrieval`、`generation` 和 `verification` 都汇总所有调用；第一次验证结果不会在重试后丢失。`retry_latency_ms` 从补充检索开始，到重试后的验证结束，属于与检索/生成/验证子阶段重叠的墙钟时间，不能与这些字段再次求和。fallback 的 `GenerationCall` 保留 requested=`ollama`、actual=`offline_rule`、模型名、失败原因和已消耗的 LLM 延迟。end-to-end 使用 `time.perf_counter()` 单调时钟。
+
 ## 15. 核心 Schema
 
 | Schema | 用途 |
@@ -560,8 +588,12 @@ LangGraph 与本地 fallback 状态机都支持 `retry/pass/partial_pass/refuse`
 | `AnswerPayload` | 答案、Claims、路径、unsupported、置信度和生成元数据 |
 | `ClaimResult` | C ID、Claim、supported/retained、有效 E/P ID、R ID 和 reason codes |
 | `VerifyResult` | 四状态决策、逐 Claim 结果、保留/删除 ID、coverage、validity、sufficiency 和验证耗时 |
-| `GenerationCall` | 请求/实际后端、fallback、尝试次数、延迟和结构成功 |
-| `FinalResponse` | 问题、最终答案、检索、验证、完整生成 trace、总延迟和重试数 |
+| `GenerationCall` | provider/model、请求/实际后端、fallback、尝试次数、延迟和结构成功 |
+| `RouteTrace` | intent、mode、路由理由和路由耗时 |
+| `RetrievalCall` | 调用序号、是否重试、mode、top-k、返回数量和耗时 |
+| `VerificationCall` | 调用序号、是否重试、决策、policy、Claim 数量和耗时 |
+| `WorkflowLatencyTrace` | routing/retrieval/packing/LLM/verification/retry/end-to-end 聚合耗时 |
+| `FinalResponse` | 问题、最终答案、完整逐阶段 trace、缓存状态、总延迟和重试数 |
 
 E/P ID 是每次检索结果内的临时编号；R ID 和 Chunk ID 是数据中的稳定编号。
 
@@ -606,6 +638,7 @@ E/P ID 是每次检索结果内的临时编号；R ID 和 Chunk ID 是数据中�
 | chromadb | 1.5.9 |
 | sentence-transformers | 5.6.0 |
 | streamlit | 1.37.1 |
+| playwright | 1.61.0，本机 UI smoke 使用 Microsoft Edge channel |
 | requests | 2.32.3 |
 | PyYAML | 6.0.3 |
 | Ollama | 0.32.1 |
@@ -630,19 +663,26 @@ streamlit run app/streamlit_app.py
 
 - 输入自由问题；
 - 选择 8 道 demo 预设题；
-- 显示检索模式、问题类型、证据分数、重试次数和总耗时；
-- 分页显示回答、图路径、官方证据和验证详情；
+- 启动时执行一次不含业务题的合成 Ollama 预热，并显示 ready/failed/not-applicable；
+- 对 `pass`、`partial_pass` 和 `refuse` 使用绿/琥珀/红三种独立状态；
+- 显示检索模式、问题类型、证据分数、Claim 覆盖率、重试次数和端到端耗时；
+- 显示真实 Generator model、requested/actual backend、fallback、原因、结构化输出和缓存状态；
+- 显示 routing、retrieval、packing、LLM generation、verification、retry 分阶段耗时；
+- 分页显示回答、图路径、官方证据、验证详情和逐调用运行轨迹；
 - 显示 Chunk ID、source、score、原文和官方 URL；
 - 下载完整 `FinalResponse` JSON；
-- sidebar 显示工作流引擎、图后端和正式题数量。
+- sidebar 显示工作流引擎、图后端、Generator、预热状态和正式题数量。
 
-当前不足：
+Stage 8.4 浏览器 smoke：
 
-- 只把 `pass` 显示为成功，其余都按 refuse 样式；
-- 不显示真实 LLM model、fallback、生成延迟或结构成功；
-- 没有 `partial_pass`；
-- 没有显式 Ollama 预热；
-- 只有总延迟，没有阶段延迟。
+- `PASS`：规则生成器，offline_rule -> offline_rule，fallback=false，prewarm=not_applicable；
+- `PARTIAL_PASS`：qwen3:4b，ollama -> ollama，fallback=false，structured=success，prewarm=ready；
+- `REFUSE`：qwen3:4b 配置但无证据时不调用模型，structured=not called；
+- `fallback`：qwen3:4b 请求失败，ollama -> offline_rule，fallback=true，prewarm=failed；
+- 四条路径均生成 1440 px 桌面和 390 px 移动截图，自动检查无水平溢出；
+- 截图位于 `reports/streamlit_stage8_4_*_{desktop,mobile}.png`。
+
+这些截图只验证界面状态与 trace 一致，不是回答质量实验。当前没有答案缓存；如果以后启用演示缓存，必须显式显示 hit/miss，正式评测仍需禁用。
 
 ## 18. 评测数据集与防泄漏规则
 
@@ -804,6 +844,8 @@ Pilot 使用规则生成器，是历史先导数据，不是最终无泄漏结�
 - LLM Agent 增强已被正式实验验证；
 - 当前延迟达到约 1 秒。探针热调用约 1 秒，不等于完整工作流。
 
+Stage 8.4 没有重跑这 10 道历史候选 dev，因此上表仍是旧审计基线。新 trace 已能把 route、retrieval、packing、全部 generation、全部 verification、retry branch 和 end-to-end 分开记录；DEV02 浏览器 smoke 仍约 7.8 秒端到端、一次 LLM 调用、零重试。该单题只能证明 trace/UI 接线和 Partial-pass 机制正常，不能替代阶段 8.5 的完整 dev 回归。
+
 ## 24. Extension holdout 与 release 治理
 
 ### 24.1 extension 题集
@@ -843,7 +885,7 @@ Pilot 使用规则生成器，是历史先导数据，不是最终无泄漏结�
 
 由于项目决定先实现 Evidence Packer、原子 Claim 和 Partial-pass，原 v1 runtime 不再代表目标协议。阶段 8.0 已在独立提交中创建不可覆盖的撤销记录，runner 会在 runtime/model 校验和题集读取前拒绝原授权命令。
 
-版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。Evidence Packer、Prompt v2、Claim-level Verifier 与 `PARTIAL_PASS` 已实现；下一步是阶段 trace/UI 和 dev 回归，不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
+版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。Evidence Packer、Prompt v2、Claim-level Verifier、`PARTIAL_PASS`、完整阶段 trace 和 Streamlit 状态展示已实现；下一步只进入阶段 8.5 dev 调试，不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
 
 ## 25. 复现与常用命令
 
@@ -865,6 +907,7 @@ python scripts/validate_chunks.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_claim_level_verifier.py
+python scripts/validate_runtime_trace.py
 python scripts/validate_evaluation.py
 python scripts/validate_experiments.py
 python scripts/validate_scoring.py
@@ -903,7 +946,16 @@ python scripts/smoke_llm_client.py --timeout 180
 python scripts/validate_llm_probe.py
 ```
 
-### 25.5 数据重建
+### 25.5 Streamlit 与浏览器 Smoke
+
+```bash
+streamlit run app/streamlit_app.py
+python scripts/smoke_streamlit_runtime.py --url http://127.0.0.1:8501 --query "随机森林为什么更稳定" --expected-decision PARTIAL_PASS --expected-fallback false --expected-structured success --expected-prewarm ready --output-prefix reports/streamlit_stage8_4_partial
+```
+
+`smoke_streamlit_runtime.py` 使用本机 Playwright 与 Microsoft Edge，检查状态、模型、backend、fallback、结构化输出、预热、缓存和阶段延迟，并生成桌面/移动截图。它只应使用 demo/dev 或人工合成问题，禁止把 final/extension 题面传给该脚本。
+
+### 25.6 数据重建
 
 ```bash
 python scripts/fetch_sources.py
@@ -914,7 +966,7 @@ python scripts/bind_graph_evidence.py
 
 这些命令会改变数据、索引或证据绑定。冻结实验和 release 审计期间不应随意运行或覆盖现有产物。
 
-### 25.6 Extension 校验
+### 25.7 Extension 校验
 
 当前只允许离线审计校验：
 
@@ -948,7 +1000,7 @@ reports/                     结果、图、评分、报告、截图和 release 
 PROGRESS.md                  按阶段追加的唯一进度日志
 ```
 
-当前代码规模约为：`src` 41 个 Python 文件/3626 行，`scripts` 34 个/4712 行，`tests` 14 个/1262 行，Streamlit 1 个/172 行。
+当前代码规模约为：`src` 42 个 Python 文件/5211 行，`scripts` 41 个/6301 行，`tests` 17 个/2538 行，Streamlit 1 个/307 行。
 
 ## 27. 主要脚本索引
 
@@ -974,6 +1026,8 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 | LLM | `check_enhancement_readiness.py` | 检查 Ollama 和 Dense 模型条件 |
 | LLM | `probe_llm_structured.py` | 批量结构化 Schema/语义探针 |
 | LLM | `smoke_llm_client.py` | 统一 Client 合成 smoke |
+| Trace | `validate_runtime_trace.py` | 验证路由、逐次检索/验证、retry 和聚合耗时合同 |
+| UI | `smoke_streamlit_runtime.py` | 验证 pass/partial/refuse/fallback 状态与桌面/移动布局 |
 | 冻结 | `freeze_baseline.py` | 创建/验证 v1.0 归档 |
 | Extension | `create_extension_release.py` | 创建一次性 release |
 | Extension | `run_extension_evaluation.py` | 专用一次性 runner 和 preflight |
@@ -990,11 +1044,13 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 - Router、工作流、重试和拒答；
 - LLM Client Schema、timeout、服务故障和日志脱敏；
 - LLM Generator 引用、quote、fallback；
+- 合成预热、provider/model、逐次 route/retrieval/verification 和 retry latency；
+- Streamlit 四状态值、阶段耗时和桌面/移动无水平溢出 browser smoke；
 - 实验配置和运行器；
 - 数据集泄漏和 split 护栏；
 - extension release、不可覆盖输出、哈希和一次性执行保护。
 
-阶段 7.4B 的全量测试结果为 `67 passed`；本轮文档审计后再次运行，结果仍为 `67 passed`。
+Stage 8.4 实现后的全量测试结果为 `118 passed`；运行时 trace 定向回归为 `52 passed`，`python scripts/validate_runtime_trace.py` 也已通过。浏览器 smoke 覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
 
 ## 29. 可复现性与安全设计
 
@@ -1032,10 +1088,12 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 6. 实现了真实本地 LLM 结构化生成与规则 fallback；
 7. 实现了确定性的 intent-aware Evidence Packer、可见 ID 边界和逐次 packing trace；
 8. 实现了最多 4 条原子 Claim 的 Prompt v2、E/P/R wire Schema 和逐字 quote 合同；
-9. 建立了冻结题集、哈希、消融、人工评分和一次性 release 护栏；
-10. 提供可运行的 Streamlit 证据展示界面。
+9. 实现了 Claim-level 支持判断、retained/removed Claim 过滤、`PARTIAL_PASS` 和 strict 消融模式；
+10. 实现了 routing/retrieval/packing/generation/verification/retry/end-to-end 的逐次 trace；
+11. 提供带真实 model/backend/fallback/预热/延迟状态的响应式 Streamlit 演示界面；
+12. 建立了冻结题集、哈希、消融、人工评分和一次性 release 护栏。
 
-尚不能算已完成贡献：Claim-level Partial-pass、v2 四方法 extension 结论、Dense Retrieval。
+尚不能算已完成贡献：v2 四方法 extension 结论、Dense Retrieval、Neo4j 正式部署基准。
 
 ## 31. 常见答辩问答
 
@@ -1113,11 +1171,11 @@ Pilot 曾用于发现并修复实现缺口，因此已被消费。后续只允�
 
 ### Q19：目前最大的风险是什么？
 
-尚未完成整体 dev/pilot 回归、LLM 完整链路延迟较高、样本规模小、单一人工复核、稀疏检索语义能力有限，以及尚无 LLM extension 正式结果。
+尚未完成整体 dev/pilot 回归、LLM 完整链路延迟仍在约数秒级、样本规模小、单一人工复核、稀疏检索语义能力有限，以及尚无 LLM extension 正式结果。Stage 8.4 已能定位延迟来源，但“可观测”不等于“延迟已经优化完成”。
 
 ### Q20：下一步是什么？
 
-v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2 和 Claim-level Partial-pass 已完成。下一步进入阶段 8.4，补齐分阶段 trace、CLI/Streamlit 状态和 partial 样式；随后只用 dev 做调试，再按计划执行一次 pilot 冻结前回归。
+v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热和 Streamlit 状态展示已完成。下一步进入阶段 8.5，只用 dev、合成测试和单元测试复核 DEV02/03/05/10；参数冻结后再按计划执行一次 pilot 冻结前回归，仍不运行 extension。
 
 ## 32. 关联文档
 

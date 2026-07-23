@@ -68,6 +68,11 @@ REQUIRED_RULES = (
         "Stage 8.3 DEV02 smoke must remain a development mechanism check",
         r"阶段 8\.3[\s\S]{0,800}DEV02[\s\S]{0,800}`partial_pass`[\s\S]{0,500}(?:不是完整 dev/pilot 回归|只证明过滤机制)",
     ),
+    TextRule(
+        "R20",
+        "Stage 8.4 trace and UI smoke must remain an engineering check",
+        r"阶段 8\.4[\s\S]{0,900}(?:没有运行完整 dev/pilot/final/extension|只证明 trace 与 UI 合同)",
+    ),
 )
 
 
@@ -121,6 +126,11 @@ FORBIDDEN_RULES = (
         "F18",
         "partial-pass incorrectly equated with a correct answer",
         r"partial_pass(?: 状态)?就是(?:人工)?正确答案",
+    ),
+    TextRule(
+        "F19",
+        "Stage 8.4 UI smoke incorrectly presented as enhancement effectiveness",
+        r"Stage 8\.4[^。\n]{0,120}(?:证明|表明)[^。\n]{0,30}(?:LLM 增强有效|回答正确率提升|extension 结果)",
     ),
 )
 

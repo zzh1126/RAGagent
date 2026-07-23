@@ -28,17 +28,73 @@ def main() -> None:
     print(f"PATH_VALIDITY: {verification.path_validity:.4f}")
     print(f"RETRIEVAL_SUFFICIENCY: {verification.retrieval_sufficiency:.4f}")
     print(f"RETRY_COUNT: {response.retry_count}")
+    runtime_call = next(
+        (call for call in response.generation_trace if call.requested_backend == "ollama"),
+        response.generation_trace[0] if response.generation_trace else None,
+    )
+    llm_calls = [
+        call
+        for call in response.generation_trace
+        if call.requested_backend == "ollama"
+    ]
+    attempted_llm_calls = [call for call in llm_calls if call.attempts > 0]
+    if attempted_llm_calls and all(
+        call.structured_output_success for call in attempted_llm_calls
+    ):
+        structured_output_status = "success"
+    elif attempted_llm_calls:
+        structured_output_status = "failed"
+    elif llm_calls:
+        structured_output_status = "not_called"
+    else:
+        structured_output_status = "not_applicable"
+    print(f"GENERATOR_PROVIDER: {runtime_call.provider if runtime_call else '-'}")
+    print(f"GENERATOR_MODEL: {runtime_call.model if runtime_call else '-'}")
+    print(
+        "GENERATOR_REQUESTED_BACKEND: "
+        f"{runtime_call.requested_backend if runtime_call else '-'}"
+    )
     print(f"GENERATOR_BACKEND: {response.answer_payload.generator_backend}")
     print(f"GENERATOR_FALLBACK: {response.answer_payload.fallback_used}")
     if response.answer_payload.fallback_reason:
         print(f"GENERATOR_FALLBACK_REASON: {response.answer_payload.fallback_reason}")
     print(f"GENERATION_ATTEMPTS: {response.answer_payload.generation_attempts}")
     print(f"GENERATION_LATENCY_MS: {response.answer_payload.generation_latency_ms:.1f}")
+    print(
+        "STRUCTURED_OUTPUT_SUCCESS: "
+        f"{structured_output_status == 'success'}"
+    )
+    print(f"STRUCTURED_OUTPUT_STATUS: {structured_output_status}")
+    print(f"CACHE_STATUS: {response.cache_status}")
+    print(f"STARTUP_PREWARM_STATUS: {workflow.warmup_status.status}")
+    latency = response.latency_trace
+    print(f"ROUTING_LATENCY_MS: {latency.routing_latency_ms:.3f}")
+    print(f"RETRIEVAL_LATENCY_MS: {latency.retrieval_latency_ms:.3f}")
+    print(f"EVIDENCE_PACKING_LATENCY_MS: {latency.evidence_packing_latency_ms:.3f}")
+    print(f"LLM_GENERATION_LATENCY_MS: {latency.llm_generation_latency_ms:.3f}")
+    print(f"VERIFICATION_LATENCY_MS: {latency.verification_latency_ms:.3f}")
+    print(f"RETRY_LATENCY_MS: {latency.retry_latency_ms:.3f}")
+    print(f"END_TO_END_LATENCY_MS: {latency.end_to_end_latency_ms:.3f}")
+    if response.route_trace is not None:
+        print(
+            "ROUTE_TRACE: "
+            f"intent={response.route_trace.intent} mode={response.route_trace.mode} "
+            f"latency_ms={response.route_trace.latency_ms:.3f}"
+        )
+    print(f"RETRIEVAL_CALLS: {len(response.retrieval_trace)}")
+    for call in response.retrieval_trace:
+        print(
+            f"  RETRIEVAL_CALL_{call.attempt}: retry={call.is_retry} mode={call.mode} "
+            f"top_k={call.top_k} entities={call.entity_count} "
+            f"paths={call.graph_path_count} evidence={call.text_evidence_count} "
+            f"latency_ms={call.latency_ms:.3f}"
+        )
     print(f"GENERATION_CALLS: {len(response.generation_trace)}")
     for index, call in enumerate(response.generation_trace, start=1):
         print(
             f"  GENERATION_CALL_{index}: requested={call.requested_backend} "
             f"actual={call.actual_backend} fallback={call.fallback_used} "
+            f"provider={call.provider or '-'} model={call.model or '-'} "
             f"attempts={call.attempts} latency_ms={call.latency_ms:.1f}"
         )
     print(f"EVIDENCE_PACKING_CALLS: {len(response.evidence_packing_trace)}")
@@ -50,6 +106,14 @@ def main() -> None:
         )
         if packing.coverage_gaps:
             print(f"    coverage_gaps={packing.coverage_gaps}")
+    print(f"VERIFICATION_CALLS: {len(response.verification_trace)}")
+    for call in response.verification_trace:
+        print(
+            f"  VERIFICATION_CALL_{call.attempt}: retry={call.is_retry} "
+            f"decision={call.decision} policy={call.decision_policy} "
+            f"supported={call.supported_claim_count}/{call.generated_claim_count} "
+            f"removed={call.removed_claim_count} latency_ms={call.latency_ms:.3f}"
+        )
     print(f"GENERATOR_ANSWER: {response.answer_payload.answer}")
     print("GENERATOR_CLAIMS:")
     for claim in response.answer_payload.claims:

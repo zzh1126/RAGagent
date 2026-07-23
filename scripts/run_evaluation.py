@@ -37,7 +37,20 @@ def evaluate_question(workflow, item: dict) -> dict:
     generation = response.answer_payload
     generation_trace = response.generation_trace
     packing_trace = response.evidence_packing_trace
+    latency_trace = response.latency_trace
     llm_calls = [call for call in generation_trace if call.requested_backend == "ollama"]
+    runtime_call = llm_calls[0] if llm_calls else (generation_trace[0] if generation_trace else None)
+    generation_latency_ms = round(sum(call.latency_ms for call in generation_trace), 1)
+    packing_latency_ms = round(
+        sum(trace.evidence_packing_latency_ms for trace in packing_trace),
+        3,
+    )
+    verification_latency_ms = round(
+        sum(call.latency_ms for call in response.verification_trace),
+        3,
+    )
+    if not response.verification_trace:
+        verification_latency_ms = response.verification.verification_latency_ms
     expected_decision = "refuse" if item["expected_behavior"] == "refuse" else "pass"
     decision_correct = (
         response.verification.decision == "refuse"
@@ -72,6 +85,29 @@ def evaluate_question(workflow, item: dict) -> dict:
         "latency_ms": response.latency_ms,
         "retry_count": response.retry_count,
         "mode": response.retrieval.mode,
+        "route_trace": response.route_trace.model_dump(mode="json") if response.route_trace else None,
+        "retrieval_trace": [
+            call.model_dump(mode="json") for call in response.retrieval_trace
+        ],
+        "verification_trace": [
+            call.model_dump(mode="json") for call in response.verification_trace
+        ],
+        "latency_trace": latency_trace.model_dump(mode="json"),
+        "routing_latency_ms": latency_trace.routing_latency_ms,
+        "retrieval_latency_ms": latency_trace.retrieval_latency_ms,
+        "evidence_packing_latency_ms": packing_latency_ms,
+        "llm_generation_latency_ms": generation_latency_ms,
+        "verification_latency_ms": verification_latency_ms,
+        "retry_latency_ms": latency_trace.retry_latency_ms,
+        "end_to_end_latency_ms": (
+            latency_trace.end_to_end_latency_ms or float(response.latency_ms)
+        ),
+        "cache_status": response.cache_status,
+        "generator_provider": runtime_call.provider if runtime_call else None,
+        "generator_model": runtime_call.model if runtime_call else None,
+        "generator_requested_backend": (
+            runtime_call.requested_backend if runtime_call else None
+        ),
         "generator_backend": generation.generator_backend,
         "generator_fallback_used": any(call.fallback_used for call in generation_trace),
         "generator_fallback_reason": next(
@@ -80,11 +116,7 @@ def evaluate_question(workflow, item: dict) -> dict:
         ),
         "generation_call_count": len(generation_trace),
         "generation_attempts": sum(call.attempts for call in generation_trace),
-        "generation_latency_ms": round(sum(call.latency_ms for call in generation_trace), 1),
-        "evidence_packing_latency_ms": round(
-            sum(trace.evidence_packing_latency_ms for trace in packing_trace),
-            3,
-        ),
+        "generation_latency_ms": generation_latency_ms,
         "evidence_packing_trace": [
             trace.model_dump(mode="json") for trace in packing_trace
         ],
@@ -118,6 +150,14 @@ def summarize(results: list[dict], engine: str) -> dict:
         "mean_keyword_coverage": round(sum(row["keyword_coverage"] for row in results) / total, 4),
         "mean_entity_coverage": round(sum(row["entity_coverage"] for row in results) / total, 4),
         "mean_latency_ms": round(sum(row["latency_ms"] for row in results) / total, 2),
+        "mean_routing_latency_ms": round(
+            sum(row["routing_latency_ms"] for row in results) / total,
+            3,
+        ),
+        "mean_retrieval_latency_ms": round(
+            sum(row["retrieval_latency_ms"] for row in results) / total,
+            3,
+        ),
         "mean_generation_latency_ms": round(
             sum(row["generation_latency_ms"] for row in results) / total,
             2,
@@ -125,6 +165,18 @@ def summarize(results: list[dict], engine: str) -> dict:
         "mean_evidence_packing_latency_ms": round(
             sum(row["evidence_packing_latency_ms"] for row in results) / total,
             3,
+        ),
+        "mean_verification_latency_ms": round(
+            sum(row["verification_latency_ms"] for row in results) / total,
+            3,
+        ),
+        "mean_retry_latency_ms": round(
+            sum(row["retry_latency_ms"] for row in results) / total,
+            3,
+        ),
+        "mean_end_to_end_latency_ms": round(
+            sum(row["end_to_end_latency_ms"] for row in results) / total,
+            2,
         ),
         "structured_output_success_rate": round(
             sum(row["structured_output_success"] for row in results) / total,

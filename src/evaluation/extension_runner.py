@@ -94,6 +94,18 @@ def evaluate_extension_question(
         "evidence_packing_trace": [
             item.model_dump(mode="json") for item in packing_trace
         ],
+        "route_trace": (
+            response.route_trace.model_dump(mode="json")
+            if response.route_trace is not None
+            else None
+        ),
+        "retrieval_trace": [
+            call.model_dump(mode="json") for call in response.retrieval_trace
+        ],
+        "verification_trace": [
+            call.model_dump(mode="json") for call in response.verification_trace
+        ],
+        "latency_trace": response.latency_trace.model_dump(mode="json"),
         "generation_call_count": len(trace),
         "generation_attempts": sum(call.attempts for call in trace),
         "generation_latency_ms": round(sum(call.latency_ms for call in trace), 1),
@@ -110,6 +122,14 @@ def evaluate_extension_question(
         ),
         "cold_start": cold_start,
         "latency_ms": response.latency_ms,
+        "retrieval_latency_ms": response.latency_trace.retrieval_latency_ms,
+        "verification_latency_ms": response.latency_trace.verification_latency_ms,
+        "retry_latency_ms": response.latency_trace.retry_latency_ms,
+        "end_to_end_latency_ms": (
+            response.latency_trace.end_to_end_latency_ms
+            or float(response.latency_ms)
+        ),
+        "cache_status": response.cache_status,
         "retry_count": response.retry_count,
     }
 

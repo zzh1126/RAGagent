@@ -12,6 +12,7 @@ VerifierDecisionPolicy = Literal["strict", "partial_pass"]
 VerifierPolicy = Literal["strict", "partial_pass", "disabled"]
 ClaimStatus = Literal["supported", "unsupported"]
 GeneratorBackend = Literal["offline_rule", "ollama"]
+CacheStatus = Literal["disabled", "hit", "miss"]
 
 
 class TextEvidence(BaseModel):
@@ -216,11 +217,76 @@ class VerifyResult(BaseModel):
 class GenerationCall(BaseModel):
     requested_backend: GeneratorBackend
     actual_backend: GeneratorBackend
+    provider: str | None = None
+    model: str | None = None
     fallback_used: bool = False
     fallback_reason: str | None = None
     attempts: int = Field(default=0, ge=0)
     latency_ms: float = Field(default=0.0, ge=0.0)
     structured_output_success: bool = False
+
+
+class RouteTrace(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    intent: str
+    mode: RetrievalMode
+    reason: str
+    latency_ms: float = Field(default=0.0, ge=0.0)
+
+
+class RetrievalCall(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    attempt: int = Field(ge=1)
+    is_retry: bool = False
+    intent: str
+    mode: RetrievalMode
+    top_k: int = Field(ge=1)
+    entity_count: int = Field(default=0, ge=0)
+    graph_path_count: int = Field(default=0, ge=0)
+    text_evidence_count: int = Field(default=0, ge=0)
+    latency_ms: float = Field(default=0.0, ge=0.0)
+
+
+class VerificationCall(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    attempt: int = Field(ge=1)
+    is_retry: bool = False
+    decision: VerifyDecision
+    decision_policy: VerifierPolicy
+    evidence_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    generated_claim_count: int = Field(default=0, ge=0)
+    supported_claim_count: int = Field(default=0, ge=0)
+    removed_claim_count: int = Field(default=0, ge=0)
+    latency_ms: float = Field(default=0.0, ge=0.0)
+
+
+class WorkflowLatencyTrace(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    routing_latency_ms: float = Field(default=0.0, ge=0.0)
+    retrieval_latency_ms: float = Field(default=0.0, ge=0.0)
+    evidence_packing_latency_ms: float = Field(default=0.0, ge=0.0)
+    llm_generation_latency_ms: float = Field(default=0.0, ge=0.0)
+    verification_latency_ms: float = Field(default=0.0, ge=0.0)
+    retry_latency_ms: float = Field(default=0.0, ge=0.0)
+    end_to_end_latency_ms: float = Field(default=0.0, ge=0.0)
+
+    @model_validator(mode="after")
+    def validate_end_to_end_latency(self) -> "WorkflowLatencyTrace":
+        component_values = (
+            self.routing_latency_ms,
+            self.retrieval_latency_ms,
+            self.evidence_packing_latency_ms,
+            self.llm_generation_latency_ms,
+            self.verification_latency_ms,
+            self.retry_latency_ms,
+        )
+        if component_values and max(component_values) > self.end_to_end_latency_ms + 0.001:
+            raise ValueError("end_to_end_latency_ms must cover every individual stage")
+        return self
 
 
 class FinalResponse(BaseModel):
@@ -229,7 +295,12 @@ class FinalResponse(BaseModel):
     answer_payload: AnswerPayload
     retrieval: RetrievalResult
     verification: VerifyResult
+    route_trace: RouteTrace | None = None
+    retrieval_trace: list[RetrievalCall] = Field(default_factory=list)
     generation_trace: list[GenerationCall] = Field(default_factory=list)
     evidence_packing_trace: list[EvidencePackingTrace] = Field(default_factory=list)
+    verification_trace: list[VerificationCall] = Field(default_factory=list)
+    latency_trace: WorkflowLatencyTrace = Field(default_factory=WorkflowLatencyTrace)
+    cache_status: CacheStatus = "disabled"
     latency_ms: int = 0
     retry_count: int = 0

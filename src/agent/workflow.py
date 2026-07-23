@@ -19,6 +19,7 @@ from src.graph.networkx_repository import NetworkXGraphRepository
 from src.llm.base import LLMClient
 from src.llm.config import AgentLLMSettings, LLMSettings
 from src.llm.factory import create_llm_client
+from src.llm.schemas import LLMWarmupRecord
 from src.retrieval.graph_retriever import GraphRetriever
 from src.retrieval.hybrid_retriever import HybridRetriever
 from src.retrieval.intent_router import IntentRouter, RouteDecision
@@ -29,9 +30,13 @@ from src.schemas import (
     EvidencePackingTrace,
     FinalResponse,
     GenerationCall,
+    RetrievalCall,
     RetrievalResult,
+    RouteTrace,
     VerifierDecisionPolicy,
+    VerificationCall,
     VerifyResult,
+    WorkflowLatencyTrace,
 )
 from src.verification.evidence_verifier import EvidenceVerifier
 
@@ -48,12 +53,17 @@ except ImportError:
 class AgentState(TypedDict, total=False):
     query: str
     route: RouteDecision
+    route_trace: RouteTrace
     retrieval: RetrievalResult
+    retrieval_trace: list[RetrievalCall]
     answer_payload: AnswerPayload
     generation_trace: list[GenerationCall]
     evidence_packing_trace: list[EvidencePackingTrace]
     verification: VerifyResult
+    verification_trace: list[VerificationCall]
     retry_count: int
+    retry_started_at: float | None
+    retry_latency_ms: float
     started_at: float
     final_response: FinalResponse
 
@@ -74,16 +84,51 @@ class QAWorkflow:
         self.answer_generator = answer_generator or GroundedAnswerGenerator(graph_repo)
         self.verifier = verifier or EvidenceVerifier()
         self.top_k = top_k
+        self.llm_client = self._resolve_llm_client(self.answer_generator)
+        self.generator_provider = getattr(self.llm_client, "provider", None)
+        self.generator_model = getattr(self.llm_client, "model", None)
+        self.warmup_status = self._initial_warmup_status()
         self.engine_name = "langgraph" if LANGGRAPH_AVAILABLE else "local-state-machine"
         self._compiled = self._build_langgraph() if LANGGRAPH_AVAILABLE else None
 
     def invoke(self, query: str) -> FinalResponse:
-        initial: AgentState = {"query": query, "retry_count": 0, "started_at": time.perf_counter()}
+        initial: AgentState = {
+            "query": query,
+            "retry_count": 0,
+            "retry_latency_ms": 0.0,
+            "started_at": time.perf_counter(),
+        }
         if self._compiled is not None:
             state = self._compiled.invoke(initial)
         else:
             state = self._invoke_local(initial)
         return state["final_response"]
+
+    def prewarm(self) -> LLMWarmupRecord:
+        if self.llm_client is None:
+            self.warmup_status = LLMWarmupRecord(status="not_applicable")
+            return self.warmup_status
+        warmup = getattr(self.llm_client, "warmup", None)
+        if not callable(warmup):
+            self.warmup_status = LLMWarmupRecord(
+                status="unsupported",
+                provider=self.generator_provider,
+                model=self.generator_model,
+            )
+            return self.warmup_status
+        started_at = time.perf_counter()
+        try:
+            result = warmup()
+            self.warmup_status = LLMWarmupRecord.model_validate(result)
+        except Exception as exc:
+            self.warmup_status = LLMWarmupRecord(
+                status="failed",
+                provider=self.generator_provider,
+                model=self.generator_model,
+                latency_ms=self._elapsed_ms(started_at, precision=1),
+                error_type=type(exc).__name__,
+            )
+        return self.warmup_status
 
     def _build_langgraph(self):
         builder = StateGraph(AgentState)
@@ -112,11 +157,29 @@ class QAWorkflow:
         return builder.compile()
 
     def _route_node(self, state: AgentState) -> dict:
-        return {"route": self.router.route(state["query"])}
+        started_at = time.perf_counter()
+        route = self.router.route(state["query"])
+        return {
+            "route": route,
+            "route_trace": RouteTrace(
+                intent=route.intent,
+                mode=route.mode,
+                reason=route.reason,
+                latency_ms=self._elapsed_ms(started_at),
+            ),
+        }
 
     def _retrieve_node(self, state: AgentState) -> dict:
         route = state["route"]
-        return {"retrieval": self._retrieve(state["query"], route, state.get("retry_count", 0))}
+        retrieval, call = self._retrieve(
+            state["query"],
+            route,
+            state.get("retry_count", 0),
+        )
+        return {
+            "retrieval": retrieval,
+            "retrieval_trace": [*state.get("retrieval_trace", []), call],
+        }
 
     def _answer_node(self, state: AgentState) -> dict:
         payload = self.answer_generator.generate(state["query"], state["retrieval"])
@@ -128,6 +191,8 @@ class QAWorkflow:
         call = GenerationCall(
             requested_backend=requested_backend,
             actual_backend=payload.generator_backend,
+            provider=self.generator_provider if requested_backend == "ollama" else None,
+            model=self.generator_model if requested_backend == "ollama" else None,
             fallback_used=payload.fallback_used,
             fallback_reason=payload.fallback_reason,
             attempts=payload.generation_attempts,
@@ -151,23 +216,50 @@ class QAWorkflow:
         return result
 
     def _verify_node(self, state: AgentState) -> dict:
-        return {
-            "verification": self.verifier.verify(
-                state["query"],
-                state["answer_payload"],
-                state["retrieval"],
-                graph_repo=self.graph_repo,
-                retry_count=state.get("retry_count", 0),
-            )
+        retry_count = state.get("retry_count", 0)
+        verification = self.verifier.verify(
+            state["query"],
+            state["answer_payload"],
+            state["retrieval"],
+            graph_repo=self.graph_repo,
+            retry_count=retry_count,
+        )
+        call = VerificationCall(
+            attempt=retry_count + 1,
+            is_retry=retry_count > 0,
+            decision=verification.decision,
+            decision_policy=verification.decision_policy,
+            evidence_score=verification.evidence_score,
+            generated_claim_count=verification.generated_claim_count,
+            supported_claim_count=verification.supported_claim_count,
+            removed_claim_count=verification.removed_claim_count,
+            latency_ms=verification.verification_latency_ms,
+        )
+        result = {
+            "verification": verification,
+            "verification_trace": [*state.get("verification_trace", []), call],
         }
+        retry_started_at = state.get("retry_started_at")
+        if retry_count > 0 and retry_started_at is not None:
+            result["retry_latency_ms"] = round(
+                state.get("retry_latency_ms", 0.0)
+                + self._elapsed_ms(retry_started_at),
+                3,
+            )
+            result["retry_started_at"] = None
+        return result
 
     def _retry_node(self, state: AgentState) -> dict:
+        retry_started_at = time.perf_counter()
         retry_count = state.get("retry_count", 0) + 1
         route = state["route"]
         retry_route = RouteDecision(route.intent, "hybrid", "verification requested broader retrieval")
+        retrieval, call = self._retrieve(state["query"], retry_route, retry_count)
         return {
             "retry_count": retry_count,
-            "retrieval": self._retrieve(state["query"], retry_route, retry_count),
+            "retry_started_at": retry_started_at,
+            "retrieval": retrieval,
+            "retrieval_trace": [*state.get("retrieval_trace", []), call],
         }
 
     def _next_after_verify(self, state: AgentState) -> str:
@@ -182,7 +274,52 @@ class QAWorkflow:
             state["answer_payload"],
             verification,
         )
-        latency_ms = int((time.perf_counter() - state["started_at"]) * 1000)
+        measured_end_to_end_latency_ms = self._elapsed_ms(state["started_at"])
+        route_trace = state.get("route_trace")
+        retrieval_trace = state.get("retrieval_trace", [])
+        generation_trace = state.get("generation_trace", [])
+        evidence_packing_trace = state.get("evidence_packing_trace", [])
+        verification_trace = state.get("verification_trace", [])
+        routing_latency_ms = route_trace.latency_ms if route_trace else 0.0
+        retrieval_latency_ms = round(
+            sum(call.latency_ms for call in retrieval_trace),
+            3,
+        )
+        evidence_packing_latency_ms = round(
+            sum(call.evidence_packing_latency_ms for call in evidence_packing_trace),
+            3,
+        )
+        llm_generation_latency_ms = round(
+            sum(
+                call.latency_ms
+                for call in generation_trace
+                if call.requested_backend == "ollama"
+            ),
+            3,
+        )
+        verification_latency_ms = round(
+            sum(call.latency_ms for call in verification_trace),
+            3,
+        )
+        retry_latency_ms = round(state.get("retry_latency_ms", 0.0), 3)
+        end_to_end_latency_ms = max(
+            measured_end_to_end_latency_ms,
+            routing_latency_ms,
+            retrieval_latency_ms,
+            evidence_packing_latency_ms,
+            llm_generation_latency_ms,
+            verification_latency_ms,
+            retry_latency_ms,
+        )
+        latency_trace = WorkflowLatencyTrace(
+            routing_latency_ms=routing_latency_ms,
+            retrieval_latency_ms=retrieval_latency_ms,
+            evidence_packing_latency_ms=evidence_packing_latency_ms,
+            llm_generation_latency_ms=llm_generation_latency_ms,
+            verification_latency_ms=verification_latency_ms,
+            retry_latency_ms=retry_latency_ms,
+            end_to_end_latency_ms=end_to_end_latency_ms,
+        )
         return {
             "final_response": FinalResponse(
                 query=state["query"],
@@ -190,9 +327,14 @@ class QAWorkflow:
                 answer_payload=answer_payload,
                 retrieval=state["retrieval"],
                 verification=verification,
-                generation_trace=state.get("generation_trace", []),
-                evidence_packing_trace=state.get("evidence_packing_trace", []),
-                latency_ms=latency_ms,
+                route_trace=route_trace,
+                retrieval_trace=retrieval_trace,
+                generation_trace=generation_trace,
+                evidence_packing_trace=evidence_packing_trace,
+                verification_trace=verification_trace,
+                latency_trace=latency_trace,
+                cache_status="disabled",
+                latency_ms=int(round(end_to_end_latency_ms)),
                 retry_count=state.get("retry_count", 0),
             )
         }
@@ -263,9 +405,57 @@ class QAWorkflow:
                 return state
             state.update(self._retry_node(state))
 
-    def _retrieve(self, query: str, route: RouteDecision, retry_count: int) -> RetrievalResult:
+    def _retrieve(
+        self,
+        query: str,
+        route: RouteDecision,
+        retry_count: int,
+    ) -> tuple[RetrievalResult, RetrievalCall]:
         multiplier = 2 if retry_count else 1
-        return self.retriever.retrieve(query, route.intent, route.mode, top_k=self.top_k * multiplier)
+        top_k = self.top_k * multiplier
+        started_at = time.perf_counter()
+        retrieval = self.retriever.retrieve(
+            query,
+            route.intent,
+            route.mode,
+            top_k=top_k,
+        )
+        call = RetrievalCall(
+            attempt=retry_count + 1,
+            is_retry=retry_count > 0,
+            intent=route.intent,
+            mode=route.mode,
+            top_k=top_k,
+            entity_count=len(retrieval.entities),
+            graph_path_count=len(retrieval.graph_paths),
+            text_evidence_count=len(retrieval.text_evidence),
+            latency_ms=self._elapsed_ms(started_at),
+        )
+        return retrieval, call
+
+    @staticmethod
+    def _resolve_llm_client(answer_generator: AnswerGenerator):
+        primary = getattr(answer_generator, "primary", answer_generator)
+        return getattr(primary, "client", None)
+
+    def _initial_warmup_status(self) -> LLMWarmupRecord:
+        if self.llm_client is None:
+            return LLMWarmupRecord(status="not_applicable")
+        if not callable(getattr(self.llm_client, "warmup", None)):
+            return LLMWarmupRecord(
+                status="unsupported",
+                provider=self.generator_provider,
+                model=self.generator_model,
+            )
+        return LLMWarmupRecord(
+            status="not_run",
+            provider=self.generator_provider,
+            model=self.generator_model,
+        )
+
+    @staticmethod
+    def _elapsed_ms(started_at: float, *, precision: int = 3) -> float:
+        return round((time.perf_counter() - started_at) * 1000, precision)
 
 
 def build_default_workflow(

@@ -137,3 +137,5 @@ python scripts/smoke_llm_client.py --timeout 180
 阶段 8.2 已接入原子 Claim Prompt v2：wire Schema 限制 1～4 条 Claim，并区分 E/P/R ID、逐字 quote 和无证据子问。四场景正式合成探针为 `20/20`，且不保存 Prompt、模型正文、quote 或 thinking。随机森林真实 smoke 的 Claim coverage 从 0.3333 提高到 0.5000，但严格整题 Verifier 仍拒答；当时将下一阶段限定为 Claim-level `PARTIAL_PASS`。该开发观察不能证明增强优于规则基线。
 
 阶段 8.3 已接入 Claim-level Verifier：逐 Claim 输出 C ID、supported/retained、有效 E/P ID 和 reason codes；默认 LLM 使用 partial-pass，规则基线继续 strict，并保留 LLM strict override。DEV02 脱敏 warm smoke 保留 2/4 Claim、删除 2/4 Claim，返回 `partial_pass`，retry=0、generation calls=1、unsupported leakage=0。该结果只证明单题过滤机制成立，不是完整 dev/pilot 回归或增强有效性结论；extension 继续锁定。
+
+阶段 8.4 已完成运行时 trace 与演示可观测性：`FinalResponse` 保存 routing、逐次 retrieval/generation/packing/verification、retry branch 和 end-to-end；GenerationCall 增加 provider/model 与 requested/actual backend。Streamlit 只在 cached workflow 启动时发送固定合成预热，不读取评测题面，问题缓存保持 disabled。pass、partial-pass、refuse 和 Ollama unavailable fallback 均完成桌面/移动 browser smoke。该阶段没有执行完整 dev/pilot/final/extension，也不能据此声称延迟或回答质量已经总体改善。

@@ -26,6 +26,21 @@ def test_hybrid_workflow_answers_with_verified_evidence():
     assert "[E" in response.answer
     assert response.retrieval.graph_paths
     assert response.retrieval.text_evidence
+    assert response.route_trace is not None
+    assert response.route_trace.mode == "hybrid"
+    assert len(response.retrieval_trace) == 1
+    assert len(response.verification_trace) == 1
+    assert response.retrieval_trace[0].is_retry is False
+    assert response.verification_trace[0].decision == "pass"
+    assert response.latency_trace.retrieval_latency_ms >= 0.0
+    assert response.latency_trace.verification_latency_ms >= 0.0
+    assert response.latency_trace.retry_latency_ms == 0.0
+    assert response.latency_trace.end_to_end_latency_ms >= max(
+        response.latency_trace.routing_latency_ms,
+        response.latency_trace.retrieval_latency_ms,
+        response.latency_trace.verification_latency_ms,
+    )
+    assert response.cache_status == "disabled"
 
 
 def test_hybrid_workflow_uses_incoming_metric_relations():
@@ -52,6 +67,14 @@ def test_workflow_refuses_entity_attribute_not_supported_by_sources():
     assert response.verification.decision == "refuse"
     assert response.retry_count == 1
     assert len(response.generation_trace) == 2
+    assert len(response.retrieval_trace) == 2
+    assert len(response.verification_trace) == 2
+    assert response.retrieval_trace[1].is_retry is True
+    assert response.retrieval_trace[1].top_k == response.retrieval_trace[0].top_k * 2
+    assert response.verification_trace[0].decision == "retry"
+    assert response.verification_trace[1].decision == "refuse"
+    assert response.latency_trace.retry_latency_ms >= 0.0
+    assert response.latency_trace.llm_generation_latency_ms == 0.0
 
 
 def test_workflow_refuses_external_algorithm_mentioned_only_as_reference():

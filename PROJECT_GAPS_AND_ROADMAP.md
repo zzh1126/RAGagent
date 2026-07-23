@@ -62,8 +62,8 @@
 | G06 | Prompt 未限制原子 Claim | Prompt v2 与 1～4 Claim wire Schema 已通过 20/20 合成探针 | 风险已关闭 | Done | 阶段 8.2 完成 |
 | G07 | 重试过多 | DEV02 从 1 次重试降为 0；整体 dev 7/10 历史值待重测 | 单题已缓解，整体比例未知 | P0 | 阶段 8.5 复核 |
 | G08 | 没有 LLM 正式 extension 结果 | extension 从未运行 | 无法回答 LLM 是否真正提升 | P0 | 完成 v2 后一次性运行 |
-| G09 | 延迟 trace 不完整 | packing latency 已接线，retrieval/verification/retry 仍待拆分 | 尚不能完整定位端到端耗时 | P1 | 部分完成 |
-| G10 | Streamlit 不展示 LLM 参与细节 | 无 model/fallback/generation latency | 演示说服力不足 | P1 | 与 trace 同步做 |
+| G09 | 延迟 trace 不完整 | Stage 8.4 已保存 routing、逐次 retrieval/generation/verification、retry 与 end-to-end | 风险已关闭；延迟本身仍待 dev 分析 | Done | 阶段 8.4 完成 |
+| G10 | Streamlit 不展示 LLM 参与细节 | model/backend/fallback/prewarm/结构状态/阶段延迟与 partial 样式已完成 | 风险已关闭 | Done | 阶段 8.4 完成 |
 | G11 | 稀疏检索语义能力有限 | TF-IDF + 人工词表 | 同义改写和跨语言召回受限 | P2 | 条件触发 |
 | G12 | 混合融合较简单 | 图证据优先顺序合并，无 RRF/归一化 | 多来源排序可能偏置 | P2 | 先做误差分析 |
 | G13 | 多跳路径对方向和中间实体敏感 | pilot 已出现路径不完整案例 | 多跳答案覆盖不足 | P2 | 核心实验后考虑 |
@@ -313,7 +313,7 @@ class ClaimResult(BaseModel):
 
 ## 8. P0/P1：重试与延迟
 
-### 8.1 当前问题
+### 8.1 历史问题
 
 探针热调用平均约 0.93 s，但完整 dev 平均 11.44 s，说明完整链路受以下因素叠加：
 
@@ -321,11 +321,11 @@ class ClaimResult(BaseModel):
 - `num_predict=1536`；
 - 7/10 题发生第二次生成；
 - Verifier 和扩大检索重复执行；
-- 当前没有完整阶段计时，无法严谨拆分。
+- Stage 8.3 前没有完整阶段计时，无法严谨拆分。
 
-### 8.2 马上实施
+### 8.2 Stage 8.4 已实施
 
-新增：
+已新增：
 
 ```text
 routing_latency_ms
@@ -346,6 +346,17 @@ end_to_end_latency_ms
 - fallback 延迟保留失败 LLM 调用时间；
 - 历史 dev JSON 不回写。
 
+实现细节：
+
+- `RouteTrace` 保存 intent、mode、理由和路由耗时；
+- `RetrievalCall` 保存每次初始/补充检索、top-k、返回数量和耗时；
+- `GenerationCall` 增加 provider/model，并保留 requested/actual backend；
+- `VerificationCall` 保存每次中间/最终决策和 Claim 汇总；
+- `WorkflowLatencyTrace` 汇总七项阶段耗时；
+- `FinalResponse.cache_status=disabled`，正式路径没有答案缓存；
+- CLI、普通评测与 extension runner 读取相同 trace；
+- `validate_runtime_trace.py` 的 pass 为 1/1/1 次检索/生成/验证，retry 为 2/2/2。
+
 优化顺序：
 
 1. Partial-pass 避免“已有支持 Claim 仍重试”；
@@ -359,18 +370,19 @@ end_to_end_latency_ms
 
 不能直接把 `num_predict` 从 1536 降回 768。DEV02 曾因 768 token 截断产生无效 JSON，任何降低都必须重新通过结构成功门槛。
 
-### 8.3 验收标准
+### 8.3 验收状态
 
-- 每个阶段时间非负；
-- end-to-end 不小于任何单一阶段；
-- retry trace 含第一次和第二次 generation call；
-- dev 平均重试率低于当前 7/10；
-- 无答案题不因减少重试而错误放行；
-- 报告同时展示 cold、warm 和端到端，不混用探针延迟。
+- [x] 每个阶段时间非负；
+- [x] end-to-end 不小于任何单一阶段；
+- [x] retry trace 含第一次和第二次 retrieval/generation/verification call；
+- [x] 无答案 smoke 不因减少重试而错误放行；
+- [x] UI 分开显示 prewarm、LLM 和端到端延迟；
+- [ ] dev 平均重试率低于历史 7/10：留给阶段 8.5 完整 dev 回归；
+- [ ] cold/warm 统计图：留给阶段 8.5/8.7，不能只凭单题截图下结论。
 
 ## 9. P1：Streamlit 演示完整性
 
-### 9.1 当前问题
+### 9.1 历史问题
 
 当前 UI 能展示回答、图路径、证据和 Verifier 指标，但无法让评审者直接确认真实 LLM 是否参与。
 
@@ -385,7 +397,7 @@ end_to_end_latency_ms
 - packing 和验证阶段延迟；
 - cache 状态。
 
-### 9.2 马上实施
+### 9.2 Stage 8.4 已实施
 
 状态区显示真实值：
 
@@ -408,12 +420,25 @@ Verifier: PARTIAL_PASS
 - 演示缓存若启用必须显示 `cache_hit`；
 - 启动预热不得读取 dev/pilot/final/extension 业务题。
 
-### 9.3 验收标准
+当前实现：
 
-- pass、partial_pass、refuse、fallback 四条路径都有截图或浏览器 smoke；
-- 桌面和移动视口无文本重叠；
-- 后端、模型和延迟与 FinalResponse trace 一致；
-- partial 用户答案只展示 retained Claims。
+- Streamlit cached workflow 启动时执行固定合成结构化预热；
+- sidebar 显示工作流、图后端、Generator 和预热状态；
+- 主状态区显示 model、requested -> actual backend、fallback、结构成功和 cache；
+- 分阶段显示 routing、retrieval、packing、LLM、verification、retry、end-to-end；
+- 新增“运行轨迹”页签，显示 route/retrieval/generation/verification 调用表；
+- 无证据且未调用 LLM 时显示 `Structured JSON: not called`，不误写成 failed；
+- answer cache 保持 disabled。
+
+### 9.3 验收结果
+
+- [x] pass、partial_pass、refuse、fallback 四条路径均有浏览器 smoke；
+- [x] 每条路径均生成 1440 px 桌面和 390 px 移动截图；
+- [x] 自动检查两种视口无水平溢出，人工截图未发现文本重叠；
+- [x] backend、model、fallback、结构状态和延迟来自 `FinalResponse` trace；
+- [x] partial 用户答案只展示 retained Claims；
+- [x] fallback 显示 `ollama -> offline_rule` 和失败状态；
+- [x] refuse 无 LLM 调用时显示 `not called`。
 
 ## 10. P0：四方法正式实验
 
@@ -701,9 +726,9 @@ Pilot 已观察到：
 
 完成 ClaimResult、过滤、`PARTIAL_PASS`、strict 模式和状态机测试。DEV02 脱敏 smoke 保留 C1/C2、删除 C3/C4，零 unsupported leakage，且不再触发重试。
 
-### 阶段 8.4：Trace 与 Streamlit
+### 阶段 8.4：Trace 与 Streamlit（已完成）
 
-完成阶段延迟、模型/fallback 展示、预热和 partial UI。
+已完成阶段延迟、模型/fallback 展示、合成预热、partial UI、CLI/评测 trace 和四路径桌面/移动 browser smoke。
 
 ### 阶段 8.5：Dev 调试
 
@@ -772,7 +797,7 @@ Pilot 已观察到：
 项目达到当前规划的“完整 LLM Agent 科研版本”，必须同时满足：
 
 1. v1 release 已在未执行状态下被不可变撤销；
-2. v2 Evidence Packer、Prompt、ClaimResult 和 Partial-pass 已实现；完整分阶段 trace 仍待阶段 8.4；
+2. v2 Evidence Packer、Prompt、ClaimResult、Partial-pass 和完整分阶段 trace 已实现；
 3. dev 工程门槛通过；
 4. pilot 只做一次冻结前回归且未用于继续调参；
 5. v2 implementation manifest 和一次性 release 已冻结；
@@ -786,16 +811,16 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-下一步不是运行 extension。阶段 8.0～8.3 已验收，下一步只做阶段 8.4：
+下一步不是运行 extension。阶段 8.0～8.4 已验收，下一步只做阶段 8.5：
 
 ```text
-记录 routing/retrieval/verification/retry 延迟
+只读取 dev 题集
     ↓
-扩展 CLI 与评测 trace
+重点复核 DEV02/03/05/10
     ↓
-Streamlit 展示模型、fallback、延迟和 PARTIAL_PASS
+分析 partial-pass、重试和错误阶段
     ↓
-增加预热与 partial 状态样式
+冻结参数与 Stage 8.5 结论
 ```
 
-阶段 8.4 单独验收并写入 `PROGRESS.md` 后，再进入 dev 调试；不会在同一步运行 extension。
+阶段 8.5 只允许 dev、合成测试和单元测试；不会读取 final/extension，也不会创建 v2 release。完整 dev 结论写入 `PROGRESS.md` 后，才决定是否进入一次 pilot 冻结前回归。

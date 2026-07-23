@@ -10,12 +10,13 @@ from src.llm.exceptions import (
 )
 from src.llm.factory import create_llm_client
 from src.llm.ollama_client import OllamaClient
-from src.llm.schemas import ChatMessage, LLMCallRecord
+from src.llm.schemas import ChatMessage, LLMCallRecord, LLMWarmupRecord
 
 __all__ = [
     "ChatMessage",
     "AgentLLMSettings",
     "LLMCallRecord",
+    "LLMWarmupRecord",
     "LLMClient",
     "LLMEmptyResponseError",
     "LLMError",

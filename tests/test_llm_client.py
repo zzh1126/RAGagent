@@ -108,6 +108,40 @@ def test_structured_success_uses_strict_ollama_contract_and_sanitized_log(caplog
     assert "message.content" not in caplog.text
 
 
+def test_warmup_uses_synthetic_structured_call_without_business_question() -> None:
+    session = FakeSession(response('{"status":"ready"}'))
+    client = OllamaClient(settings(), session=session)
+
+    record = client.warmup()
+
+    assert record.status == "ready"
+    assert record.provider == "ollama"
+    assert record.model == "qwen3:4b"
+    assert record.keep_alive == "30m"
+    assert record.attempts == 1
+    assert record.structured_output_success is True
+    assert client.last_warmup == record
+    assert client.last_call is not None
+    assert client.last_call.node == "llm_startup_warmup"
+    request_text = str(session.calls[0]["json"]["messages"])
+    assert "synthetic startup health check" in request_text
+    assert "随机森林" not in request_text
+    assert "dev_questions" not in request_text
+    assert "extension_questions" not in request_text
+
+
+def test_warmup_failure_returns_sanitized_status_instead_of_raising() -> None:
+    session = FakeSession(requests.ConnectionError("offline"))
+    client = OllamaClient(settings(), session=session)
+
+    record = client.warmup()
+
+    assert record.status == "failed"
+    assert record.error_type == "LLMUnavailableError"
+    assert record.structured_output_success is False
+    assert record.attempts == 1
+
+
 def test_empty_content_fails_without_reading_thinking_or_retrying() -> None:
     session = FakeSession(
         FakeResponse(

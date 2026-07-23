@@ -37,6 +37,10 @@
 | `src/verification/evidence_verifier.py` | Claim-level supported/retained、四状态决策、strict 对照和 reason codes |
 | `scripts/validate_claim_level_verifier.py` | 合成状态机与脱敏 DEV02 smoke 合同检查 |
 | `reports/claim_level_partial_pass_dev02_smoke.json` | 不含问题/答案/Claim/quote 的 DEV02 Partial-pass 工程 smoke |
+| `src/agent/workflow.py` 与 `src/schemas.py` | routing/retrieval/generation/verification/retry/end-to-end 统一 trace 合同 |
+| `scripts/validate_runtime_trace.py` | 非重试 1/1/1 与重试 2/2/2 调用链合同检查 |
+| `scripts/smoke_streamlit_runtime.py` | model/backend/fallback/prewarm/阶段延迟与桌面/移动 UI smoke |
+| `reports/streamlit_stage8_4_*_{desktop,mobile}.png` | pass/partial/refuse/fallback 工程截图，不是质量实验结果 |
 | `config/settings.yaml` | 当前 rule Router、LLM Generator 与 offline_rule fallback 配置 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
@@ -73,6 +77,8 @@
 | C26 | Prompt v2 随机森林 smoke 的 Claim coverage 为 0.5000，但阶段 8.2 整题仍 `refuse`；不能宣称 Prompt 单独解决过度拒答 | 已核验 |
 | C27 | Stage 8.3 DEV02 脱敏 smoke 为 2/4 Claim retained、2/4 removed、`partial_pass`、retry=0、generation calls=1、unsupported leakage=0 | 已核验 |
 | C28 | Stage 8.3 单题 smoke 只证明过滤机制，不是整体 dev/pilot 结果、正式准确率或 LLM 优于规则的证据 | 已核验 |
+| C29 | Stage 8.4 已记录 routing、全部 retrieval/generation/verification、packing、retry branch 和 end-to-end；retry 与子阶段重叠，不能再次求和 | 已核验 |
+| C30 | Streamlit 四路径 browser smoke 只证明状态与布局合同；合成预热不读取评测题面，预热耗时不能当作问题端到端延迟 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -95,6 +101,8 @@
 - 声称 Prompt v2 单独解决了过度拒答；阶段 8.2 的 strict smoke 仍拒答。
 - 将 Stage 8.3 单题 DEV02 Partial-pass smoke 描述为总体过度拒答已解决、正式准确率提升或 LLM 优于规则基线。
 - 将 `partial_pass` 状态自动等同于人工正确答案。
+- 将 Stage 8.4 截图或 browser smoke 描述为回答正确率、LLM 增强有效性或 extension 结果。
+- 把 Streamlit 启动预热耗时与单题 generation/end-to-end 混为同一指标，或把 retry latency 与其子阶段重复相加。
 
 ## 发布前检查
 

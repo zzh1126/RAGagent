@@ -5,7 +5,7 @@ from typing import Protocol, TypeVar
 
 from pydantic import BaseModel
 
-from src.llm.schemas import ChatMessage, LLMCallRecord
+from src.llm.schemas import ChatMessage, LLMCallRecord, LLMWarmupRecord
 
 
 StructuredModel = TypeVar("StructuredModel", bound=BaseModel)
@@ -15,6 +15,9 @@ LLMEventSink = Callable[[LLMCallRecord], None]
 class LLMClient(Protocol):
     provider: str
     model: str
+
+    def warmup(self) -> LLMWarmupRecord:
+        ...
 
     def generate_structured(
         self,

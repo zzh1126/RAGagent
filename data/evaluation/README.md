@@ -69,9 +69,12 @@ python scripts/validate_evaluation.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_claim_level_verifier.py
+python scripts/validate_runtime_trace.py
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
 python scripts/run_evaluation.py --split dev
 ```
 
-`run_evaluation.py` 始终拒绝 `final` 和 `extension`，并把 answerable 问题的 `pass/partial_pass` 都视为自动决策成功；final 复用冻结结果。`validate_evidence_packer.py` 只在 dev/pilot 上执行 Router、Retriever 与确定性打包合同检查；Prompt v2 的 20 次探针只使用脚本内人工合成证据，不读取任何评测题面，且不保存模型正文。Claim-level validator 使用合成数据和已使用的 DEV02 脱敏 smoke，不保存问题、答案、Claim、quote 或 thinking。v1 release 文件保留历史值 `authorized_not_executed`，但不可变 revocation record 将其有效状态改为 `revoked_before_execution`；旧授权命令在读取题集前失败。v2 合同已经冻结，但 `extension_holdout_release_v2.json` 尚不存在，因此当前没有任何可执行的 extension release。
+`run_evaluation.py` 始终拒绝 `final` 和 `extension`，并把 answerable 问题的 `pass/partial_pass` 都视为自动决策成功；final 复用冻结结果。Stage 8.4 后，普通评测逐题保存 route、逐次 retrieval/generation/verification、packing、retry branch、end-to-end、provider/model、requested/actual backend 和 cache status。`validate_runtime_trace.py` 只运行两个已知开发机制案例，验证非重试 1/1/1 与重试 2/2/2 调用链，不读取 final/extension。
+
+`validate_evidence_packer.py` 只在 dev/pilot 上执行 Router、Retriever 与确定性打包合同检查；Prompt v2 的 20 次探针只使用脚本内人工合成证据，不读取任何评测题面，且不保存模型正文。Claim-level validator 使用合成数据和已使用的 DEV02 脱敏 smoke，不保存问题、答案、Claim、quote 或 thinking。Streamlit browser smoke 只允许 demo/dev 或人工合成问题，截图不是评测结果。v1 release 文件保留历史值 `authorized_not_executed`，但不可变 revocation record 将其有效状态改为 `revoked_before_execution`；旧授权命令在读取题集前失败。v2 合同已经冻结，但 `extension_holdout_release_v2.json` 尚不存在，因此当前没有任何可执行的 extension release。

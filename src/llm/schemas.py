@@ -30,3 +30,14 @@ class LLMCallRecord(StrictLLMModel):
     done_reason: str | None = None
     error_type: str | None = None
     validation_issues: list[str] = Field(default_factory=list)
+
+
+class LLMWarmupRecord(StrictLLMModel):
+    status: Literal["not_run", "ready", "failed", "unsupported", "not_applicable"]
+    provider: str | None = None
+    model: str | None = None
+    keep_alive: str | None = None
+    attempts: int = Field(default=0, ge=0)
+    latency_ms: float = Field(default=0.0, ge=0.0)
+    structured_output_success: bool = False
+    error_type: str | None = None
