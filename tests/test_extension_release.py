@@ -28,6 +28,12 @@ from src.evaluation.extension_release import (
     validate_v2_protocol_contracts,
     write_new_json,
 )
+from src.evaluation.extension_release_v2 import (
+    V2_IMPLEMENTATION_MANIFEST_PATH,
+    load_v2_release_artifacts,
+    validate_v2_effective_release_status,
+    validate_v2_release_record,
+)
 from src.evaluation.extension_runner import blind_review_rows, summarize_method
 
 
@@ -101,7 +107,19 @@ def test_v2_contract_is_frozen_with_four_separate_methods() -> None:
         "llm_no_verifier_v2",
         "llm_partial_pass_v2",
     ]
-    assert not (ROOT / V2_RELEASE_RECORD_PATH).exists()
+    implementation, release = load_v2_release_artifacts(ROOT)
+    assert validate_v2_release_record(
+        ROOT,
+        release,
+        implementation,
+        check_runtime_model=False,
+        require_unexecuted=True,
+    ) == []
+    errors, status = validate_v2_effective_release_status(ROOT, release)
+    assert errors == []
+    assert status == "authorized_not_executed"
+    assert (ROOT / V2_IMPLEMENTATION_MANIFEST_PATH).is_file()
+    assert (ROOT / V2_RELEASE_RECORD_PATH).is_file()
 
 
 def test_committed_v1_revocation_preserves_historical_artifacts() -> None:
@@ -145,30 +163,14 @@ def test_malformed_revocation_nested_fields_are_reported(tmp_path: Path) -> None
     assert any("revocation effect must be" in error for error in errors)
 
 
-@pytest.mark.parametrize(
-    ("release_id", "expected_message"),
-    [
-        (
-            "extension-qwen3-4b-v1-bdedf7dc",
-            "effective_execution_status=revoked_before_execution",
-        ),
-        (
-            "extension-qwen3-4b-v2-pending",
-            "no v2 release record has been authorized",
-        ),
-    ],
-)
-def test_controlled_runner_rejects_v1_and_unreleased_v2(
-    release_id: str,
-    expected_message: str,
-) -> None:
+def test_legacy_controlled_runner_rejects_revoked_v1() -> None:
     completed = subprocess.run(
         [
             sys.executable,
             "scripts/run_extension_evaluation.py",
             "--execute-once",
             "--release-id",
-            release_id,
+            "extension-qwen3-4b-v1-bdedf7dc",
             "--confirm-one-time-run",
         ],
         cwd=ROOT,
@@ -179,7 +181,34 @@ def test_controlled_runner_rejects_v1_and_unreleased_v2(
     )
 
     assert completed.returncode != 0
-    assert expected_message in completed.stdout + completed.stderr
+    assert "effective_execution_status=revoked_before_execution" in (
+        completed.stdout + completed.stderr
+    )
+    assert not (ROOT / "reports/extension").exists()
+
+
+def test_legacy_controlled_runner_cannot_execute_authorized_v2_release() -> None:
+    _, release = load_v2_release_artifacts(ROOT)
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_extension_evaluation.py",
+            "--execute-once",
+            "--release-id",
+            release["release_id"],
+            "--confirm-one-time-run",
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+    assert completed.returncode != 0
+    assert "must exactly match an authorized release record" in (
+        completed.stdout + completed.stderr
+    )
     assert not (ROOT / "reports/extension").exists()
 
 

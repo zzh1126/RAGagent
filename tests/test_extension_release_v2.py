@@ -7,6 +7,7 @@ from src.evaluation.extension_release import (
     IMPLEMENTATION_MANIFEST_PATH,
     RELEASE_RECORD_PATH,
     V2_METHOD_ORDER,
+    V2_RELEASE_RECORD_PATH,
     sha256_file,
 )
 from src.evaluation.extension_release_v2 import (
@@ -69,6 +70,15 @@ def test_v1_release_artifacts_remain_byte_stable() -> None:
     )
     assert sha256_file(ROOT / IMPLEMENTATION_MANIFEST_PATH) == (
         "2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382"
+    )
+
+
+def test_committed_v2_freeze_artifacts_are_byte_stable() -> None:
+    assert sha256_file(ROOT / V2_IMPLEMENTATION_MANIFEST_PATH) == (
+        "4fbc310231a0aa16fd190df0b37c51df19b4d3d2817c7e89c80fac1567e90bd7"
+    )
+    assert sha256_file(ROOT / V2_RELEASE_RECORD_PATH) == (
+        "87b2b934f31ad3a7b6f7d11b0c56ad14759826f107a23337c90def5ef37d4f10"
     )
 
 

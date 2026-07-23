@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "artifact": "llm_agent_v2_pilot_execution_state",
+  "status": "completed_once",
+  "started_at": "2026-07-23T13:36:51.601877+00:00",
+  "implementation_commit": "e207cb9142ff0066bae58501185b157998abe68f",
+  "dataset_path": "data/evaluation/pilot_questions.jsonl",
+  "dataset_sha256": "fa48ddcb3e7f4ec794b9b95c0415b5f1ddbc937d6f2918987a29dd9abb7a19b0",
+  "output_path": "reports/evaluation_llm_agent_v2_pilot_stage8_6.json",
+  "maximum_runs": 1,
+  "run_number": 1,
+  "completed_question_count": 40,
+  "current_question_id": null,
+  "rerun_authorized": false,
+  "completed_at": "2026-07-23T14:00:44.446572+00:00",
+  "report_sha256": "930f36017cd40bb8421c63bf3cfcc32fc46d512c95d53fc342eefe53868c60e8"
+}

@@ -78,14 +78,18 @@ Streamlit now performs one fixed synthetic structured warmup when the cached wor
 
 Stage 8.5 reran all 10 dev questions with the current v2 workflow. The development candidate reached `9/10` automatic decisions, `10/10` structured outputs, `2/2` no-answer refusals, `1/8` answerable over-refusals, `3/10` retry usage, and zero unsupported-Claim leakage. DEV02, DEV03, and DEV10 now return filtered `partial_pass` answers; DEV05 remains refused because the fixed six-page corpus does not contain direct AdaBoost sample-weight mechanism evidence. The only implementation adjustment was conservative quote normalization for case, Unicode hyphens, and direct overfit/generalization variants. These are dev engineering gates, not an independent quality result or evidence that the LLM outperforms the rule baseline. See `reports/llm_agent_v2_dev_stage8_5_audit.md`.
 
-The historical extension implementation is frozen at commit `bdedf7d`. Its release file still preserves the original `authorized_not_executed` value, while the immutable revocation record makes the effective status `revoked_before_execution`. The old command now fails before model inspection, holdout loading, or QA workflow construction. Versioned v2 scoring and trace contracts predeclare a four-method comparison, but no v2 release exists yet.
+The historical extension implementation is frozen at commit `bdedf7d`. Its release file still preserves the original `authorized_not_executed` value, while the immutable revocation record makes the effective status `revoked_before_execution`. The old command now fails before model inspection, holdout loading, or QA workflow construction.
+
+Stage 8.6 consumed the one permitted 40-question pilot freeze run on implementation commit `e207cb9`. The candidate reached `0.8250` decision accuracy, `0.9750` structured-output success, `4/4` no-answer refusal accuracy, `7/36` answerable over-refusals, `13/40` retry usage, and zero unsupported-Claim leakage. The predeclared gate returned `go`; the result is an engineering freeze check, not independent quality evidence. Mean end-to-end latency was `34,180.72 ms`, which remains a material limitation. The v2 runtime is now frozen and release `extension-qwen3-4b-v2-e207cb91` is `authorized_not_executed`; no extension output exists.
 
 ```bash
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/validate_extension_release_v2.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation_v2.py --preflight
 ```
 
-Both the generic evaluation runner and the controlled extension runner remain locked for extension execution.
+The generic evaluation runner and revoked v1 runner remain locked. The separate v2 runner only passes preflight against the immutable release and has not executed the extension holdout.
 
 ## Streamlit Demo
 
@@ -117,6 +121,6 @@ python scripts/generate_report_figures.py --check
 
 Dataset ownership and leakage rules are documented in `data/evaluation/README.md`. Generated reports are written under `reports/`.
 
-The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The separate 23-question `extension` holdout has never been run. Its v1 release is revoked, the v2 protocol is frozen, and runtime enhancement must be completed and independently released before the one permitted v2 execution. No extension QA result exists yet.
+The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The separate 23-question `extension` holdout has never been run. Its v1 release is revoked; its v2 release is `authorized_not_executed` and permits at most one controlled four-method execution. No extension QA result exists yet.
 
 The frozen holdout run is stored in `reports/evaluation_final.json`: 39 of 40 routing/refusal decisions were correct (`0.975`), including all four no-answer cases. The single residual error is an overly conservative refusal on an AdaBoost definition question.

@@ -2789,6 +2789,12 @@ git diff --check
 
 阶段 8.5 已完成。当前 v2 工作流达到预先声明的 dev 工程门槛，历史 4 个过度拒答案例中 DEV02/03/10 已成为安全 Partial-pass，DEV05 被确认是固定语料边界。下一阶段进入 8.6：参数不再根据 dev 逐题修改，只运行一次 pilot 冻结前回归，然后冻结 runtime、Prompt v2、wire Schema、Packer、Verifier、trace contract、依赖和模型 digest；继续不运行 final/extension。
 
+### 冻结工具提交
+
+- v2 冻结工具与测试已提交：`e207cb9 feat: freeze v2 pilot and extension protocol`；
+- 已推送到 `origin/experiment/llm-agent-v2`；
+- pilot 将绑定该 commit，后续只允许记录结果和 Go/No-Go，不修改 runtime。
+
 ## 2026-07-23 阶段 8.6：v2 冻结工具与 Pilot 一次性执行闸门
 
 ### 本轮完成
@@ -2830,3 +2836,110 @@ git diff --check
 - 看到 pilot 结果后只执行预声明的 Go/No-Go 判定，不按逐题结果修改 Prompt、阈值、路由、Packer 或 Verifier；
 - v2 release 只有在 pilot 为 Go、runtime 与实现 commit 完全一致、模型 digest 校验通过后才创建，状态必须为 `authorized_not_executed`；
 - 两份外部删除的 DOCX 继续不恢复、不修改、不暂存、不提交。
+
+### Pilot 执行前检查
+
+- 实现 commit：`e207cb9142ff0066bae58501185b157998abe68f`；
+- v2 runtime 与该 commit 的差异：0；
+- pilot gate contract errors：0；
+- Ollama：`0.32.1`；
+- 模型：`qwen3:4b`；
+- 模型完整 digest：`359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7`；
+- 模型大小：`2497293931` bytes；
+- canonical pilot report、state 和 gate decision 均尚不存在；可以执行唯一一次 pilot。
+
+### Stage 8.6 唯一一次 Pilot 结果
+
+输出：
+
+```text
+reports/evaluation_llm_agent_v2_pilot_stage8_6.json
+reports/evaluation_llm_agent_v2_pilot_stage8_6_state.json
+reports/evaluation_llm_agent_v2_pilot_stage8_6_gate.json
+```
+
+- state：`completed_once`；
+- 实现 commit：`e207cb9142ff0066bae58501185b157998abe68f`；
+- 完成题数：40/40；
+- report SHA-256：`930f36017cd40bb8421c63bf3cfcc32fc46d512c95d53fc342eefe53868c60e8`；
+- Decision Accuracy：`0.8250`；
+- Mean Keyword Coverage：`0.6250`；
+- Structured Output Success：`0.9750`；
+- Fallback Rate：`0.0000`；
+- Answerable Over-refusal：`7/36`，`0.1944`；
+- No-answer Refusal Accuracy：`4/4`，`1.0000`；
+- Retry：`13/40`，`0.3250`；
+- 决策分布：pass=4、partial_pass=25、refuse=11；
+- Claims：generated=91、supported=49、retained=49、removed=42；
+- Unsupported Claim Leakage：0；
+- Mean End-to-end Latency：`34180.72 ms`。
+
+外层命令在 15 分钟时返回 timeout，但原唯一 pilot 子进程没有被重复启动或重跑，而是在后台完成同一轮并将 state 原子更新为 `completed_once`。后续核验确认 report 与 state 哈希一致。
+
+### Pilot Go/No-Go
+
+- 使用执行前已提交的 `config/pilot_freeze_gate_v2.yaml` 判定；
+- gate status：`go`；
+- failed checks：0；
+- pilot 已消费，`rerun_authorized=false`；
+- `per_question_tuning_authorized=false`；
+- 结果只用于工程冻结与风险披露，不作为独立无泄漏质量证据；
+- 不根据 7 道 over-refusal、1 次非全程 structured success 或逐题结果继续修改 Prompt、阈值、路由、Packer、Verifier、语料或知识图谱；
+- 平均约 34.18 秒的端到端延迟作为当前主要限制保留并披露。
+
+### v2 Implementation Freeze 与 Release
+
+- implementation manifest：`data/evaluation/extension_implementation_manifest_v2.json`；
+- manifest SHA-256：`4fbc310231a0aa16fd190df0b37c51df19b4d3d2817c7e89c80fac1567e90bd7`；
+- release record：`data/evaluation/extension_holdout_release_v2.json`；
+- release SHA-256：`87b2b934f31ad3a7b6f7d11b0c56ad14759826f107a23337c90def5ef37d4f10`；
+- release ID：`extension-qwen3-4b-v2-e207cb91`；
+- release status：`authorized_not_executed`；
+- runtime bundle SHA-256：`ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b`；
+- Prompt v2 SHA-256：`e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`；
+- wire Schema SHA-256：`b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`；
+- 模型 digest：`359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7`；
+- v1 release 有效状态继续为 `revoked_before_execution`。
+
+验证：
+
+```text
+python scripts/validate_extension_release_v2.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation_v2.py --preflight
+python scripts/validate_extension_holdout.py
+```
+
+- 三项均通过；
+- v2 effective execution status：`authorized_not_executed`；
+- preflight 明确确认 extension questions were not sent to QA；
+- `reports/extension_v2` 不存在；
+- 未生成 extension 答案、execution state、receipt、combined metrics、盲评表或 method key。
+
+### Stage 8.6 文档同步
+
+- 新增 `reports/llm_agent_v2_pilot_stage8_6_audit.md`；
+- 更新 `README.md`、`PROJECT_HANDBOOK.md`、`PROJECT_GAPS_AND_ROADMAP.md`；
+- 更新 `data/evaluation/README.md`、`reports/research_report_draft.md`、`reports/report_claims_checklist.md`；
+- 更新 `reports/llm_agent_partial_pass_plan.md`、`reports/technical_enhancement_decision.md`；
+- 报告只描述 Stage 8.6 为工程冻结门槛，不声称 LLM 优于规则基线或 extension 已完成。
+
+### Stage 8.6 最终验证
+
+- 全量测试：`131 passed`；
+- v2 release/pilot 定向测试：`24 passed`；
+- 报告事实校验：42 项来源、23 项必需披露、21 项禁止声明；
+- 配置、图数据、100 条关系证据、164 Section、180 Chunk 均通过；
+- Packer dev/pilot 50 题合同保持平均 4.38 条证据、最长 7,783 字符；
+- Prompt v2 合成探针保持 20/20，Prompt 与 wire Schema 哈希未变；
+- Claim-level Verifier、runtime trace、评测数据、实验配置、用户确认评分和 LLM probe 均通过；
+- v1 release 审计保持 `revoked_before_execution`；
+- v2 release 审计保持 `authorized_not_executed`；
+- v2 preflight 再次确认 extension questions were not sent to QA；
+- 5 张历史报告图和 v1.0 baseline 23 个 payload manifest 保持不变；
+- `pip check` 无损坏依赖；
+- `git diff --check` 通过；
+- final 未重跑，extension 未运行，两份外部 DOCX 删除仍未暂存。
+
+### 当前状态与下一步
+
+Stage 8.6 已完成。当前候选已经具备可审计的 Pilot Go 记录、冻结 runtime、独立 v2 implementation manifest、`authorized_not_executed` release、一次性 runner、版本化输出和 A/B/C/D 盲评协议。下一阶段为 Stage 8.7；只有在用户明确继续后，才执行 release 中记录的 4 方法 x 23 题 extension 命令一次。任何中断都进入人工审计，不自动重跑或覆盖。

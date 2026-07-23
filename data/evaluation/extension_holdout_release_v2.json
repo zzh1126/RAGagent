@@ -1,0 +1,68 @@
+{
+  "schema_version": "2.0",
+  "artifact": "extension_holdout_release",
+  "protocol_version": "v2",
+  "status": "authorized_not_executed",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "released_at": "2026-07-23T14:07:58.994410+00:00",
+  "authorized_implementation_commit": "e207cb9142ff0066bae58501185b157998abe68f",
+  "implementation_manifest_path": "data/evaluation/extension_implementation_manifest_v2.json",
+  "implementation_manifest_sha256": "4fbc310231a0aa16fd190df0b37c51df19b4d3d2817c7e89c80fac1567e90bd7",
+  "dataset_sha256": "7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5",
+  "scoring_contract_sha256": "864c960f6f357ce528384408441ca189e571206b5d6a904d44f7992b4b034ac1",
+  "trace_contract_sha256": "3b447885c08dbad3b6366670c5e7b09fc4f639570c912f994b7020f5b9d94ef5",
+  "runtime_bundle_sha256": "ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b",
+  "prompt_contract": {
+    "version": "v2",
+    "system_prompt_sha256": "e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad",
+    "wire_schema_sha256": "b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb"
+  },
+  "runtime_model": {
+    "provider": "ollama",
+    "base_url": "http://127.0.0.1:11434",
+    "version": "0.32.1",
+    "model": "qwen3:4b",
+    "model_digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "model_size_bytes": 2497293931
+  },
+  "pilot_gate": {
+    "contract_path": "config/pilot_freeze_gate_v2.yaml",
+    "contract_sha256": "75275586fed11086cf1957d3ff1a34d2dde84b961264462d7ca699f656384db3",
+    "decision_path": "reports/evaluation_llm_agent_v2_pilot_stage8_6_gate.json",
+    "decision_sha256": "c4a7870ef82e0d946fe365d3b0f2b53f02c2c7d7abb28ac2aee2e35dc4b5e8a4",
+    "report_path": "reports/evaluation_llm_agent_v2_pilot_stage8_6.json",
+    "report_sha256": "930f36017cd40bb8421c63bf3cfcc32fc46d512c95d53fc342eefe53868c60e8",
+    "status": "go"
+  },
+  "superseded_v1": {
+    "release_id": "extension-qwen3-4b-v1-bdedf7dc",
+    "release_record_path": "data/evaluation/extension_holdout_release.json",
+    "release_record_sha256": "af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c",
+    "implementation_manifest_path": "data/evaluation/extension_implementation_manifest.json",
+    "implementation_manifest_sha256": "2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382",
+    "revocation_path": "data/evaluation/extension_release_revocations/extension-qwen3-4b-v1-bdedf7dc.json",
+    "revocation_sha256": "29b198d5fa9309ce4d81919271df424cb87db29c40370bd0fc6e42bc091aa45b",
+    "effective_status": "revoked_before_execution"
+  },
+  "method_order": [
+    "rule_baseline",
+    "llm_strict_v2",
+    "llm_no_verifier_v2",
+    "llm_partial_pass_v2"
+  ],
+  "maximum_execution_runs": 1,
+  "randomization_seed": 1531621862228357700,
+  "execution_state_path": "reports/extension_v2/execution_state.json",
+  "execution_receipt_path": "reports/extension_v2/execution_receipt.json",
+  "output_paths": {
+    "rule_baseline": "reports/extension_v2/rule_baseline.json",
+    "llm_strict_v2": "reports/extension_v2/llm_strict_v2.json",
+    "llm_no_verifier_v2": "reports/extension_v2/llm_no_verifier_v2.json",
+    "llm_partial_pass_v2": "reports/extension_v2/llm_partial_pass_v2.json",
+    "combined_metrics": "reports/extension_v2/combined_metrics.json",
+    "blind_review": "reports/extension_v2/blind_review.csv",
+    "blind_method_key": "reports/extension_v2/blind_method_key.json"
+  },
+  "authorized_command": "python scripts/run_extension_evaluation_v2.py --execute-once --release-id extension-qwen3-4b-v2-e207cb91 --confirm-one-time-run",
+  "final_result_policy": "v2_final_read_only_after_execution"
+}

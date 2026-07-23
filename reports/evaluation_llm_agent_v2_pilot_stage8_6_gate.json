@@ -1,0 +1,168 @@
+{
+  "schema_version": "1.0",
+  "artifact": "llm_agent_v2_pilot_freeze_gate_decision",
+  "protocol_version": "v2",
+  "status": "go",
+  "evaluated_at": "2026-07-23T14:03:15.397260+00:00",
+  "pilot_consumed": true,
+  "rerun_authorized": false,
+  "per_question_tuning_authorized": false,
+  "contract_path": "config/pilot_freeze_gate_v2.yaml",
+  "contract_sha256": "75275586fed11086cf1957d3ff1a34d2dde84b961264462d7ca699f656384db3",
+  "report_path": "reports/evaluation_llm_agent_v2_pilot_stage8_6.json",
+  "report_sha256": "930f36017cd40bb8421c63bf3cfcc32fc46d512c95d53fc342eefe53868c60e8",
+  "state_path": "reports/evaluation_llm_agent_v2_pilot_stage8_6_state.json",
+  "state_sha256": "34bac94048526c5ff5d19905e3e88967243f70f9d1f398120bfda8ad30a60a55",
+  "implementation_commit": "e207cb9142ff0066bae58501185b157998abe68f",
+  "checks": [
+    {
+      "check_id": "state_status",
+      "operator": "eq",
+      "target": "completed_once",
+      "actual": "completed_once",
+      "passed": true
+    },
+    {
+      "check_id": "question_count",
+      "operator": "eq",
+      "target": 40,
+      "actual": 40,
+      "passed": true
+    },
+    {
+      "check_id": "answerable_count",
+      "operator": "eq",
+      "target": 36,
+      "actual": 36,
+      "passed": true
+    },
+    {
+      "check_id": "no_answer_count",
+      "operator": "eq",
+      "target": 4,
+      "actual": 4,
+      "passed": true
+    },
+    {
+      "check_id": "dataset_sha256",
+      "operator": "eq",
+      "target": "fa48ddcb3e7f4ec794b9b95c0415b5f1ddbc937d6f2918987a29dd9abb7a19b0",
+      "actual": "fa48ddcb3e7f4ec794b9b95c0415b5f1ddbc937d6f2918987a29dd9abb7a19b0",
+      "passed": true
+    },
+    {
+      "check_id": "settings_sha256",
+      "operator": "eq",
+      "target": "715d2a50414f84b39c6b3475ec9e138c16212b9d6bdce97b760fccabfe7ea651",
+      "actual": "715d2a50414f84b39c6b3475ec9e138c16212b9d6bdce97b760fccabfe7ea651",
+      "passed": true
+    },
+    {
+      "check_id": "implementation_commit",
+      "operator": "eq",
+      "target": "e207cb9142ff0066bae58501185b157998abe68f",
+      "actual": "e207cb9142ff0066bae58501185b157998abe68f",
+      "passed": true
+    },
+    {
+      "check_id": "generator_backend",
+      "operator": "eq",
+      "target": "llm",
+      "actual": "llm",
+      "passed": true
+    },
+    {
+      "check_id": "provider",
+      "operator": "eq",
+      "target": "ollama",
+      "actual": "ollama",
+      "passed": true
+    },
+    {
+      "check_id": "model",
+      "operator": "eq",
+      "target": "qwen3:4b",
+      "actual": "qwen3:4b",
+      "passed": true
+    },
+    {
+      "check_id": "prompt_version",
+      "operator": "eq",
+      "target": "v2",
+      "actual": "v2",
+      "passed": true
+    },
+    {
+      "check_id": "system_prompt_sha256",
+      "operator": "eq",
+      "target": "e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad",
+      "actual": "e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad",
+      "passed": true
+    },
+    {
+      "check_id": "wire_schema_sha256",
+      "operator": "eq",
+      "target": "b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb",
+      "actual": "b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb",
+      "passed": true
+    },
+    {
+      "check_id": "evidence_packer_version",
+      "operator": "eq",
+      "target": "intent_aware_v2",
+      "actual": "intent_aware_v2",
+      "passed": true
+    },
+    {
+      "check_id": "decision_accuracy",
+      "operator": "gte",
+      "target": 0.8,
+      "actual": 0.825,
+      "passed": true
+    },
+    {
+      "check_id": "structured_output_success_rate",
+      "operator": "gte",
+      "target": 0.95,
+      "actual": 0.975,
+      "passed": true
+    },
+    {
+      "check_id": "fallback_rate",
+      "operator": "lte",
+      "target": 0.05,
+      "actual": 0.0,
+      "passed": true
+    },
+    {
+      "check_id": "refusal_accuracy",
+      "operator": "gte",
+      "target": 1.0,
+      "actual": 1.0,
+      "passed": true
+    },
+    {
+      "check_id": "over_refusal_rate",
+      "operator": "lte",
+      "target": 0.25,
+      "actual": 0.1944,
+      "passed": true
+    },
+    {
+      "check_id": "retry_rate",
+      "operator": "lte",
+      "target": 0.7,
+      "actual": 0.325,
+      "passed": true
+    },
+    {
+      "check_id": "unsupported_claim_leakage_count",
+      "operator": "lte",
+      "target": 0,
+      "actual": 0,
+      "passed": true
+    }
+  ],
+  "failed_check_ids": [],
+  "interpretation": "engineering_freeze_gate_not_independent_quality_evidence"
+}

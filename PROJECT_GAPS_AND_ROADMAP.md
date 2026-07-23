@@ -735,9 +735,9 @@ Pilot 已观察到：
 
 只用 dev、合成测试和单元测试复核 DEV02/03/05/10。候选达到 Decision Accuracy 0.9000、Structured Output 1.0000、Refusal Accuracy 2/2、Over-refusal 1/8、retry 3/10 和 unsupported leakage 0。DEV05 被确认是语料边界，DEV10 只做保守 quote/术语归一化修正。
 
-### 阶段 8.6：Pilot 回归与冻结
+### 阶段 8.6：Pilot 回归与冻结（已完成）
 
-参数冻结后一次回归，随后冻结 v2 runtime、Prompt、Schema、配置、依赖和模型。
+已在 commit `e207cb9` 上消费唯一一次 40 题 pilot，预声明 gate 为 `go`。结果为 Decision Accuracy 0.8250、Structured Output 0.9750、4/4 无答案拒答、7/36 answerable over-refusal、13/40 retry、unsupported leakage 0；平均端到端延迟 34180.72 ms。v2 runtime、Prompt、Schema、配置、依赖和模型 digest 已冻结，release `extension-qwen3-4b-v2-e207cb91` 为 `authorized_not_executed`。
 
 ### 阶段 8.7：Extension 一次性实验
 
@@ -812,18 +812,18 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-下一步不是运行 extension。阶段 8.0～8.5 已验收，下一步只做阶段 8.6：
+阶段 8.0～8.6 已验收。下一步只进入阶段 8.7：
 
 ```text
-冻结 Stage 8.5 参数与结论
+核对 v2 release preflight
     ↓
-一次 pilot 冻结前回归
+用户明确授权下一阶段
     ↓
-不根据逐题结果继续调参
+受控执行 4 方法 × 23 题 extension 一次
     ↓
-冻结 runtime / Prompt / Schema / 配置 / 依赖 / 模型 digest
+生成 receipt、版本化结果和 A/B/C/D 盲评表
     ↓
-创建 v2 implementation manifest 与一次性 release
+禁止自动重跑或覆盖
 ```
 
-阶段 8.6 只允许一次 pilot 冻结前回归；不会运行 final/extension。pilot 结果只能用于 Go/No-Go 和风险披露，不能继续逐题调参。只有全部冻结资产和模型 digest 校验通过后，才允许创建状态为 `authorized_not_executed` 的 v2 release。
+Stage 8.6 pilot 已消费，不能重跑或继续逐题调参。当前 release 只是 `authorized_not_executed`，本阶段没有运行 extension。Stage 8.7 只能使用 `scripts/run_extension_evaluation_v2.py` 和 release 中的精确 ID 执行一次；任何中断都进入人工审计，不能自动重试整轮。

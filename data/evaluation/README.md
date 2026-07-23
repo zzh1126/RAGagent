@@ -8,7 +8,7 @@
 - `demo_questions.jsonl`：8 题，可与开发集重合，用于 Streamlit 演示。
 - `pilot_questions.jsonl`：40 题，曾用于发现并修复两处实现缺口，不能再视为无泄漏最终结果。
 - `final_questions.jsonl`：重新创建的 40 题保留测试集，与开发集和先导集题面不重合；冻结后只运行一次。
-- `extension_questions.jsonl`：在 LLM Client 与 Generator 业务实现前冻结的 23 题扩展保留集；从未运行，v1 release 已在执行前撤销，v2 尚无 release，仍禁止读取题面用于调参或执行 QA。
+- `extension_questions.jsonl`：在 LLM Client 与 Generator 业务实现前冻结的 23 题扩展保留集；从未运行，v1 release 已在执行前撤销，v2 release 为 `authorized_not_executed`，仍禁止读取题面用于调参或通过非受控 runner 执行 QA。
 
 最终 40 题固定分布：
 
@@ -78,4 +78,4 @@ python scripts/run_evaluation.py --split dev
 
 `run_evaluation.py` 始终拒绝 `final` 和 `extension`，并把 answerable 问题的 `pass/partial_pass` 都视为自动决策成功；final 复用冻结结果。Stage 8.5 后，普通评测逐题保存 route、逐次 retrieval/generation/verification、packing、retry branch、end-to-end、provider/model、requested/actual backend、cache status、structured `success/failed/not_called`、over-refusal、Claim 支持/保留/移除、unsupported leakage、reason codes 和阶段审计标记。`validate_runtime_trace.py` 只运行两个已知开发机制案例，验证非重试 1/1/1 与重试 2/2/2 调用链，不读取 final/extension。
 
-`validate_evidence_packer.py` 只在 dev/pilot 上执行 Router、Retriever 与确定性打包合同检查；Prompt v2 的 20 次探针只使用脚本内人工合成证据，不读取任何评测题面，且不保存模型正文。Claim-level validator 使用合成数据和已使用的 DEV02 脱敏 smoke，不保存问题、答案、Claim、quote 或 thinking。Streamlit browser smoke 只允许 demo/dev 或人工合成问题，截图不是评测结果。v1 release 文件保留历史值 `authorized_not_executed`，但不可变 revocation record 将其有效状态改为 `revoked_before_execution`；旧授权命令在读取题集前失败。v2 合同已经冻结，但 `extension_holdout_release_v2.json` 尚不存在，因此当前没有任何可执行的 extension release。
+`validate_evidence_packer.py` 只在 dev/pilot 上执行 Router、Retriever 与确定性打包合同检查；Prompt v2 的 20 次探针只使用脚本内人工合成证据，不读取任何评测题面，且不保存模型正文。Claim-level validator 使用合成数据和已使用的 DEV02 脱敏 smoke，不保存问题、答案、Claim、quote 或 thinking。Streamlit browser smoke 只允许 demo/dev 或人工合成问题，截图不是评测结果。v1 release 文件保留历史值 `authorized_not_executed`，但不可变 revocation record 将其有效状态改为 `revoked_before_execution`；旧授权命令在读取题集前失败。Stage 8.6 pilot 已消费且禁止重跑，v2 release `extension-qwen3-4b-v2-e207cb91` 当前为 `authorized_not_executed`。只有 `scripts/run_extension_evaluation_v2.py` 在精确 release ID 和一次性确认参数下可进入下一阶段；当前尚无 extension 输出或 receipt。

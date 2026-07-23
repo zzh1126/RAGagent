@@ -36,7 +36,7 @@ REQUIRED_RULES = (
     TextRule(
         "R13",
         "Generator wiring, Planner No-Go, and extension governance must remain explicit",
-        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销，v2 合同已冻结但尚无可执行 release",
+        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销，v2 release 已冻结为 `authorized_not_executed`，尚未执行 extension",
     ),
     TextRule(
         "R14",
@@ -77,6 +77,16 @@ REQUIRED_RULES = (
         "R21",
         "Stage 8.5 dev gates must remain separate from independent effectiveness evidence",
         r"阶段 8\.5[\s\S]{0,1200}自动决策准确率为 0\.9000[\s\S]{0,600}(?:只是进入 pilot 冻结前回归的工程门槛|不能证明 LLM 增强有效)",
+    ),
+    TextRule(
+        "R22",
+        "Stage 8.6 pilot must disclose its consumed engineering-gate scope",
+        r"阶段 8\.6[\s\S]{0,1000}Decision Accuracy 0\.8250[\s\S]{0,800}(?:只用于工程冻结和风险披露|不能视为独立保留集)",
+    ),
+    TextRule(
+        "R23",
+        "the v2 release must remain authorized but unexecuted",
+        r"release `extension-qwen3-4b-v2-e207cb91`[^。\n]{0,80}`authorized_not_executed`[\s\S]{0,240}没有 extension 输出",
     ),
 )
 
@@ -142,6 +152,11 @@ FORBIDDEN_RULES = (
         "Stage 8.5 dev tuning incorrectly presented as independent effectiveness evidence",
         r"Stage 8\.5[^。\n]{0,160}(?<!不能)(?:证明|表明)[^。\n]{0,40}(?:LLM 增强有效|LLM[^。\n]{0,12}优于规则|正式回答正确率)",
     ),
+    TextRule(
+        "F21",
+        "Stage 8.6 pilot Go incorrectly presented as LLM superiority",
+        r"Stage 8\.6[^。\n]{0,180}(?:go|Go)[^。\n]{0,80}(?:证明|表明)[^。\n]{0,40}(?:LLM 增强有效|LLM[^。\n]{0,12}优于规则|extension 结论)",
+    ),
 )
 
 
@@ -181,6 +196,28 @@ def expected_literals() -> dict[str, str]:
         PROJECT_ROOT
         / "reports"
         / "evaluation_llm_agent_v2_dev_stage8_5_candidate.json"
+    )
+    stage8_6_pilot = read_json(
+        PROJECT_ROOT
+        / "reports"
+        / "evaluation_llm_agent_v2_pilot_stage8_6.json"
+    )
+    stage8_6_gate = read_json(
+        PROJECT_ROOT
+        / "reports"
+        / "evaluation_llm_agent_v2_pilot_stage8_6_gate.json"
+    )
+    v2_implementation_manifest = read_json(
+        PROJECT_ROOT
+        / "data"
+        / "evaluation"
+        / "extension_implementation_manifest_v2.json"
+    )
+    v2_extension_release = read_json(
+        PROJECT_ROOT
+        / "data"
+        / "evaluation"
+        / "extension_holdout_release_v2.json"
     )
 
     kb = stats["knowledge_base"]
@@ -276,6 +313,30 @@ def expected_literals() -> dict[str, str]:
             "unsupported Claim leakage 为 "
             f"{stage8_5_dev['unsupported_claim_leakage_count']}"
         ),
+        "S35 Stage 8.6 pilot decision accuracy": (
+            f"Decision Accuracy {stage8_6_pilot['decision_accuracy']:.4f}"
+        ),
+        "S36 Stage 8.6 pilot structured output": (
+            "Structured Output Success "
+            f"{stage8_6_pilot['structured_output_success_rate']:.4f}"
+        ),
+        "S37 Stage 8.6 pilot over-refusal": (
+            "可回答题 over-refusal "
+            f"{stage8_6_pilot['over_refusal_count']}/"
+            f"{stage8_6_pilot['answerable_count']}"
+        ),
+        "S38 Stage 8.6 pilot latency": (
+            "平均端到端延迟为 "
+            f"{stage8_6_pilot['mean_end_to_end_latency_ms']:.2f} ms"
+        ),
+        "S39 Stage 8.6 gate": f"预声明 gate 的全部检查通过并返回 `{stage8_6_gate['status']}`",
+        "S40 v2 release ID": f"release `{v2_extension_release['release_id']}`",
+        "S41 v2 release status": (
+            f"当前状态为 `{v2_extension_release['status']}`"
+        ),
+        "S42 v2 runtime bundle": v2_implementation_manifest[
+            "runtime_bundle_sha256"
+        ],
     }
 
 

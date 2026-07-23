@@ -13,7 +13,7 @@
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
 | 当前实施范围 | LLM Answer Generator、intent-aware Evidence Packer、Verifier 与规则 fallback 已接线；不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
-| extension holdout | 23 题从未运行；v1 release 已在执行前撤销，v2 四方法合同已冻结但尚无 release |
+| extension holdout | 23 题从未运行；v1 release 已在执行前撤销，v2 release 为 `authorized_not_executed` |
 
 ## 前置条件审计
 

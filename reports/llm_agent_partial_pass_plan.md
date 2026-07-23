@@ -7,10 +7,10 @@
 | 评测日期 | 2026-07-23 |
 | 当前分支 | `experiment/llm-agent-v2` |
 | 阶段 8.0 完成提交 | `7fbf566` |
-| 计划状态 | 阶段 8.0～8.5 已完成，准备进入阶段 8.6 pilot 冻结前回归 |
+| 计划状态 | 阶段 8.0～8.6 已完成，准备进入阶段 8.7 一次性 extension 实验 |
 | 当前 extension release | `extension-qwen3-4b-v1-bdedf7dc` |
 | release 有效状态 | `revoked_before_execution`，从未运行 |
-| v2 状态 | 四方法合同已冻结，`locked_no_release` |
+| v2 状态 | 四方法 runtime/release 已冻结，`authorized_not_executed` |
 | 当前边界 | 下一阶段只运行一次 pilot 冻结前回归，不运行 final/extension |
 
 ## 一、总体结论
@@ -301,7 +301,7 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 4. [x] 保留现有 `extension_holdout_release.json`、implementation manifest 和 v1 trace contract；
 5. [x] 修改专用 runner 和 validator，使被撤销的 release ID 无条件拒绝执行；
 6. [x] 新建并校验 `config/extension_evaluation_v2.yaml` 和 `config/extension_trace_contract_v2.yaml`；
-7. [ ] 完成 v2 runtime 后创建新的 implementation manifest、release record 和 release ID；
+7. [x] 完成 v2 runtime 后创建新的 implementation manifest、release record 和 release ID；
 8. [ ] 使用未被查看的 23 题冻结题集执行唯一一次 v2 extension。
 
 撤销是实验治理动作，不代表 v1 实现错误；它表示在看见保留集结果之前主动采用更完整的协议。所有 v1 文件和哈希继续作为审计记录保留。
@@ -459,4 +459,4 @@ PROGRESS.md
 
 **No-Go：** LLM Planner、多 Agent、知识库扩充、自动图谱抽取、完整 Microsoft GraphRAG 和框架迁移。
 
-阶段 8.5 已完成全部 10 道 dev 回归、四个历史过度拒答案例审计、评测指标增强和 DEV10 的低风险文本归一化修正。候选工程门槛全部通过，但 dev 结果不是独立效果证据，Dense Retrieval 也未触发。下一步进入阶段 8.6：只运行一次 pilot 冻结前回归并冻结 v2 runtime；仍不会运行 final/extension。
+阶段 8.6 已在 `e207cb9` 上完成唯一一次 40 题 pilot，预声明 gate 为 `go`；v2 runtime、依赖、模型 digest、implementation manifest 和 release 已冻结，release `extension-qwen3-4b-v2-e207cb91` 为 `authorized_not_executed`。pilot 已消费且不是独立效果证据，平均端到端延迟 34180.72 ms 作为限制保留。下一步进入阶段 8.7：只有在用户明确继续后，才执行一次 4 方法 x 23 题 extension。

@@ -17,7 +17,7 @@
 | 当前默认生成器 | Ollama `qwen3:4b`，失败时回退规则生成器 |
 | 正式基线状态 | v1.0 规则基线已冻结、可复验 |
 | LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；仍只有合成/dev 工程审计，尚无正式 extension 结论 |
-| extension 状态 | 23 题从未运行；v1 有效状态为 `revoked_before_execution`；v2 四方法合同已冻结但尚无 release |
+| extension 状态 | 23 题从未运行；v1 有效状态为 `revoked_before_execution`；v2 release 为 `authorized_not_executed` |
 
 事实优先级如下：
 
@@ -905,7 +905,9 @@ Stage 8.5 结果达到进入 pilot 冻结前回归的工程门槛，但 dev 已�
 
 由于项目决定先实现 Evidence Packer、原子 Claim 和 Partial-pass，原 v1 runtime 不再代表目标协议。阶段 8.0 已在独立提交中创建不可覆盖的撤销记录，runner 会在 runtime/model 校验和题集读取前拒绝原授权命令。
 
-版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。Evidence Packer、Prompt v2、Claim-level Verifier、`PARTIAL_PASS`、完整阶段 trace、Streamlit 状态展示和 Stage 8.5 dev 工程门槛已完成；下一步只进入阶段 8.6 pilot 冻结前回归与 v2 冻结，不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
+版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。Stage 8.6 已在实现提交 `e207cb9` 上消费唯一一次 40 题 pilot：Decision Accuracy 0.8250、Structured Output 0.9750、4/4 无答案正确拒答、7/36 可回答题 over-refusal、13/40 retry、unsupported Claim leakage 为 0，平均端到端延迟 34180.72 ms。预声明 gate 为 `go`，但该结果只是工程冻结门槛，不是独立效果证据，也不能证明 LLM 优于规则基线。
+
+v2 runtime bundle SHA-256 为 `ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b`，release `extension-qwen3-4b-v2-e207cb91` 当前状态为 `authorized_not_executed`。受控 preflight 已通过，`reports/extension_v2` 不存在，extension 题目尚未进入 QA。v1 release、manifest、trace contract 和 revocation record 继续保留且不可覆盖。
 
 ## 25. 复现与常用命令
 
@@ -995,7 +997,7 @@ python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
 ```
 
-当前禁止执行任何 extension 正式命令。v1 已撤销，v2 尚无 release。
+当前 v1 正式命令仍被撤销。v2 已有独立的 `authorized_not_executed` release，只能在下一阶段通过 release 中记录的受控命令执行一次；通用 runner、覆盖输出和自动重跑仍被禁止。
 
 ## 26. 目录与文件职责
 
@@ -1195,7 +1197,7 @@ Pilot 曾用于发现并修复实现缺口，因此已被消费。后续只允�
 
 ### Q20：下一步是什么？
 
-v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热和 Streamlit 状态展示已完成。下一步进入阶段 8.5，只用 dev、合成测试和单元测试复核 DEV02/03/05/10；参数冻结后再按计划执行一次 pilot 冻结前回归，仍不运行 extension。
+v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计和 Stage 8.6 一次性 pilot/runtime/release 冻结均已完成。下一步进入阶段 8.7：只有在用户明确继续后，才通过受控 v2 runner 执行一次 4 方法 x 23 题 extension；仍禁止重跑 final、通用 runner 绕过和结果覆盖。
 
 ## 32. 关联文档
 
