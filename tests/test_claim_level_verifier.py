@@ -221,6 +221,98 @@ def test_zero_supported_claims_retry_once_then_refuse() -> None:
     assert second.removed_claim_ids == ["C1"]
 
 
+def test_decision_tree_overfit_quote_accepts_safe_hyphen_and_term_variants() -> None:
+    retrieval = RetrievalResult(
+        intent="explanation",
+        mode="hybrid",
+        text_evidence=[
+            TextEvidence(
+                evidence_id="E1",
+                chunk_id="C1",
+                source_id="S3",
+                page_title="Decision Trees",
+                heading_path=["Decision Trees"],
+                url="https://scikit-learn.org/stable/modules/tree.html",
+                display_text=(
+                    "Decision-tree learners can create over-complex trees that do "
+                    "not generalize the data well. This is called overfitting."
+                ),
+                score=0.92,
+            )
+        ],
+    )
+    answer = payload(
+        AnswerClaim(
+            claim="决策树会生成过于复杂且不能良好泛化的树，因此容易过拟合。",
+            evidence_ids=["E1"],
+            supporting_quotes=[
+                EvidenceQuote(
+                    evidence_id="E1",
+                    quote=(
+                        "Decision tree learners can create over complex trees that "
+                        "do not generalize the data well."
+                    ),
+                )
+            ],
+        )
+    )
+
+    result = EvidenceVerifier(max_retries=1).verify(
+        "决策树为何容易出现过拟合？",
+        answer,
+        retrieval,
+        graph_repo=StubGraphRepository(),
+    )
+
+    assert result.decision == "pass"
+    assert result.claim_results[0].reason_codes == []
+
+
+def test_quote_normalization_does_not_accept_materially_changed_text() -> None:
+    retrieval = RetrievalResult(
+        intent="explanation",
+        mode="vector",
+        text_evidence=[
+            TextEvidence(
+                evidence_id="E1",
+                chunk_id="C1",
+                source_id="S3",
+                page_title="Decision Trees",
+                heading_path=["Decision Trees"],
+                url="https://scikit-learn.org/stable/modules/tree.html",
+                display_text=(
+                    "Decision-tree learners can create over-complex trees that do "
+                    "not generalize the data well."
+                ),
+                score=0.92,
+            )
+        ],
+    )
+    answer = payload(
+        AnswerClaim(
+            claim="决策树容易过拟合。",
+            evidence_ids=["E1"],
+            supporting_quotes=[
+                EvidenceQuote(
+                    evidence_id="E1",
+                    quote="Decision tree learners always generalize perfectly.",
+                )
+            ],
+        )
+    )
+
+    result = EvidenceVerifier(max_retries=1).verify(
+        "决策树为何容易出现过拟合？",
+        answer,
+        retrieval,
+        graph_repo=StubGraphRepository(),
+    )
+
+    assert result.decision == "retry"
+    assert "quote_not_in_source" in result.claim_results[0].reason_codes
+    assert "missing_grounding_term" in result.claim_results[0].reason_codes
+
+
 def test_strict_policy_never_partially_retains_mixed_claims() -> None:
     verifier = EvidenceVerifier(max_retries=1, decision_policy="strict")
     answer = payload(supported_claim(), unsupported_claim())

@@ -73,6 +73,11 @@ REQUIRED_RULES = (
         "Stage 8.4 trace and UI smoke must remain an engineering check",
         r"阶段 8\.4[\s\S]{0,900}(?:没有运行完整 dev/pilot/final/extension|只证明 trace 与 UI 合同)",
     ),
+    TextRule(
+        "R21",
+        "Stage 8.5 dev gates must remain separate from independent effectiveness evidence",
+        r"阶段 8\.5[\s\S]{0,1200}自动决策准确率为 0\.9000[\s\S]{0,600}(?:只是进入 pilot 冻结前回归的工程门槛|不能证明 LLM 增强有效)",
+    ),
 )
 
 
@@ -132,6 +137,11 @@ FORBIDDEN_RULES = (
         "Stage 8.4 UI smoke incorrectly presented as enhancement effectiveness",
         r"Stage 8\.4[^。\n]{0,120}(?:证明|表明)[^。\n]{0,30}(?:LLM 增强有效|回答正确率提升|extension 结果)",
     ),
+    TextRule(
+        "F20",
+        "Stage 8.5 dev tuning incorrectly presented as independent effectiveness evidence",
+        r"Stage 8\.5[^。\n]{0,160}(?<!不能)(?:证明|表明)[^。\n]{0,40}(?:LLM 增强有效|LLM[^。\n]{0,12}优于规则|正式回答正确率)",
+    ),
 )
 
 
@@ -166,6 +176,11 @@ def expected_literals() -> dict[str, str]:
     )
     partial_smoke = read_json(
         PROJECT_ROOT / "reports" / "claim_level_partial_pass_dev02_smoke.json"
+    )
+    stage8_5_dev = read_json(
+        PROJECT_ROOT
+        / "reports"
+        / "evaluation_llm_agent_v2_dev_stage8_5_candidate.json"
     )
 
     kb = stats["knowledge_base"]
@@ -242,6 +257,24 @@ def expected_literals() -> dict[str, str]:
         ),
         "S30 partial-pass end-to-end latency": (
             f"end-to-end latency 为 {partial_smoke['end_to_end_latency_ms']} ms"
+        ),
+        "S31 Stage 8.5 dev decision accuracy": (
+            "pass/partial/refuse 自动决策准确率为 "
+            f"{stage8_5_dev['decision_accuracy']:.4f}"
+        ),
+        "S32 Stage 8.5 dev over-refusal": (
+            "可回答题 over-refusal 为 "
+            f"{stage8_5_dev['over_refusal_count']}/"
+            f"{stage8_5_dev['answerable_count']}"
+        ),
+        "S33 Stage 8.5 dev retry rate": (
+            "retry rate 为 "
+            f"{stage8_5_dev['retry_question_count']}/"
+            f"{stage8_5_dev['question_count']}"
+        ),
+        "S34 Stage 8.5 unsupported Claim leakage": (
+            "unsupported Claim leakage 为 "
+            f"{stage8_5_dev['unsupported_claim_leakage_count']}"
         ),
     }
 

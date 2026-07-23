@@ -2,7 +2,7 @@
 
 ## 使用范围
 
-本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，Evidence Packer、原子 Claim Prompt v2 和 Claim-level Partial-pass 已完成工程接线，但尚未完成整体 dev/pilot 回归，extension 仍处于锁定未运行状态。
+本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整 trace 和 Stage 8.5 dev 工程回归已完成，但 Stage 8.6 pilot 冻结前回归与 extension 独立实验尚未运行，extension 仍处于锁定状态。
 
 ## 权威证据源
 
@@ -41,6 +41,8 @@
 | `scripts/validate_runtime_trace.py` | 非重试 1/1/1 与重试 2/2/2 调用链合同检查 |
 | `scripts/smoke_streamlit_runtime.py` | model/backend/fallback/prewarm/阶段延迟与桌面/移动 UI smoke |
 | `reports/streamlit_stage8_4_*_{desktop,mobile}.png` | pass/partial/refuse/fallback 工程截图，不是质量实验结果 |
+| `reports/evaluation_llm_agent_v2_dev_stage8_5_candidate.json` | Stage 8.5 当前 v2 的 10 题 dev 自动指标、Claim 汇总、错误阶段和延迟 |
+| `reports/llm_agent_v2_dev_stage8_5_audit.md` | 历史/initial/candidate 对比、DEV02/03/05/10 归因和 Dense No-Go 决定 |
 | `config/settings.yaml` | 当前 rule Router、LLM Generator 与 offline_rule fallback 配置 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
@@ -79,6 +81,9 @@
 | C28 | Stage 8.3 单题 smoke 只证明过滤机制，不是整体 dev/pilot 结果、正式准确率或 LLM 优于规则的证据 | 已核验 |
 | C29 | Stage 8.4 已记录 routing、全部 retrieval/generation/verification、packing、retry branch 和 end-to-end；retry 与子阶段重叠，不能再次求和 | 已核验 |
 | C30 | Streamlit 四路径 browser smoke 只证明状态与布局合同；合成预热不读取评测题面，预热耗时不能当作问题端到端延迟 | 已核验 |
+| C31 | Stage 8.5 dev candidate 为 9/10 自动决策、10/10 结构成功、2/2 无答案拒答、1/8 answerable over-refusal、3/10 retry、0 unsupported leakage | 已核验 |
+| C32 | DEV02/03/10 为 filtered partial-pass；DEV05 因固定语料没有 AdaBoost 权重机制原文继续拒答，不能靠放宽 Verifier 硬判通过 | 已核验 |
+| C33 | Stage 8.5 只是开发集工程门槛，`partial_pass` 未经独立人工正确性评估，不能证明 LLM 增强有效或优于规则基线 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -103,6 +108,8 @@
 - 将 `partial_pass` 状态自动等同于人工正确答案。
 - 将 Stage 8.4 截图或 browser smoke 描述为回答正确率、LLM 增强有效性或 extension 结果。
 - 把 Streamlit 启动预热耗时与单题 generation/end-to-end 混为同一指标，或把 retry latency 与其子阶段重复相加。
+- 将 Stage 8.5 的 9/10 dev 自动决策描述为独立保留集、正式回答正确率、统计显著结果或 LLM 优于规则基线。
+- 将 4 个 `partial_pass` 自动视为 4 道人工正确答案，或声称 DEV05 已经被修复。
 
 ## 发布前检查
 

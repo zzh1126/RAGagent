@@ -9,7 +9,7 @@
 3. 马上要做什么、按什么顺序做、怎样才算完成；
 4. 哪些内容暂时不做，以及在什么条件下才重新考虑。
 
-本文审计基线为 2026-07-23、分支 `experiment/llm-agent-v2`、提交 `6df4388`。详细项目事实见 `PROJECT_HANDBOOK.md`，Partial-pass 协议设计见 `reports/llm_agent_partial_pass_plan.md`。
+本文审计基线为 2026-07-23、分支 `experiment/llm-agent-v2`，Stage 8.5 从提交 `16ac995` 开始。详细项目事实见 `PROJECT_HANDBOOK.md`，Partial-pass 协议设计见 `reports/llm_agent_partial_pass_plan.md`，dev 误差审计见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
 
 状态含义：
 
@@ -55,14 +55,14 @@
 | ID | 不足 | 证据 | 影响 | 优先级 | 计划状态 |
 | --- | --- | --- | --- | --- | --- |
 | G01 | v1 extension 授权与最新暂停决定并存 | v1 已建立不可变撤销记录，runner 先于题集读取拒绝旧 ID | 风险已关闭 | Done | 阶段 8.0 完成 |
-| G02 | Verifier 过度拒答 | DEV02 已由 refuse 修复为 2/4 Claim 的 partial_pass；整体 dev 尚待回归 | 单题机制已修复，整体比例未知 | P0 | 阶段 8.5 复核 |
+| G02 | Verifier 过度拒答 | Stage 8.5 dev candidate 为 1/8 answerable over-refusal，历史值 4/8 | 工程门槛通过；正式效果仍待 extension | Done | 阶段 8.5 完成 |
 | G03 | ClaimResult 未真正接线 | VerifyResult 已输出逐 Claim supported/retained/reason codes | 风险已关闭 | Done | 阶段 8.3 完成 |
 | G04 | 没有 `PARTIAL_PASS` | 四状态决策、过滤和固定限制句已接入 | 风险已关闭 | Done | 阶段 8.3 完成 |
 | G05 | 证据上下文未按题型平衡 | `intent_aware_v2` 已完成 50 题只读合同回归 | 风险已关闭 | Done | 阶段 8.1 完成 |
 | G06 | Prompt 未限制原子 Claim | Prompt v2 与 1～4 Claim wire Schema 已通过 20/20 合成探针 | 风险已关闭 | Done | 阶段 8.2 完成 |
-| G07 | 重试过多 | DEV02 从 1 次重试降为 0；整体 dev 7/10 历史值待重测 | 单题已缓解，整体比例未知 | P0 | 阶段 8.5 复核 |
+| G07 | 重试过多 | Stage 8.5 dev retry rate 为 3/10，历史值 7/10 | 工程门槛通过；真实延迟仍主要来自 LLM | Done | 阶段 8.5 完成 |
 | G08 | 没有 LLM 正式 extension 结果 | extension 从未运行 | 无法回答 LLM 是否真正提升 | P0 | 完成 v2 后一次性运行 |
-| G09 | 延迟 trace 不完整 | Stage 8.4 已保存 routing、逐次 retrieval/generation/verification、retry 与 end-to-end | 风险已关闭；延迟本身仍待 dev 分析 | Done | 阶段 8.4 完成 |
+| G09 | 延迟 trace 不完整 | Stage 8.4 已保存完整 trace；Stage 8.5 dev 平均端到端 9420.28 ms，其中生成 9408.91 ms | trace 风险关闭，生成延迟保留为限制 | Done | 阶段 8.5 已分析 |
 | G10 | Streamlit 不展示 LLM 参与细节 | model/backend/fallback/prewarm/结构状态/阶段延迟与 partial 样式已完成 | 风险已关闭 | Done | 阶段 8.4 完成 |
 | G11 | 稀疏检索语义能力有限 | TF-IDF + 人工词表 | 同义改写和跨语言召回受限 | P2 | 条件触发 |
 | G12 | 混合融合较简单 | 图证据优先顺序合并，无 RRF/归一化 | 多来源排序可能偏置 | P2 | 先做误差分析 |
@@ -377,8 +377,9 @@ end_to_end_latency_ms
 - [x] retry trace 含第一次和第二次 retrieval/generation/verification call；
 - [x] 无答案 smoke 不因减少重试而错误放行；
 - [x] UI 分开显示 prewarm、LLM 和端到端延迟；
-- [ ] dev 平均重试率低于历史 7/10：留给阶段 8.5 完整 dev 回归；
-- [ ] cold/warm 统计图：留给阶段 8.5/8.7，不能只凭单题截图下结论。
+- [x] dev 平均重试率低于历史 7/10：Stage 8.5 candidate 为 3/10；
+- [x] dev 分阶段均值已落盘：generation 9408.91 ms、end-to-end 9420.28 ms；
+- [ ] cold/warm 正式统计图：留给阶段 8.7，不能只凭 dev 或单题截图下结论。
 
 ## 9. P1：Streamlit 演示完整性
 
@@ -549,7 +550,7 @@ TF-IDF 依赖词项重合，中文问题通过人工词表改写成英文。它�
 
 ### 12.2 为什么暂不立即做 Dense
 
-当前 4 个 LLM dev 错误全部表现为过度拒答，并不等同于“正确 Chunk 没被召回”。Packer 已完成且真实 smoke 仍定位到 Claim/Verifier 层；在原子 Claim 和 Partial-pass 尚未完成前直接增加 Dense Retriever，会把多个变量混在一起，也无法解决语料本身缺失的问题。
+Stage 8.5 后只剩 DEV05 一个 answerable over-refusal。两个 gold 实体均已召回，Packer 无 coverage gap；项目对全部 180 个 Chunk 的审计只找到两处 AdaBoost 名称提及，均没有样本权重更新或聚焦错分样本的直接机制原文。因此该错误不是“正确 Chunk 存在但未进入 top-k”，Dense Retriever 无法补出不存在的证据。
 
 ### 12.3 Dense Retrieval 触发门槛
 
@@ -730,9 +731,9 @@ Pilot 已观察到：
 
 已完成阶段延迟、模型/fallback 展示、合成预热、partial UI、CLI/评测 trace 和四路径桌面/移动 browser smoke。
 
-### 阶段 8.5：Dev 调试
+### 阶段 8.5：Dev 调试（已完成）
 
-只用 dev、合成测试和单元测试，重点复核 DEV02/03/05/10。
+只用 dev、合成测试和单元测试复核 DEV02/03/05/10。候选达到 Decision Accuracy 0.9000、Structured Output 1.0000、Refusal Accuracy 2/2、Over-refusal 1/8、retry 3/10 和 unsupported leakage 0。DEV05 被确认是语料边界，DEV10 只做保守 quote/术语归一化修正。
 
 ### 阶段 8.6：Pilot 回归与冻结
 
@@ -754,7 +755,7 @@ Pilot 已观察到：
 
 | 内容 | 当前不做的原因 | 重新考虑条件 |
 | --- | --- | --- |
-| 多语言 Dense Retriever | 当前主错误是过度拒答，非召回已证实 | Partial-pass 后 ≥30% 剩余错误为召回失败 |
+| 多语言 Dense Retriever | Stage 8.5 唯一剩余错误是语料缺失，不是 top-k 召回失败 | 后续独立误差中 ≥30% 明确为正确 Chunk 未召回 |
 | RRF 或学习融合 | 会引入额外实验变量 | Packer 后仍有明确 fusion 错误 |
 | Neo4j 正式部署和基准 | NetworkX 已满足复现，驱动/服务未就绪 | 需要后端对比或数据库演示 |
 | 通用多跳图查询 | 当前两跳小图足以支撑主实验 | extension 显示多跳为主要错误来源 |
@@ -811,16 +812,18 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-下一步不是运行 extension。阶段 8.0～8.4 已验收，下一步只做阶段 8.5：
+下一步不是运行 extension。阶段 8.0～8.5 已验收，下一步只做阶段 8.6：
 
 ```text
-只读取 dev 题集
+冻结 Stage 8.5 参数与结论
     ↓
-重点复核 DEV02/03/05/10
+一次 pilot 冻结前回归
     ↓
-分析 partial-pass、重试和错误阶段
+不根据逐题结果继续调参
     ↓
-冻结参数与 Stage 8.5 结论
+冻结 runtime / Prompt / Schema / 配置 / 依赖 / 模型 digest
+    ↓
+创建 v2 implementation manifest 与一次性 release
 ```
 
-阶段 8.5 只允许 dev、合成测试和单元测试；不会读取 final/extension，也不会创建 v2 release。完整 dev 结论写入 `PROGRESS.md` 后，才决定是否进入一次 pilot 冻结前回归。
+阶段 8.6 只允许一次 pilot 冻结前回归；不会运行 final/extension。pilot 结果只能用于 Go/No-Go 和风险披露，不能继续逐题调参。只有全部冻结资产和模型 digest 校验通过后，才允许创建状态为 `authorized_not_executed` 的 v2 release。

@@ -291,6 +291,8 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 阶段 8.4 已补齐运行时可观测性和演示状态。系统按单调时钟记录 routing、全部 retrieval、packing、全部 LLM generation、全部 verification、retry branch 和 end-to-end；retry 是与子阶段重叠的墙钟时间，不能重复相加。Generation trace 同时保存 provider/model、requested/actual backend 和 fallback。Streamlit 启动时执行固定合成预热，不读取任何评测题面；问题响应仍明确 `cache_status=disabled`。CLI、开发评测和 extension runner 使用同一 trace。该阶段没有运行完整 dev/pilot/final/extension，因此只证明 trace 与 UI 合同成立。
 
+阶段 8.5 只使用 10 道 dev、合成测试和单元测试完成误差审计。当前 v2 dev candidate 的结构化输出成功率为 1.0000，pass/partial/refuse 自动决策准确率为 0.9000，fallback rate 为 0.0000；2 道无答案题均正确拒答，可回答题 over-refusal 为 1/8，retry rate 为 3/10，unsupported Claim leakage 为 0。19 条生成 Claim 中 9 条 retained、10 条 removed。DEV02、DEV03 和 DEV10 从历史整题拒答转为过滤后的 `partial_pass`；DEV05 仍拒答，因为当前 180 个 Chunk 没有 AdaBoost 样本权重更新机制的直接原文。DEV10 只增加大小写、ASCII/Unicode 连字符、弯引号和 `overfit`/`do not generalize` 直接变体的保守规范化，实质改写 quote 的负向测试仍拒绝。该 dev 已用于调试，`partial_pass` 也未经独立人工正确性评分，因此以上结果只是进入 pilot 冻结前回归的工程门槛，不能证明 LLM 增强有效或优于规则基线。
+
 初始审计中，Ollama `0.32.1` 与 `qwen3-vl:8b` 的 5 次手工受控调用和 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空，因此该视觉模型组合仍为 No-Go，且没有读取 thinking 绕过接口合同。
 
 随后在独立分支安装纯文本 `qwen3:4b` 并执行三类各 20 次正式探针。结构化 Schema 成功为 60/60，空 `message.content` 和非空 thinking 均为 0；简单状态与嵌套 AnswerPayload 的语义成功均为 20/20，但 QueryPlan 语义成功仅为 1/20。冷启动约 20.698 s，全部热请求平均约 0.930 s、P95 约 1.294 s。因此当前只批准 LLM Answer Generator，继续使用规则 Router，不实现或宣称 LLM Planner。
@@ -508,16 +510,16 @@ $$
 ## 8.2 局限
 
 1. 文本检索仍为 TF-IDF，复杂语义改写能力有限；
-2. v1.0 生成器为规则模板；当前 LLM 增强虽能结构化生成，但严格整题 Verifier 仍会过度拒答；
+2. v1.0 生成器为规则模板；当前 LLM 增强虽已通过 Stage 8.5 dev 工程门槛，但仍没有独立 extension 结果；
 3. 多跳检索对中间实体和关系方向敏感；
-4. Verifier 可能产生过度拒答；
+4. Verifier 仍可能产生过度拒答，且固定语料缺失时只能部分回答或拒答；
 5. 数据集和知识库规模较小；
 6. Neo4j 代码接口已实现，但当前实验使用 NetworkX，未提供独立在线 Neo4j 性能结果；
 7. 用户确认的语义评分来自单一确认流程，尚未进行双人一致性评估。
 
 ## 8.3 后续工作
 
-- 使用完整阶段 trace 在 dev 上复核 DEV02/03/05/10，并在 pilot 回归后冻结配置；
+- 参数不再依据 dev 逐题调整，只运行一次 pilot 冻结前回归并冻结配置；
 - 创建新的 v2 implementation manifest 与一次性 release，再在独立 extension holdout 上只运行一次四方法实验；
 - 完善属性级问题对齐和错误前提验证；
 - 改进多目标实体和多跳路径覆盖；
@@ -527,7 +529,7 @@ $$
 
 ## 8.4 当前可提交性
 
-LLM Generator、Evidence Packer、Prompt v2、统一 Schema、Client、Verifier 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；v1 extension release 已在正式执行前撤销，v2 四方法合同已冻结但尚无 release。目前只有合成/dev/pilot 工程审计，随机森林 Prompt v2 smoke 仍发生过度拒答。v1.0 继续作为可提交保底版本，当前增强分支不能提前宣称效果提升。
+LLM Generator、Evidence Packer、Prompt v2、统一 Schema、Client、Claim-level Verifier、Partial-pass 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；v1 extension release 已在正式执行前撤销，v2 四方法合同已冻结但尚无 release。Stage 8.5 dev candidate 已达到预先声明的结构、拒答、over-refusal、retry 和零泄漏工程门槛，但它不是独立保留集。v1.0 继续作为可提交保底版本，当前增强分支在 extension 完成前不能宣称效果提升。
 
 ---
 

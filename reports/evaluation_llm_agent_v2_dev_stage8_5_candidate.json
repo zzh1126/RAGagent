@@ -1,0 +1,2407 @@
+{
+  "generated_at": "2026-07-23T12:18:09.975038+00:00",
+  "engine": "langgraph",
+  "question_count": 10,
+  "decision_accuracy": 0.9,
+  "answerable_count": 8,
+  "no_answer_count": 2,
+  "answerable_answered_count": 7,
+  "over_refusal_count": 1,
+  "over_refusal_rate": 0.125,
+  "correct_refusal_count": 2,
+  "refusal_accuracy": 1.0,
+  "false_accept_count": 0,
+  "decision_distribution": {
+    "partial_pass": 4,
+    "pass": 3,
+    "refuse": 3
+  },
+  "partial_pass_count": 4,
+  "partial_pass_rate": 0.4,
+  "retry_question_count": 3,
+  "retry_rate": 0.3,
+  "total_retry_count": 3,
+  "citation_rate": 1.0,
+  "mean_keyword_coverage": 0.75,
+  "mean_entity_coverage": 1.0,
+  "mean_latency_ms": 9420.2,
+  "mean_routing_latency_ms": 0.036,
+  "mean_retrieval_latency_ms": 3.149,
+  "mean_generation_latency_ms": 9408.91,
+  "mean_evidence_packing_latency_ms": 2.698,
+  "mean_verification_latency_ms": 1.267,
+  "mean_retry_latency_ms": 1953.367,
+  "mean_end_to_end_latency_ms": 9420.28,
+  "structured_output_attempt_count": 10,
+  "structured_output_success_count": 10,
+  "structured_output_failed_count": 0,
+  "structured_output_not_called_count": 0,
+  "structured_output_coverage_rate": 1.0,
+  "structured_output_success_rate": 1.0,
+  "structured_output_status_distribution": {
+    "success": 10
+  },
+  "generated_claim_count": 19,
+  "supported_claim_count": 9,
+  "retained_claim_count": 9,
+  "removed_claim_count": 10,
+  "claim_support_rate": 0.4737,
+  "claim_retention_rate": 0.4737,
+  "claim_removal_rate": 0.5263,
+  "unsupported_claim_leakage_count": 0,
+  "unsupported_claim_leakage_question_count": 0,
+  "verification_reason_code_counts": {
+    "generator_reported_gap": 7,
+    "query_alignment_failed": 2
+  },
+  "claim_reason_code_counts": {
+    "evidence_not_relevant": 2,
+    "missing_grounding_term": 7,
+    "query_alignment_failed": 3,
+    "quote_not_in_source": 2
+  },
+  "audit_stage_counts": {
+    "retrieval": 1,
+    "verification": 6
+  },
+  "packing_coverage_gap_counts": {},
+  "fallback_reason_counts": {},
+  "outcome_error_counts": {
+    "over_refusal": 1
+  },
+  "fallback_rate": 0.0,
+  "category_metrics": {
+    "single_hop": {
+      "count": 2,
+      "decision_accuracy": 1.0,
+      "mean_keyword_coverage": 0.5
+    },
+    "principle_pros_cons": {
+      "count": 2,
+      "decision_accuracy": 1.0,
+      "mean_keyword_coverage": 1.0
+    },
+    "metric_selection": {
+      "count": 1,
+      "decision_accuracy": 1.0,
+      "mean_keyword_coverage": 0.5
+    },
+    "definition": {
+      "count": 2,
+      "decision_accuracy": 1.0,
+      "mean_keyword_coverage": 1.0
+    },
+    "comparison": {
+      "count": 1,
+      "decision_accuracy": 0.0,
+      "mean_keyword_coverage": 0.0
+    },
+    "no_answer": {
+      "count": 2,
+      "decision_accuracy": 1.0,
+      "mean_keyword_coverage": 1.0
+    }
+  },
+  "results": [
+    {
+      "question_id": "DEV01",
+      "category": "single_hop",
+      "question": "请给出随机森林的模型族归属。",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answerable": true,
+      "over_refusal": false,
+      "correct_refusal": false,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": false,
+      "keyword_coverage": 1.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 1.0,
+      "claim_coverage": 1.0,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "latency_ms": 6830,
+      "retry_count": 0,
+      "retry_used": false,
+      "mode": "graph",
+      "route_trace": {
+        "intent": "relation",
+        "mode": "graph",
+        "reason": "explicit relation marker maps to graph retrieval",
+        "latency_ms": 0.017
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "relation",
+          "mode": "graph",
+          "top_k": 8,
+          "entity_count": 1,
+          "graph_path_count": 1,
+          "text_evidence_count": 2,
+          "latency_ms": 0.583
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "pass",
+          "decision_policy": "partial_pass",
+          "evidence_score": 1.0,
+          "generated_claim_count": 1,
+          "supported_claim_count": 1,
+          "removed_claim_count": 0,
+          "latency_ms": 0.431
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.017,
+        "retrieval_latency_ms": 0.583,
+        "evidence_packing_latency_ms": 0.297,
+        "llm_generation_latency_ms": 6824.3,
+        "verification_latency_ms": 0.431,
+        "retry_latency_ms": 0.0,
+        "end_to_end_latency_ms": 6830.223
+      },
+      "routing_latency_ms": 0.017,
+      "retrieval_latency_ms": 0.583,
+      "evidence_packing_latency_ms": 0.297,
+      "llm_generation_latency_ms": 6824.3,
+      "verification_latency_ms": 0.431,
+      "retry_latency_ms": 0.0,
+      "end_to_end_latency_ms": 6830.223,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 1,
+      "generation_attempts": 1,
+      "generation_latency_ms": 6824.3,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "relation",
+          "selected_evidence_ids": [
+            "E1",
+            "E2"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+            "SKL-S4-1_11_2_1_RANDOM_FORESTS-015"
+          ],
+          "selected_graph_path_ids": [
+            "P1"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "direct_relation",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_RF": 2
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E2"
+          ],
+          "dropped_evidence_ids": [],
+          "input_evidence_count": 2,
+          "deduplicated_evidence_count": 2,
+          "input_character_count": 3667,
+          "packed_character_count": 2356,
+          "selection_target": 4,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 0.297
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 1,
+      "supported_claim_count": 1,
+      "retained_claim_count": 1,
+      "removed_claim_count": 0,
+      "visible_claim_count": 1,
+      "claim_support_rate": 1.0,
+      "claim_retention_rate": 1.0,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [],
+      "generator_unsupported_claims": [],
+      "verifier_unsupported_claims": []
+    },
+    {
+      "question_id": "DEV02",
+      "category": "principle_pros_cons",
+      "question": "随机森林降低方差的机制是什么？",
+      "expected_decision": "pass",
+      "actual_decision": "partial_pass",
+      "decision_correct": true,
+      "answerable": true,
+      "over_refusal": false,
+      "correct_refusal": false,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": true,
+      "keyword_coverage": 1.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 0.8,
+      "claim_coverage": 0.3333,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "latency_ms": 14151,
+      "retry_count": 0,
+      "retry_used": false,
+      "mode": "hybrid",
+      "route_trace": {
+        "intent": "explanation",
+        "mode": "hybrid",
+        "reason": "explanation benefits from graph facts and source passages",
+        "latency_ms": 0.022
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "explanation",
+          "mode": "hybrid",
+          "top_k": 8,
+          "entity_count": 2,
+          "graph_path_count": 2,
+          "text_evidence_count": 8,
+          "latency_ms": 3.341
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "partial_pass",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.8,
+          "generated_claim_count": 3,
+          "supported_claim_count": 1,
+          "removed_claim_count": 2,
+          "latency_ms": 3.649
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.022,
+        "retrieval_latency_ms": 3.341,
+        "evidence_packing_latency_ms": 6.207,
+        "llm_generation_latency_ms": 14133.1,
+        "verification_latency_ms": 3.649,
+        "retry_latency_ms": 0.0,
+        "end_to_end_latency_ms": 14151.468
+      },
+      "routing_latency_ms": 0.022,
+      "retrieval_latency_ms": 3.341,
+      "evidence_packing_latency_ms": 6.207,
+      "llm_generation_latency_ms": 14133.1,
+      "verification_latency_ms": 3.649,
+      "retry_latency_ms": 0.0,
+      "end_to_end_latency_ms": 14151.468,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 1,
+      "generation_attempts": 1,
+      "generation_latency_ms": 14133.1,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "explanation",
+          "selected_evidence_ids": [
+            "E1",
+            "E3",
+            "E4",
+            "E2",
+            "E6",
+            "E5"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+            "SKL-S4-1_11_2_5_FEATURE_IMPORTANCE_EVALUATION-020",
+            "SKL-S4-1_11_2_2_EXTREMELY_RANDOMIZED_TREES-017",
+            "SKL-S4-1_11_2_1_RANDOM_FORESTS-016",
+            "SKL-S4-1_11_3_BAGGING_META_ESTIMATOR-023",
+            "SKL-S4-1_11_2_3_PARAMETERS-018"
+          ],
+          "selected_graph_path_ids": [
+            "P1",
+            "P2"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E3": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E4": [
+              "explanation_advantage",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "explanation_limitation",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E6": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E5": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_RF": 6,
+            "CON_VARIANCE": 5
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E1",
+            "E3",
+            "E6",
+            "E5"
+          ],
+          "dropped_evidence_ids": [
+            "E7",
+            "E8"
+          ],
+          "input_evidence_count": 8,
+          "deduplicated_evidence_count": 8,
+          "input_character_count": 14106,
+          "packed_character_count": 7377,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 6.207
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 3,
+      "supported_claim_count": 1,
+      "retained_claim_count": 1,
+      "removed_claim_count": 2,
+      "visible_claim_count": 1,
+      "claim_support_rate": 0.3333,
+      "claim_retention_rate": 0.3333,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [
+        "generator_reported_gap"
+      ],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "missing_grounding_term"
+          ]
+        },
+        {
+          "claim_id": "C2",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "missing_grounding_term"
+          ]
+        },
+        {
+          "claim_id": "C3",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [
+        "verification"
+      ],
+      "generator_unsupported_claims": [
+        "随机森林的方差降低机制与噪声数据的关系",
+        "随机森林的方差降低机制与特征重要性评估的关系"
+      ],
+      "verifier_unsupported_claims": [
+        "随机森林的方差降低机制与噪声数据的关系",
+        "随机森林的方差降低机制与特征重要性评估的关系",
+        "C1 的关键术语未被原文覆盖: 决策树, 过拟合",
+        "C2 的关键术语未被原文覆盖: 随机森林, 决策树"
+      ]
+    },
+    {
+      "question_id": "DEV03",
+      "category": "metric_selection",
+      "question": "样本类别很不均衡时，平衡准确率和 F1 是否更合适？",
+      "expected_decision": "pass",
+      "actual_decision": "partial_pass",
+      "decision_correct": true,
+      "answerable": true,
+      "over_refusal": false,
+      "correct_refusal": false,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": true,
+      "keyword_coverage": 0.5,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 0.725,
+      "claim_coverage": 0.6667,
+      "citation_validity": 1.0,
+      "path_validity": 0.3333,
+      "retrieval_sufficiency": 0.8333,
+      "latency_ms": 13210,
+      "retry_count": 0,
+      "retry_used": false,
+      "mode": "hybrid",
+      "route_trace": {
+        "intent": "recommendation",
+        "mode": "hybrid",
+        "reason": "recommendation requires structured options and text evidence",
+        "latency_ms": 0.034
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "recommendation",
+          "mode": "hybrid",
+          "top_k": 8,
+          "entity_count": 3,
+          "graph_path_count": 6,
+          "text_evidence_count": 8,
+          "latency_ms": 5.732
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "partial_pass",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.725,
+          "generated_claim_count": 3,
+          "supported_claim_count": 2,
+          "removed_claim_count": 1,
+          "latency_ms": 1.641
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.034,
+        "retrieval_latency_ms": 5.732,
+        "evidence_packing_latency_ms": 3.974,
+        "llm_generation_latency_ms": 13193.8,
+        "verification_latency_ms": 1.641,
+        "retry_latency_ms": 0.0,
+        "end_to_end_latency_ms": 13210.375
+      },
+      "routing_latency_ms": 0.034,
+      "retrieval_latency_ms": 5.732,
+      "evidence_packing_latency_ms": 3.974,
+      "llm_generation_latency_ms": 13193.8,
+      "verification_latency_ms": 1.641,
+      "retry_latency_ms": 0.0,
+      "end_to_end_latency_ms": 13210.375,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 1,
+      "generation_attempts": 1,
+      "generation_latency_ms": 13193.8,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "recommendation",
+          "selected_evidence_ids": [
+            "E1",
+            "E6",
+            "E2",
+            "E8"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S6-3_4_4_4_BALANCED_ACCURACY_SCORE-014",
+            "SKL-S6-3_4_3_1_STRING_NAME_SCORERS-005",
+            "SKL-S6-3_4_4_4_BALANCED_ACCURACY_SCORE-015",
+            "SKL-S6-3_4_4_2_ACCURACY_SCORE-012"
+          ],
+          "selected_graph_path_ids": [
+            "P1",
+            "P2"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "recommendation_definition",
+              "recommendation_scenario",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E6": [
+              "recommendation_definition",
+              "entity_text_match",
+              "query_term_match"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "recommendation_definition",
+              "recommendation_scenario",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E8": [
+              "recommendation_definition",
+              "recommendation_scenario",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "MET_BALACC": 3,
+            "MET_ACC": 4,
+            "MET_F1": 1
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E1",
+            "E6",
+            "E8"
+          ],
+          "dropped_evidence_ids": [
+            "E3",
+            "E4",
+            "E5",
+            "E7"
+          ],
+          "input_evidence_count": 8,
+          "deduplicated_evidence_count": 8,
+          "input_character_count": 16232,
+          "packed_character_count": 5138,
+          "selection_target": 4,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 3.974
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 3,
+      "supported_claim_count": 2,
+      "retained_claim_count": 2,
+      "removed_claim_count": 1,
+      "visible_claim_count": 2,
+      "claim_support_rate": 0.6667,
+      "claim_retention_rate": 0.6667,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [
+        "generator_reported_gap"
+      ],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        },
+        {
+          "claim_id": "C2",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        },
+        {
+          "claim_id": "C3",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "missing_grounding_term"
+          ]
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [
+        "retrieval",
+        "verification"
+      ],
+      "generator_unsupported_claims": [
+        "样本类别很不均衡时，F1分数是否更合适？"
+      ],
+      "verifier_unsupported_claims": [
+        "样本类别很不均衡时，F1分数是否更合适？",
+        "C3 的关键术语未被原文覆盖: 平均"
+      ]
+    },
+    {
+      "question_id": "DEV04",
+      "category": "definition",
+      "question": "逻辑回归在 scikit-learn 中属于哪类模型？",
+      "expected_decision": "pass",
+      "actual_decision": "partial_pass",
+      "decision_correct": true,
+      "answerable": true,
+      "over_refusal": false,
+      "correct_refusal": false,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": true,
+      "keyword_coverage": 1.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 1.0,
+      "claim_coverage": 1.0,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "latency_ms": 7248,
+      "retry_count": 0,
+      "retry_used": false,
+      "mode": "graph",
+      "route_trace": {
+        "intent": "relation",
+        "mode": "graph",
+        "reason": "explicit relation marker maps to graph retrieval",
+        "latency_ms": 0.022
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "relation",
+          "mode": "graph",
+          "top_k": 8,
+          "entity_count": 2,
+          "graph_path_count": 1,
+          "text_evidence_count": 2,
+          "latency_ms": 0.936
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "partial_pass",
+          "decision_policy": "partial_pass",
+          "evidence_score": 1.0,
+          "generated_claim_count": 1,
+          "supported_claim_count": 1,
+          "removed_claim_count": 0,
+          "latency_ms": 0.123
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.022,
+        "retrieval_latency_ms": 0.936,
+        "evidence_packing_latency_ms": 0.474,
+        "llm_generation_latency_ms": 7244.0,
+        "verification_latency_ms": 0.123,
+        "retry_latency_ms": 0.0,
+        "end_to_end_latency_ms": 7247.936
+      },
+      "routing_latency_ms": 0.022,
+      "retrieval_latency_ms": 0.936,
+      "evidence_packing_latency_ms": 0.474,
+      "llm_generation_latency_ms": 7244.0,
+      "verification_latency_ms": 0.123,
+      "retry_latency_ms": 0.0,
+      "end_to_end_latency_ms": 7247.936,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 1,
+      "generation_attempts": 1,
+      "generation_latency_ms": 7244.0,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "relation",
+          "selected_evidence_ids": [
+            "E1",
+            "E2"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S1-1_1_11_LOGISTIC_REGRESSION-021",
+            "SKL-S1-1_1_LINEAR_MODELS-001"
+          ],
+          "selected_graph_path_ids": [
+            "P1"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "direct_relation",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_LOGREG": 2,
+            "TASK_REG": 2
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E1"
+          ],
+          "dropped_evidence_ids": [],
+          "input_evidence_count": 2,
+          "deduplicated_evidence_count": 2,
+          "input_character_count": 2378,
+          "packed_character_count": 2029,
+          "selection_target": 4,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 0.474
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 1,
+      "supported_claim_count": 1,
+      "retained_claim_count": 1,
+      "removed_claim_count": 0,
+      "visible_claim_count": 1,
+      "claim_support_rate": 1.0,
+      "claim_retention_rate": 1.0,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [
+        "generator_reported_gap"
+      ],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [],
+      "generator_unsupported_claims": [
+        "逻辑回归在 scikit-learn 中属于回归模型"
+      ],
+      "verifier_unsupported_claims": [
+        "逻辑回归在 scikit-learn 中属于回归模型"
+      ]
+    },
+    {
+      "question_id": "DEV05",
+      "category": "comparison",
+      "question": "请对比装袋法与 AdaBoost 的方法机制。",
+      "expected_decision": "pass",
+      "actual_decision": "refuse",
+      "decision_correct": false,
+      "answerable": true,
+      "over_refusal": true,
+      "correct_refusal": false,
+      "false_accept": false,
+      "outcome_error_type": "over_refusal",
+      "partial_pass": false,
+      "keyword_coverage": 0.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 0.7,
+      "claim_coverage": 0.0,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "latency_ms": 16370,
+      "retry_count": 1,
+      "retry_used": true,
+      "mode": "hybrid",
+      "route_trace": {
+        "intent": "comparison",
+        "mode": "hybrid",
+        "reason": "comparison marker requires graph relations and text context",
+        "latency_ms": 0.007
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "comparison",
+          "mode": "hybrid",
+          "top_k": 8,
+          "entity_count": 2,
+          "graph_path_count": 1,
+          "text_evidence_count": 8,
+          "latency_ms": 1.56
+        },
+        {
+          "attempt": 2,
+          "is_retry": true,
+          "intent": "comparison",
+          "mode": "hybrid",
+          "top_k": 16,
+          "entity_count": 2,
+          "graph_path_count": 1,
+          "text_evidence_count": 16,
+          "latency_ms": 1.894
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "retry",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.7,
+          "generated_claim_count": 2,
+          "supported_claim_count": 0,
+          "removed_claim_count": 2,
+          "latency_ms": 0.813
+        },
+        {
+          "attempt": 2,
+          "is_retry": true,
+          "decision": "refuse",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.7,
+          "generated_claim_count": 2,
+          "supported_claim_count": 0,
+          "removed_claim_count": 2,
+          "latency_ms": 0.856
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.007,
+        "retrieval_latency_ms": 3.454,
+        "evidence_packing_latency_ms": 4.437,
+        "llm_generation_latency_ms": 16355.9,
+        "verification_latency_ms": 1.669,
+        "retry_latency_ms": 7799.362,
+        "end_to_end_latency_ms": 16370.147
+      },
+      "routing_latency_ms": 0.007,
+      "retrieval_latency_ms": 3.454,
+      "evidence_packing_latency_ms": 4.437,
+      "llm_generation_latency_ms": 16355.9,
+      "verification_latency_ms": 1.669,
+      "retry_latency_ms": 7799.362,
+      "end_to_end_latency_ms": 16370.147,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 2,
+      "generation_attempts": 2,
+      "generation_latency_ms": 16355.9,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "comparison",
+          "selected_evidence_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+            "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-012",
+            "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-013",
+            "SKL-S4-1_11_3_BAGGING_META_ESTIMATOR-024",
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-008",
+            "SKL-S4-1_11_3_BAGGING_META_ESTIMATOR-023"
+          ],
+          "selected_graph_path_ids": [
+            "P1"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "comparison_entity_balance",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "comparison_entity_balance",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E3": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E4": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E5": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E6": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_ADABOOST": 2,
+            "ALG_BAGGING": 6
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E2",
+            "E3",
+            "E6"
+          ],
+          "dropped_evidence_ids": [
+            "E7",
+            "E8"
+          ],
+          "input_evidence_count": 8,
+          "deduplicated_evidence_count": 8,
+          "input_character_count": 14560,
+          "packed_character_count": 6591,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 1.854
+        },
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "comparison",
+          "selected_evidence_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+            "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-012",
+            "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-013",
+            "SKL-S4-1_11_3_BAGGING_META_ESTIMATOR-024",
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-008",
+            "SKL-S4-1_11_3_BAGGING_META_ESTIMATOR-023"
+          ],
+          "selected_graph_path_ids": [
+            "P1"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "comparison_entity_balance",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "comparison_entity_balance",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E3": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E4": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E5": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E6": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_ADABOOST": 2,
+            "ALG_BAGGING": 6
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E2",
+            "E3",
+            "E6"
+          ],
+          "dropped_evidence_ids": [
+            "E7",
+            "E8",
+            "E9",
+            "E10",
+            "E11",
+            "E12",
+            "E13",
+            "E14",
+            "E15",
+            "E16"
+          ],
+          "input_evidence_count": 16,
+          "deduplicated_evidence_count": 16,
+          "input_character_count": 25481,
+          "packed_character_count": 6591,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 2.583
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 2,
+      "supported_claim_count": 0,
+      "retained_claim_count": 0,
+      "removed_claim_count": 2,
+      "visible_claim_count": 0,
+      "claim_support_rate": 0.0,
+      "claim_retention_rate": 0.0,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [
+        "generator_reported_gap"
+      ],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "missing_grounding_term"
+          ]
+        },
+        {
+          "claim_id": "C2",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "missing_grounding_term"
+          ]
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [
+        "verification"
+      ],
+      "generator_unsupported_claims": [
+        "装袋法与 AdaBoost 的方法机制对比：装袋法通过在训练集上随机划分多个子集，构建多个基模型并取平均预测结果，以降低方差；AdaBoost 通过迭代训练，每次调整样本权重，使弱分类器逐步聚焦于难分类样本，以降低偏差。两者均属于集成学习方法，但装袋法强调随机性与方差减少，AdaBoost 强调样本权重调整与偏差减少。"
+      ],
+      "verifier_unsupported_claims": [
+        "装袋法与 AdaBoost 的方法机制对比：装袋法通过在训练集上随机划分多个子集，构建多个基模型并取平均预测结果，以降低方差；AdaBoost 通过迭代训练，每次调整样本权重，使弱分类器逐步聚焦于难分类样本，以降低偏差。两者均属于集成学习方法，但装袋法强调随机性与方差减少，AdaBoost 强调样本权重调整与偏差减少。",
+        "C1 的关键术语未被原文覆盖: 平均",
+        "C2 的关键术语未被原文覆盖: 偏差, 权重, 迭代"
+      ]
+    },
+    {
+      "question_id": "DEV06",
+      "category": "single_hop",
+      "question": "SVC 训练前为什么要缩放特征？",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answerable": true,
+      "over_refusal": false,
+      "correct_refusal": false,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": false,
+      "keyword_coverage": 0.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 1.0,
+      "claim_coverage": 1.0,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "latency_ms": 5156,
+      "retry_count": 0,
+      "retry_used": false,
+      "mode": "hybrid",
+      "route_trace": {
+        "intent": "explanation",
+        "mode": "hybrid",
+        "reason": "explanation benefits from graph facts and source passages",
+        "latency_ms": 0.011
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "explanation",
+          "mode": "hybrid",
+          "top_k": 8,
+          "entity_count": 1,
+          "graph_path_count": 6,
+          "text_evidence_count": 8,
+          "latency_ms": 2.288
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "pass",
+          "decision_policy": "partial_pass",
+          "evidence_score": 1.0,
+          "generated_claim_count": 2,
+          "supported_claim_count": 2,
+          "removed_claim_count": 0,
+          "latency_ms": 0.569
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.011,
+        "retrieval_latency_ms": 2.288,
+        "evidence_packing_latency_ms": 1.346,
+        "llm_generation_latency_ms": 5149.4,
+        "verification_latency_ms": 0.569,
+        "retry_latency_ms": 0.0,
+        "end_to_end_latency_ms": 5155.676
+      },
+      "routing_latency_ms": 0.011,
+      "retrieval_latency_ms": 2.288,
+      "evidence_packing_latency_ms": 1.346,
+      "llm_generation_latency_ms": 5149.4,
+      "verification_latency_ms": 0.569,
+      "retry_latency_ms": 0.0,
+      "end_to_end_latency_ms": 5155.676,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 1,
+      "generation_attempts": 1,
+      "generation_latency_ms": 5149.4,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "explanation",
+          "selected_evidence_ids": [
+            "E1",
+            "E3",
+            "E2",
+            "E6",
+            "E7",
+            "E5"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S2-1_4_SUPPORT_VECTOR_MACHINES-001",
+            "SKL-S2-1_4_1_1_MULTI_CLASS_CLASSIFICATION-003",
+            "SKL-S2-1_4_1_CLASSIFICATION-002",
+            "SKL-S2-1_4_5_TIPS_ON_PRACTICAL_USE-010",
+            "SKL-S2-1_4_7_1_SVC-016",
+            "SKL-S2-1_4_7_1_SVC-017"
+          ],
+          "selected_graph_path_ids": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E3": [
+              "graph_path_bound",
+              "explanation_mechanism",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "explanation_mechanism",
+              "explanation_advantage",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E6": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "entity_text_match",
+              "query_term_match"
+            ],
+            "E7": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E5": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_SVC": 5
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E1",
+            "E3",
+            "E2",
+            "E6",
+            "E7"
+          ],
+          "dropped_evidence_ids": [
+            "E4",
+            "E8"
+          ],
+          "input_evidence_count": 8,
+          "deduplicated_evidence_count": 8,
+          "input_character_count": 15843,
+          "packed_character_count": 7147,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 1.346
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 2,
+      "supported_claim_count": 2,
+      "retained_claim_count": 2,
+      "removed_claim_count": 0,
+      "visible_claim_count": 2,
+      "claim_support_rate": 1.0,
+      "claim_retention_rate": 1.0,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        },
+        {
+          "claim_id": "C2",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [],
+      "generator_unsupported_claims": [],
+      "verifier_unsupported_claims": []
+    },
+    {
+      "question_id": "DEV07",
+      "category": "definition",
+      "question": "KMeans 的核心任务是什么？",
+      "expected_decision": "pass",
+      "actual_decision": "pass",
+      "decision_correct": true,
+      "answerable": true,
+      "over_refusal": false,
+      "correct_refusal": false,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": false,
+      "keyword_coverage": 1.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 1.0,
+      "claim_coverage": 1.0,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "latency_ms": 2941,
+      "retry_count": 0,
+      "retry_used": false,
+      "mode": "graph",
+      "route_trace": {
+        "intent": "relation",
+        "mode": "graph",
+        "reason": "task question maps to graph retrieval",
+        "latency_ms": 0.01
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "relation",
+          "mode": "graph",
+          "top_k": 8,
+          "entity_count": 2,
+          "graph_path_count": 1,
+          "text_evidence_count": 2,
+          "latency_ms": 0.356
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "pass",
+          "decision_policy": "partial_pass",
+          "evidence_score": 1.0,
+          "generated_claim_count": 1,
+          "supported_claim_count": 1,
+          "removed_claim_count": 0,
+          "latency_ms": 1.245
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.01,
+        "retrieval_latency_ms": 0.356,
+        "evidence_packing_latency_ms": 0.689,
+        "llm_generation_latency_ms": 2935.3,
+        "verification_latency_ms": 1.245,
+        "retry_latency_ms": 0.0,
+        "end_to_end_latency_ms": 2940.713
+      },
+      "routing_latency_ms": 0.01,
+      "retrieval_latency_ms": 0.356,
+      "evidence_packing_latency_ms": 0.689,
+      "llm_generation_latency_ms": 2935.3,
+      "verification_latency_ms": 1.245,
+      "retry_latency_ms": 0.0,
+      "end_to_end_latency_ms": 2940.713,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 1,
+      "generation_attempts": 1,
+      "generation_latency_ms": 2935.3,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "relation",
+          "selected_evidence_ids": [
+            "E2",
+            "E1"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S5-2_3_2_K_MEANS-003",
+            "SKL-S5-2_3_1_OVERVIEW_OF_CLUSTERING_METHODS-002"
+          ],
+          "selected_graph_path_ids": [
+            "P1"
+          ],
+          "reason_codes_by_evidence": {
+            "E2": [
+              "graph_path_bound",
+              "direct_relation",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E1": [
+              "graph_path_bound",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_KMEANS": 2,
+            "FAM_KERNEL": 0
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E2",
+            "E1"
+          ],
+          "dropped_evidence_ids": [],
+          "input_evidence_count": 2,
+          "deduplicated_evidence_count": 2,
+          "input_character_count": 5738,
+          "packed_character_count": 2533,
+          "selection_target": 4,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 0.689
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 1,
+      "supported_claim_count": 1,
+      "retained_claim_count": 1,
+      "removed_claim_count": 0,
+      "visible_claim_count": 1,
+      "claim_support_rate": 1.0,
+      "claim_retention_rate": 1.0,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [],
+      "generator_unsupported_claims": [],
+      "verifier_unsupported_claims": []
+    },
+    {
+      "question_id": "DEV08",
+      "category": "no_answer",
+      "question": "随机森林是否有学习率参数？",
+      "expected_decision": "refuse",
+      "actual_decision": "refuse",
+      "decision_correct": true,
+      "answerable": false,
+      "over_refusal": false,
+      "correct_refusal": true,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": false,
+      "keyword_coverage": 1.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 0.7,
+      "claim_coverage": 0.0,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "latency_ms": 7334,
+      "retry_count": 1,
+      "retry_used": true,
+      "mode": "hybrid",
+      "route_trace": {
+        "intent": "general",
+        "mode": "vector",
+        "reason": "default to official-document retrieval",
+        "latency_ms": 0.209
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "general",
+          "mode": "vector",
+          "top_k": 8,
+          "entity_count": 1,
+          "graph_path_count": 0,
+          "text_evidence_count": 8,
+          "latency_ms": 4.527
+        },
+        {
+          "attempt": 2,
+          "is_retry": true,
+          "intent": "general",
+          "mode": "hybrid",
+          "top_k": 16,
+          "entity_count": 1,
+          "graph_path_count": 6,
+          "text_evidence_count": 16,
+          "latency_ms": 1.863
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "retry",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.655,
+          "generated_claim_count": 1,
+          "supported_claim_count": 0,
+          "removed_claim_count": 1,
+          "latency_ms": 0.281
+        },
+        {
+          "attempt": 2,
+          "is_retry": true,
+          "decision": "refuse",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.7,
+          "generated_claim_count": 1,
+          "supported_claim_count": 0,
+          "removed_claim_count": 1,
+          "latency_ms": 0.569
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.209,
+        "retrieval_latency_ms": 6.39,
+        "evidence_packing_latency_ms": 3.781,
+        "llm_generation_latency_ms": 7316.1,
+        "verification_latency_ms": 0.85,
+        "retry_latency_ms": 4259.094,
+        "end_to_end_latency_ms": 7334.413
+      },
+      "routing_latency_ms": 0.209,
+      "retrieval_latency_ms": 6.39,
+      "evidence_packing_latency_ms": 3.781,
+      "llm_generation_latency_ms": 7316.1,
+      "verification_latency_ms": 0.85,
+      "retry_latency_ms": 4259.094,
+      "end_to_end_latency_ms": 7334.413,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 2,
+      "generation_attempts": 2,
+      "generation_latency_ms": 7316.1,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "general",
+          "selected_evidence_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+            "SKL-S4-1_11_2_5_FEATURE_IMPORTANCE_EVALUATION-020",
+            "SKL-S4-1_11_2_3_PARAMETERS-018",
+            "SKL-S4-1_11_2_6_TOTALLY_RANDOM_TREES_EMBEDDING-021",
+            "SKL-S4-1_11_2_2_EXTREMELY_RANDOMIZED_TREES-017",
+            "SKL-S4-1_11_2_RANDOM_FORESTS_AND_OTHER_RANDOMIZED_TREE_-014"
+          ],
+          "selected_graph_path_ids": [],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E2": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E3": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E4": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E5": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E6": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_RF": 6
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ],
+          "dropped_evidence_ids": [
+            "E7",
+            "E8"
+          ],
+          "input_evidence_count": 8,
+          "deduplicated_evidence_count": 8,
+          "input_character_count": 13998,
+          "packed_character_count": 7550,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 2.484
+        },
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "general",
+          "selected_evidence_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S4-1_11_ENSEMBLES_GRADIENT_BOOSTING_RANDOM_FORESTS_-001",
+            "SKL-S4-1_11_2_1_RANDOM_FORESTS-015",
+            "SKL-S4-1_11_2_1_RANDOM_FORESTS-016",
+            "SKL-S4-1_11_2_RANDOM_FORESTS_AND_OTHER_RANDOMIZED_TREE_-014",
+            "SKL-S4-1_11_1_2_GRADIENTBOOSTINGCLASSIFIER_AND_GRADIENT-012",
+            "SKL-S4-1_11_2_5_FEATURE_IMPORTANCE_EVALUATION-020"
+          ],
+          "selected_graph_path_ids": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E3": [
+              "graph_path_bound",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E4": [
+              "graph_path_bound",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E5": [
+              "graph_path_bound",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E6": [
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_RF": 6
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E2",
+            "E5",
+            "E6"
+          ],
+          "dropped_evidence_ids": [
+            "E7",
+            "E8",
+            "E9",
+            "E10",
+            "E11",
+            "E12",
+            "E13",
+            "E14",
+            "E15",
+            "E16"
+          ],
+          "input_evidence_count": 16,
+          "deduplicated_evidence_count": 16,
+          "input_character_count": 25867,
+          "packed_character_count": 7530,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 1.297
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 1,
+      "supported_claim_count": 0,
+      "retained_claim_count": 0,
+      "removed_claim_count": 1,
+      "visible_claim_count": 0,
+      "claim_support_rate": 0.0,
+      "claim_retention_rate": 0.0,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [
+        "generator_reported_gap",
+        "query_alignment_failed"
+      ],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "query_alignment_failed"
+          ]
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [
+        "verification"
+      ],
+      "generator_unsupported_claims": [
+        "随机森林是否有学习率参数？"
+      ],
+      "verifier_unsupported_claims": [
+        "随机森林是否有学习率参数？",
+        "检索证据未覆盖问题中的关键限定条件"
+      ]
+    },
+    {
+      "question_id": "DEV09",
+      "category": "no_answer",
+      "question": "六页知识库能否回答 XGBoost 的缺失值机制？",
+      "expected_decision": "refuse",
+      "actual_decision": "refuse",
+      "decision_correct": true,
+      "answerable": false,
+      "over_refusal": false,
+      "correct_refusal": true,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": false,
+      "keyword_coverage": 1.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 0.655,
+      "claim_coverage": 0.0,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 0.82,
+      "latency_ms": 15253,
+      "retry_count": 1,
+      "retry_used": true,
+      "mode": "hybrid",
+      "route_trace": {
+        "intent": "explanation",
+        "mode": "hybrid",
+        "reason": "explanation benefits from graph facts and source passages",
+        "latency_ms": 0.019
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "explanation",
+          "mode": "hybrid",
+          "top_k": 8,
+          "entity_count": 0,
+          "graph_path_count": 0,
+          "text_evidence_count": 4,
+          "latency_ms": 4.113
+        },
+        {
+          "attempt": 2,
+          "is_retry": true,
+          "intent": "explanation",
+          "mode": "hybrid",
+          "top_k": 16,
+          "entity_count": 0,
+          "graph_path_count": 0,
+          "text_evidence_count": 4,
+          "latency_ms": 1.577
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "retry",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.655,
+          "generated_claim_count": 2,
+          "supported_claim_count": 0,
+          "removed_claim_count": 2,
+          "latency_ms": 1.015
+        },
+        {
+          "attempt": 2,
+          "is_retry": true,
+          "decision": "refuse",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.655,
+          "generated_claim_count": 2,
+          "supported_claim_count": 0,
+          "removed_claim_count": 2,
+          "latency_ms": 0.989
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.019,
+        "retrieval_latency_ms": 5.69,
+        "evidence_packing_latency_ms": 2.108,
+        "llm_generation_latency_ms": 15238.1,
+        "verification_latency_ms": 2.004,
+        "retry_latency_ms": 7475.215,
+        "end_to_end_latency_ms": 15252.896
+      },
+      "routing_latency_ms": 0.019,
+      "retrieval_latency_ms": 5.69,
+      "evidence_packing_latency_ms": 2.108,
+      "llm_generation_latency_ms": 15238.1,
+      "verification_latency_ms": 2.004,
+      "retry_latency_ms": 7475.215,
+      "end_to_end_latency_ms": 15252.896,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 2,
+      "generation_attempts": 2,
+      "generation_latency_ms": 15238.1,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "explanation",
+          "selected_evidence_ids": [
+            "E2",
+            "E3",
+            "E1",
+            "E4"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-004",
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-003",
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-008",
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-007"
+          ],
+          "selected_graph_path_ids": [],
+          "reason_codes_by_evidence": {
+            "E2": [
+              "explanation_mechanism",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E3": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E1": [
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E4": [
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {},
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E2",
+            "E3",
+            "E4"
+          ],
+          "dropped_evidence_ids": [],
+          "input_evidence_count": 4,
+          "deduplicated_evidence_count": 4,
+          "input_character_count": 9828,
+          "packed_character_count": 4701,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 1.076
+        },
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "explanation",
+          "selected_evidence_ids": [
+            "E2",
+            "E3",
+            "E1",
+            "E4"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-004",
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-003",
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-008",
+            "SKL-S4-1_11_1_1_HISTOGRAM_BASED_GRADIENT_BOOSTING-007"
+          ],
+          "selected_graph_path_ids": [],
+          "reason_codes_by_evidence": {
+            "E2": [
+              "explanation_mechanism",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E3": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E1": [
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E4": [
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {},
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E2",
+            "E3",
+            "E4"
+          ],
+          "dropped_evidence_ids": [],
+          "input_evidence_count": 4,
+          "deduplicated_evidence_count": 4,
+          "input_character_count": 9828,
+          "packed_character_count": 4701,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 1.032
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 2,
+      "supported_claim_count": 0,
+      "retained_claim_count": 0,
+      "removed_claim_count": 2,
+      "visible_claim_count": 0,
+      "claim_support_rate": 0.0,
+      "claim_retention_rate": 0.0,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [
+        "generator_reported_gap",
+        "query_alignment_failed"
+      ],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "evidence_not_relevant",
+            "query_alignment_failed"
+          ]
+        },
+        {
+          "claim_id": "C2",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "evidence_not_relevant",
+            "quote_not_in_source",
+            "query_alignment_failed"
+          ]
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [
+        "verification"
+      ],
+      "generator_unsupported_claims": [
+        "XGBoost 本身是否支持缺失值机制（注意：XGBoost 是 scikit-learn 0.21 之后引入的 HistGradientBoosting 系列的灵感来源，但 scikit-learn 本身不直接实现 XGBoost）",
+        "claim 2 的 supporting quote 不存在于 E3"
+      ],
+      "verifier_unsupported_claims": [
+        "XGBoost 本身是否支持缺失值机制（注意：XGBoost 是 scikit-learn 0.21 之后引入的 HistGradientBoosting 系列的灵感来源，但 scikit-learn 本身不直接实现 XGBoost）",
+        "claim 2 的 supporting quote 不存在于 E3",
+        "C1 的引用证据未达到相关性要求",
+        "C2 的引用证据未达到相关性要求",
+        "C2 的 quote 不属于引用证据: E3",
+        "检索证据未覆盖问题中的关键限定条件"
+      ]
+    },
+    {
+      "question_id": "DEV10",
+      "category": "principle_pros_cons",
+      "question": "决策树为何容易出现过拟合？",
+      "expected_decision": "pass",
+      "actual_decision": "partial_pass",
+      "decision_correct": true,
+      "answerable": true,
+      "over_refusal": false,
+      "correct_refusal": false,
+      "false_accept": false,
+      "outcome_error_type": null,
+      "partial_pass": true,
+      "keyword_coverage": 1.0,
+      "entity_coverage": 1.0,
+      "citation_present": true,
+      "evidence_score": 0.8,
+      "claim_coverage": 0.3333,
+      "citation_validity": 1.0,
+      "path_validity": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "latency_ms": 5709,
+      "retry_count": 0,
+      "retry_used": false,
+      "mode": "hybrid",
+      "route_trace": {
+        "intent": "explanation",
+        "mode": "hybrid",
+        "reason": "explanation benefits from graph facts and source passages",
+        "latency_ms": 0.014
+      },
+      "retrieval_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "intent": "explanation",
+          "mode": "hybrid",
+          "top_k": 8,
+          "entity_count": 3,
+          "graph_path_count": 1,
+          "text_evidence_count": 8,
+          "latency_ms": 2.724
+        }
+      ],
+      "verification_trace": [
+        {
+          "attempt": 1,
+          "is_retry": false,
+          "decision": "partial_pass",
+          "decision_policy": "partial_pass",
+          "evidence_score": 0.8,
+          "generated_claim_count": 3,
+          "supported_claim_count": 1,
+          "removed_claim_count": 2,
+          "latency_ms": 0.485
+        }
+      ],
+      "latency_trace": {
+        "routing_latency_ms": 0.014,
+        "retrieval_latency_ms": 2.724,
+        "evidence_packing_latency_ms": 3.67,
+        "llm_generation_latency_ms": 5699.1,
+        "verification_latency_ms": 0.485,
+        "retry_latency_ms": 0.0,
+        "end_to_end_latency_ms": 5708.923
+      },
+      "routing_latency_ms": 0.014,
+      "retrieval_latency_ms": 2.724,
+      "evidence_packing_latency_ms": 3.67,
+      "llm_generation_latency_ms": 5699.1,
+      "verification_latency_ms": 0.485,
+      "retry_latency_ms": 0.0,
+      "end_to_end_latency_ms": 5708.923,
+      "cache_status": "disabled",
+      "generator_provider": "ollama",
+      "generator_model": "qwen3:4b",
+      "generator_requested_backend": "ollama",
+      "generator_backend": "ollama",
+      "generator_fallback_used": false,
+      "generator_fallback_reason": null,
+      "generation_call_count": 1,
+      "generation_attempts": 1,
+      "generation_latency_ms": 5699.1,
+      "evidence_packing_trace": [
+        {
+          "packer_version": "intent_aware_v2",
+          "intent": "explanation",
+          "selected_evidence_ids": [
+            "E1",
+            "E5",
+            "E2",
+            "E4",
+            "E6",
+            "E8"
+          ],
+          "selected_chunk_ids": [
+            "SKL-S3-1_10_DECISION_TREES-002",
+            "SKL-S3-1_10_1_CLASSIFICATION-004",
+            "SKL-S3-1_10_DECISION_TREES-001",
+            "SKL-S3-1_10_5_TIPS_ON_PRACTICAL_USE-008",
+            "SKL-S3-1_10_6_TREE_ALGORITHMS_ID3_C4_5_C5_0_AND_CART-011",
+            "SKL-S3-1_10_5_TIPS_ON_PRACTICAL_USE-009"
+          ],
+          "selected_graph_path_ids": [
+            "P1"
+          ],
+          "reason_codes_by_evidence": {
+            "E1": [
+              "graph_path_bound",
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E5": [
+              "explanation_mechanism",
+              "entity_title_match",
+              "query_term_match"
+            ],
+            "E2": [
+              "graph_path_bound",
+              "explanation_mechanism",
+              "explanation_advantage",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E4": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "entity_title_match",
+              "entity_text_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E6": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ],
+            "E8": [
+              "explanation_mechanism",
+              "explanation_advantage",
+              "explanation_limitation",
+              "entity_title_match",
+              "query_term_match",
+              "relevance_rank"
+            ]
+          },
+          "entity_coverage": {
+            "ALG_TREE": 6,
+            "CON_OVERFIT": 2,
+            "FAM_TREE": 0
+          },
+          "coverage_gaps": [],
+          "truncated_evidence_ids": [
+            "E1",
+            "E5",
+            "E2",
+            "E4",
+            "E6",
+            "E8"
+          ],
+          "dropped_evidence_ids": [
+            "E3",
+            "E7"
+          ],
+          "input_evidence_count": 8,
+          "deduplicated_evidence_count": 8,
+          "input_character_count": 19423,
+          "packed_character_count": 6960,
+          "selection_target": 6,
+          "max_text_evidence": 8,
+          "max_graph_paths": 8,
+          "max_context_chars": 10000,
+          "evidence_packing_latency_ms": 3.67
+        }
+      ],
+      "structured_output_attempted": true,
+      "structured_output_status": "success",
+      "structured_output_success": true,
+      "generated_claim_count": 3,
+      "supported_claim_count": 1,
+      "retained_claim_count": 1,
+      "removed_claim_count": 2,
+      "visible_claim_count": 1,
+      "claim_support_rate": 0.3333,
+      "claim_retention_rate": 0.3333,
+      "unsupported_claim_leakage_count": 0,
+      "verification_reason_codes": [
+        "generator_reported_gap"
+      ],
+      "claim_diagnostics": [
+        {
+          "claim_id": "C1",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "quote_not_in_source",
+            "missing_grounding_term"
+          ]
+        },
+        {
+          "claim_id": "C2",
+          "status": "supported",
+          "retained": true,
+          "reason_codes": []
+        },
+        {
+          "claim_id": "C3",
+          "status": "unsupported",
+          "retained": false,
+          "reason_codes": [
+            "missing_grounding_term"
+          ]
+        }
+      ],
+      "packing_coverage_gaps": [],
+      "audit_stage_flags": [
+        "verification"
+      ],
+      "generator_unsupported_claims": [
+        "claim 1 的 supporting quote 不存在于 E1"
+      ],
+      "verifier_unsupported_claims": [
+        "claim 1 的 supporting quote 不存在于 E1",
+        "C1 的 quote 不属于引用证据: E1",
+        "C1 的关键术语未被原文覆盖: 决策树",
+        "C3 的关键术语未被原文覆盖: 过拟合"
+      ]
+    }
+  ],
+  "dataset_sha256": "7db6c94473797ee63c03b16c9daaad2936118780277bd97bbc3906cff32533e3",
+  "settings_sha256": "715d2a50414f84b39c6b3475ec9e138c16212b9d6bdce97b760fccabfe7ea651",
+  "generator": {
+    "requested_backend": "llm",
+    "provider": "ollama",
+    "model": "qwen3:4b",
+    "prompt_version": "v2",
+    "evidence_packer_version": "intent_aware_v2"
+  }
+}

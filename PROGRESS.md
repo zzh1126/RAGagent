@@ -2426,3 +2426,365 @@ python -m pip check
 ### 当前状态与下一步
 
 阶段 8.4 已完成。系统现在能从同一 `FinalResponse` 回答“路由、检索、Packer、LLM、Verifier、retry 和端到端分别用了多久”，Streamlit 也能真实展示模型、backend、fallback、预热和 `PARTIAL_PASS`。下一阶段进入 8.5：只用 dev、合成测试和单元测试复核 DEV02/03/05/10，统计 Claim 保留率、重试率和错误阶段；仍不运行 final/extension。
+
+## 2026-07-23 阶段 8.5：完整 Dev 回归、错误归因与冻结候选门槛
+
+### 阶段边界与历史基线
+
+- 工作分支：`experiment/llm-agent-v2`；
+- 本阶段从已推送提交 `16ac995` 开始；
+- 工作区开始时只有两份外部 DOCX 处于删除状态，本阶段继续不恢复、不修改、不暂存、不提交；
+- 只使用 10 道 dev、合成测试和单元测试；
+- 没有运行 pilot、final 或 extension QA；
+- 没有创建 `extension_holdout_release_v2.json` 或任何 v2 execution output；
+- v1 extension 有效状态保持 `revoked_before_execution`；
+- v2 extension 有效状态保持 `locked_no_release`；
+- Prompt v2、LLM wire Schema、Evidence Packer 配置、知识库和评测题面均未修改。
+
+历史 LLM candidate 基线：
+
+| 指标 | 历史结果 |
+| --- | ---: |
+| 题目数 | 10 |
+| Structured Output Success | 1.0000 |
+| Fallback Rate | 0.0000 |
+| Decision Accuracy | 0.6000 |
+| Retry | 7/10 |
+| No-answer Refusal Accuracy | 2/2 |
+| Answerable Over-refusal | 4/8 |
+
+历史四个错误为 `DEV02`、`DEV03`、`DEV05`、`DEV10`，全部是可回答题被整题拒绝。
+
+### Dev 评测指标与错误归因增强
+
+扩展 `scripts/run_evaluation.py`，每题新增：
+
+- `answerable`；
+- `over_refusal`、`correct_refusal`、`false_accept`；
+- `outcome_error_type`；
+- `partial_pass`；
+- `retry_used`；
+- structured output 的 `attempted` 和 `success/failed/not_called` 状态；
+- generated/supported/retained/removed/visible Claim 数；
+- Claim support/retention rate；
+- unsupported Claim leakage count；
+- Verifier reason codes；
+- 不含 Claim 正文的 Claim diagnostics；
+- Packer coverage gaps；
+- generation/retrieval/packing/verification audit stage flags。
+
+汇总新增：
+
+- answerable/no-answer 分母；
+- over-refusal count/rate；
+- refusal accuracy 与 false accept；
+- decision distribution 与 partial-pass count/rate；
+- retry question count/rate 和 total retry count；
+- structured output attempt/success/failed/not-called 分布；
+- Claim support/retention/removal 汇总；
+- unsupported leakage 题数和总数；
+- verification/Claim reason code 聚合；
+- stage、Packer gap、fallback reason 和 outcome error 聚合；
+- 七项阶段延迟均值。
+
+`not_called` 不再被误计为 Schema 失败。`retry_latency_ms` 仍是与补检索、第二次生成和第二次验证重叠的墙钟时间，不能和子阶段重复求和。
+
+新增 `tests/test_evaluation_guards.py` 合成汇总测试，覆盖：
+
+- answerable over-refusal；
+- no-answer 正确拒答；
+- partial-pass；
+- retry rate；
+- structured `not_called`；
+- Claim 汇总；
+- unsupported Claim leakage 检测；
+- reason-code 和 audit-stage 聚合。
+
+定向评测测试为 `6 passed`。
+
+### Stage 8.5 initial 完整 Dev
+
+输出：
+
+```text
+reports/evaluation_llm_agent_v2_dev_stage8_5_initial.json
+```
+
+结果：
+
+| 指标 | initial |
+| --- | ---: |
+| Decision Accuracy | 0.8000 |
+| Mean Keyword Coverage | 0.5500 |
+| Structured Output Success | 1.0000 |
+| Fallback Rate | 0.0000 |
+| Answerable Over-refusal | 2/8 |
+| No-answer Refusal Accuracy | 2/2 |
+| Retry Rate | 4/10 |
+| Partial-pass | 3/10 |
+| Generated Claims | 18 |
+| Supported/Retained Claims | 7/7 |
+| Removed Claims | 11 |
+| Unsupported Claim Leakage | 0 |
+| Mean End-to-end | 9966.31 ms |
+
+逐题决策：
+
+```text
+DEV01 pass
+DEV02 partial_pass
+DEV03 partial_pass
+DEV04 partial_pass
+DEV05 refuse
+DEV06 pass
+DEV07 pass
+DEV08 refuse
+DEV09 refuse
+DEV10 refuse
+```
+
+与历史候选相比，DEV02 和 DEV03 已由整题拒答变为部分回答；两道无答案题仍正确拒答。剩余过度拒答为 DEV05 和 DEV10。
+
+### DEV02/03/05/10 错误归因
+
+#### DEV02：随机森林降低方差
+
+- candidate 前的 initial 已为 `partial_pass`；
+- gold entity coverage=1.0000；
+- Packer coverage gap=0；
+- retrieval sufficiency=1.0000；
+- initial 保留 1/3 Claim、删除 2/3；
+- retry=0；
+- unsupported leakage=0；
+- 归因：检索与 Packer 已覆盖机制，剩余删除来自 Claim quote 中未直接覆盖“随机森林/决策树”等术语；Partial-pass 已避免整题拒答。
+
+#### DEV03：不平衡类别下 Balanced Accuracy/F1
+
+- initial 已为 `partial_pass`；
+- 两个 gold entity 均召回；
+- Packer coverage gap=0；
+- 保留有直接证据的指标结论，删除缺少完整比较依据的部分；
+- retry=0；
+- unsupported leakage=0；
+- 归因：部分图路径有效性和指标比较证据不完整，但不是整题零证据。
+
+#### DEV05：Bagging/AdaBoost 机制对比
+
+- gold entity coverage=1.0000；
+- Packer coverage gap=0；
+- Bagging 官方 Chunk 直接支持随机子集、多个基模型、聚合预测和降低方差；
+- 全部 180 个 Chunk 只有两处 AdaBoost 名称提及；
+- 两处均没有“调整样本权重”“聚焦错分样本”的直接机制原文；
+- initial 两条 Claim 均因 `missing_grounding_term` 删除，retry=1 后 refuse；
+- 决定：不把 `aggregate` 扩成“平均”的无条件别名，不把其他 Gradient Boosting 的迭代/权重描述冒充 AdaBoost 证据，不放宽 Verifier 硬判通过；
+- 归因：固定语料缺口，不是正确 Chunk 未进入 top-k。
+
+#### DEV10：决策树过拟合
+
+- gold entity coverage=1.0000；
+- Packer coverage gap=0；
+- top-k 已包含官方直接证据：`Decision-tree learners can create over-complex trees that do not generalize the data well. This is called overfitting.`；
+- initial 仍因 `Decision-tree`/`Decision tree`、连字符和 `overfit`/`do not generalize` 词形差异出现 quote/术语误杀；
+- 归因：Verifier 文本规范化过严，不是召回或语料缺失。
+
+### DEV10 的低风险 Verifier 修正
+
+只修改 `src/verification/evidence_verifier.py` 的 quote/术语文本规范化：
+
+- 统一大小写；
+- ASCII hyphen 与 Unicode `‐‑‒–—−` 统一为空格；
+- 弯引号统一为普通引号；
+- “过拟合”增加 `overfit`、`do/does not generalize`、`fail/fails to generalize` 等官方直接表述；
+- alias 本身也通过同一规范化函数比较。
+
+没有修改：
+
+- Prompt v2；
+- wire Schema；
+- ID 合法性；
+- quote 必须属于原文的要求；
+- evidence score；
+- Packer；
+- Router/Retriever；
+- retry 阈值；
+- pass/partial/refuse 决策公式。
+
+新增两条边界测试：
+
+1. `Decision-tree`/`Decision tree`、`over-complex`/`over complex` 和 `do not generalize` 的安全标点/词形变化可以通过；
+2. 把原文实质改成 `always generalize perfectly` 仍返回 `quote_not_in_source` 和 `missing_grounding_term`。
+
+Claim-level 与 Day 4 定向回归：`22 passed`。
+
+DEV10 单题复测：
+
+| 指标 | 结果 |
+| --- | ---: |
+| Decision | `partial_pass` |
+| Generated | 3 |
+| Supported/Retained | 1/1 |
+| Removed | 2 |
+| Retry | 0 |
+| Unsupported Leakage | 0 |
+| Structured Output | success |
+| Fallback | false |
+| End-to-end | 5965.518 ms |
+
+### Stage 8.5 candidate 完整 Dev
+
+输出：
+
+```text
+reports/evaluation_llm_agent_v2_dev_stage8_5_candidate.json
+```
+
+结果：
+
+| 指标 | candidate |
+| --- | ---: |
+| Decision Accuracy | 0.9000 |
+| Mean Keyword Coverage | 0.7500 |
+| Structured Output Success | 1.0000 |
+| Fallback Rate | 0.0000 |
+| Answerable Over-refusal | 1/8 |
+| No-answer Refusal Accuracy | 2/2 |
+| Retry Rate | 3/10 |
+| Partial-pass | 4/10 |
+| Generated Claims | 19 |
+| Supported Claims | 9 |
+| Retained Claims | 9 |
+| Removed Claims | 10 |
+| Claim Support/Retention Rate | 0.4737 / 0.4737 |
+| Unsupported Claim Leakage | 0 |
+| Mean End-to-end | 9420.28 ms |
+
+决策分布：
+
+```text
+pass=3
+partial_pass=4
+refuse=3
+```
+
+逐题决策：
+
+```text
+DEV01 pass
+DEV02 partial_pass
+DEV03 partial_pass
+DEV04 partial_pass
+DEV05 refuse
+DEV06 pass
+DEV07 pass
+DEV08 refuse
+DEV09 refuse
+DEV10 partial_pass
+```
+
+分阶段均值：
+
+| 阶段 | 平均耗时 |
+| --- | ---: |
+| routing | 0.036 ms |
+| retrieval | 3.149 ms |
+| evidence packing | 2.698 ms |
+| LLM generation | 9408.91 ms |
+| verification | 1.267 ms |
+| retry wall clock | 1953.367 ms |
+| end-to-end | 9420.28 ms |
+
+主要延迟仍来自本地 LLM generation。candidate 与 initial 的生成 Claim 数存在轻微变化，因此延迟只做描述性比较，不把全部差异归因于 Verifier 修正。
+
+### Stage 8.5 工程门槛
+
+| 门槛 | 目标 | candidate | 状态 |
+| --- | ---: | ---: | --- |
+| Structured Output Success | >=0.95 | 1.0000 | PASS |
+| No-answer Refusal Accuracy | 2/2 | 2/2 | PASS |
+| Answerable Over-refusal | <=2/8 | 1/8 | PASS |
+| Unsupported Claim Leakage | 0 | 0 | PASS |
+| Retry Rate | <7/10 | 3/10 | PASS |
+| Fallback/error trace | 可追踪 | reason/stage/trace 已落盘 | PASS |
+
+这些是进入 Stage 8.6 的工程门槛，不是独立保留集结果。`partial_pass` 不自动等于人工正确答案，当前 dev 也不能证明 LLM 优于规则基线。
+
+### Dense Retrieval 决定
+
+Dense Retrieval 不触发：
+
+- Stage 8.5 只剩 1 个 answerable 错误；
+- 该错误 DEV05 的两个实体均已召回；
+- Packer 无 coverage gap；
+- 正确 AdaBoost 权重机制原文本身不在当前 180 个 Chunk；
+- 因此“正确 Chunk 存在但未进入 top-k”的错误比例为 0，而不是计划要求的至少 30%。
+
+继续不实现 Dense Retriever、RRF、LLM Planner、多 Agent、自动图谱抽取、知识库扩充或完整 Microsoft GraphRAG。
+
+### 新增与更新文档
+
+- 新增 `reports/llm_agent_v2_dev_stage8_5_audit.md`；
+- 更新 `README.md`；
+- 更新 `PROJECT_HANDBOOK.md`；
+- 更新 `PROJECT_GAPS_AND_ROADMAP.md`；
+- 更新 `data/evaluation/README.md`；
+- 更新 `reports/llm_agent_partial_pass_plan.md`；
+- 更新 `reports/research_report_draft.md`；
+- 更新 `reports/technical_enhancement_decision.md`；
+- 更新 `reports/report_claims_checklist.md`；
+- `scripts/validate_report_claims.py` 新增 Stage 8.5 来源、必需披露和禁止夸大规则。
+
+### 最终验证
+
+```bash
+pytest -q
+python scripts/validate_config.py
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_chunks.py
+python scripts/validate_evidence_packer.py
+python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_claim_level_verifier.py
+python scripts/validate_runtime_trace.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试：`121 passed`；
+- 评测指标定向测试：`6 passed`；
+- Claim-level/Day 4 定向回归：`22 passed`；
+- 报告事实校验：34 项来源、21 项必需披露、20 项禁止声明；
+- Prompt v2 SHA-256 保持 `e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`；
+- wire Schema SHA-256 保持 `b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`；
+- Packer dev/pilot 50 题合同保持平均 4.38 条、最长 7,783 字符；
+- 图数据保持 50 个实体、100 条 approved 关系和 100 份有效关系证据；
+- 文档数据保持 164 个 Section、180 个 Chunk；
+- LLM 正式探针保持 Schema 60/60、Generator Go、Planner No-Go；
+- 用户确认评分保持 160 行、9 个错误案例和 `user_confirmed`；
+- extension holdout 保持 23 题，v1=`revoked_before_execution`、v2=`locked_no_release`；
+- 历史 v1.0 baseline 23 个 payload 与 manifest SHA-256 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` 保持不变；
+- `pip check` 无损坏依赖。
+
+### 本轮边界
+
+- 未运行 pilot、final 或 extension QA；
+- 未创建 v2 implementation manifest 或 release；
+- 未创建任何 extension 答案、receipt、评分表或指标；
+- 未修改 Prompt v2、wire Schema、Packer 配置、20 次正式 Prompt 探针或其冻结哈希；
+- 未修改 final/pilot 历史结果；
+- 未启用答案缓存；
+- 未实现 Dense Retrieval；
+- 未扩大知识库；
+- 两份外部删除的 DOCX 继续不恢复、不修改、不暂存、不提交。
+
+### 当前状态与下一步
+
+阶段 8.5 已完成。当前 v2 工作流达到预先声明的 dev 工程门槛，历史 4 个过度拒答案例中 DEV02/03/10 已成为安全 Partial-pass，DEV05 被确认是固定语料边界。下一阶段进入 8.6：参数不再根据 dev 逐题修改，只运行一次 pilot 冻结前回归，然后冻结 runtime、Prompt v2、wire Schema、Packer、Verifier、trace contract、依赖和模型 digest；继续不运行 final/extension。

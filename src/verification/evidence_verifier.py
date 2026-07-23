@@ -36,13 +36,37 @@ CLAIM_GROUNDING_TERMS = {
     "特征缩放": ("feature scaling", "scaled"),
     "缩放特征": ("feature scaling", "scaled", "scale your data"),
     "正则化": ("regularization",),
-    "过拟合": ("overfitting", "over-fit"),
+    "过拟合": (
+        "overfitting",
+        "over-fit",
+        "overfit",
+        "do not generalize",
+        "does not generalize",
+        "fail to generalize",
+        "fails to generalize",
+    ),
     "类别不平衡": ("class imbalance", "imbalanced"),
     "精确率": ("precision",),
     "召回率": ("recall",),
     "平衡准确率": ("balanced accuracy",),
     "f1": ("f1", "f-measure", "f measure"),
 }
+
+VERBATIM_TRANSLATION = str.maketrans(
+    {
+        "-": " ",
+        "‐": " ",
+        "‑": " ",
+        "‒": " ",
+        "–": " ",
+        "—": " ",
+        "−": " ",
+        "‘": "'",
+        "’": "'",
+        "“": '"',
+        "”": '"',
+    }
+)
 
 
 class EvidenceVerifier:
@@ -602,11 +626,11 @@ class EvidenceVerifier:
 
     @staticmethod
     def _normalize_text(value: str) -> str:
-        return " ".join(value.split()).casefold()
+        return " ".join(value.casefold().translate(VERBATIM_TRANSLATION).split())
 
     @staticmethod
     def _normalize_verbatim_text(value: str) -> str:
-        return " ".join(value.split())
+        return " ".join(value.casefold().translate(VERBATIM_TRANSLATION).split())
 
     @classmethod
     def _missing_grounding_terms(cls, claim: AnswerClaim) -> list[str]:
@@ -618,5 +642,7 @@ class EvidenceVerifier:
             marker
             for marker, aliases in CLAIM_GROUNDING_TERMS.items()
             if marker.casefold() in claim_text
-            and not any(alias.casefold() in quoted_text for alias in aliases)
+            and not any(
+                cls._normalize_text(alias) in quoted_text for alias in aliases
+            )
         ]

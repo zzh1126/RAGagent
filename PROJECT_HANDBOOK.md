@@ -79,7 +79,7 @@
 | Verifier 是否改善拒答、问题对齐和证据忠实度？ | Proposed 与 No Verifier 消融 |
 | 系统是否可以本地、可追溯、可复现地运行？ | NetworkX、TF-IDF、LangGraph、归档和自动校验 |
 | LLM 是否改善可读性和完整性，同时保持证据忠实度？ | 尚待 v2 extension 四方法实验回答 |
-| Partial-pass 是否降低过度拒答？ | 尚待 Claim-level v2 实现与正式实验回答 |
+| Partial-pass 是否降低过度拒答？ | Stage 8.5 dev 工程门槛已从 4/8 降到 1/8；正式效果仍待 v2 extension |
 
 ## 5. 项目边界
 
@@ -487,6 +487,8 @@ Verifier 检查：
 8. “是否/是不是”类问题的图谱前提是否成立；
 9. 对比题是否至少链接两个实体。
 
+Stage 8.5 对 quote 子串和术语覆盖增加了保守规范化：统一大小写、ASCII/Unicode 连字符和弯引号，并把官方原文中的 `overfit`、`do not generalize` 识别为“过拟合”的直接表述。该规范化只消除标点和词形误杀；实质改写原文的 quote 仍返回 `quote_not_in_source`。
+
 ### 13.2 当前评分与决策
 
 ```text
@@ -815,7 +817,7 @@ Pilot 使用规则生成器，是历史先导数据，不是最终无泄漏结�
 
 当前默认主链路为：Rule Router + qwen3:4b Generator + Evidence Verifier + offline rule fallback。
 
-候选 dev 结果：
+历史候选 dev 结果：
 
 | 指标 | 结果 |
 | --- | ---: |
@@ -844,7 +846,25 @@ Pilot 使用规则生成器，是历史先导数据，不是最终无泄漏结�
 - LLM Agent 增强已被正式实验验证；
 - 当前延迟达到约 1 秒。探针热调用约 1 秒，不等于完整工作流。
 
-Stage 8.4 没有重跑这 10 道历史候选 dev，因此上表仍是旧审计基线。新 trace 已能把 route、retrieval、packing、全部 generation、全部 verification、retry branch 和 end-to-end 分开记录；DEV02 浏览器 smoke 仍约 7.8 秒端到端、一次 LLM 调用、零重试。该单题只能证明 trace/UI 接线和 Partial-pass 机制正常，不能替代阶段 8.5 的完整 dev 回归。
+上表是 Claim-level Partial-pass 接入前的旧审计基线。Stage 8.5 使用当前 v2 工作流重新运行全部 10 道 dev，候选结果如下：
+
+| 指标 | 结果 |
+| --- | ---: |
+| 题目数 | 10 |
+| Decision Accuracy | 0.9000 |
+| Structured Output Success | 1.0000 |
+| Fallback Rate | 0.0000 |
+| 平均端到端延迟 | 9420.28 ms |
+| 平均生成延迟 | 9408.91 ms |
+| 触发一次重试 | 3/10 |
+| 无答案题正确拒答 | 2/2 |
+| 可回答题过度拒答 | 1/8 |
+| Partial-pass | 4/10 |
+| Unsupported Claim leakage | 0 |
+
+19 条生成 Claim 中，9 条 supported/retained，10 条 removed，Claim retention rate 为 0.4737。DEV02、DEV03 和 DEV10 从历史整题拒答变为过滤后的 `partial_pass`；DEV05 仍拒答，因为当前 180 个 Chunk 只有两处 AdaBoost 名称提及，没有样本权重更新机制的直接原文。DEV10 的低风险修正仅规范化大小写、ASCII/Unicode 连字符、弯引号以及 `overfit`/`do not generalize` 等直接术语变体，并保留实质改写 quote 的拒绝测试。
+
+Stage 8.5 结果达到进入 pilot 冻结前回归的工程门槛，但 dev 已用于调试，`partial_pass` 未经独立人工正确性评估，因此不能据此声称 LLM 优于规则基线或增强已被正式验证。完整审计见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
 
 ## 24. Extension holdout 与 release 治理
 
@@ -885,7 +905,7 @@ Stage 8.4 没有重跑这 10 道历史候选 dev，因此上表仍是旧审计�
 
 由于项目决定先实现 Evidence Packer、原子 Claim 和 Partial-pass，原 v1 runtime 不再代表目标协议。阶段 8.0 已在独立提交中创建不可覆盖的撤销记录，runner 会在 runtime/model 校验和题集读取前拒绝原授权命令。
 
-版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。Evidence Packer、Prompt v2、Claim-level Verifier、`PARTIAL_PASS`、完整阶段 trace 和 Streamlit 状态展示已实现；下一步只进入阶段 8.5 dev 调试，不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
+版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。Evidence Packer、Prompt v2、Claim-level Verifier、`PARTIAL_PASS`、完整阶段 trace、Streamlit 状态展示和 Stage 8.5 dev 工程门槛已完成；下一步只进入阶段 8.6 pilot 冻结前回归与 v2 冻结，不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
 
 ## 25. 复现与常用命令
 
@@ -1050,7 +1070,7 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 - 数据集泄漏和 split 护栏；
 - extension release、不可覆盖输出、哈希和一次性执行保护。
 
-Stage 8.4 实现后的全量测试结果为 `118 passed`；运行时 trace 定向回归为 `52 passed`，`python scripts/validate_runtime_trace.py` 也已通过。浏览器 smoke 覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
+Stage 8.5 实现后的全量测试结果为 `121 passed`；Claim-level 与评测指标定向测试均已通过，`python scripts/validate_runtime_trace.py` 继续通过。浏览器 smoke 仍覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
 
 ## 29. 可复现性与安全设计
 
@@ -1139,7 +1159,7 @@ Prompt 禁止使用模型记忆；每条 Claim 必须绑定真实 E ID 和逐字
 
 ### Q11：过度拒答修复到什么程度？
 
-阶段 8.3 已解决“一个 Claim 失败导致所有支持 Claim 一起丢弃”的机制问题。随机森林 DEV02 现在保留 2/4 Claim、删除 2/4 Claim并返回 `partial_pass`，重试从 1 次降为 0。尚未运行完整 dev/pilot 回归，因此不能声称总体过度拒答率已经达到目标。
+阶段 8.3 先解决了“一个 Claim 失败导致所有支持 Claim 一起丢弃”的机制问题。阶段 8.5 完整 dev 候选进一步把 answerable over-refusal 从历史 4/8 降到 1/8，retry 从 7/10 降到 3/10，且 unsupported Claim leakage 为 0。DEV02、DEV03、DEV10 返回 `partial_pass`；DEV05 因语料缺少 AdaBoost 权重机制原文仍拒答。这是开发集工程门槛，不是独立效果结论。
 
 ### Q12：Partial-pass 为什么重要？
 
@@ -1147,7 +1167,7 @@ Prompt 禁止使用模型记忆；每条 Claim 必须绑定真实 E ID 和逐字
 
 ### Q13：规则基线为什么比当前 LLM dev 准确？
 
-规则模板直接使用图谱中已审核关系，输出范围小；LLM 会尝试组织更完整答案，触发更多 quote 和术语校验。历史候选 dev 中 LLM 有 4/8 可回答题被拒绝；Stage 8.3 已修复其中 DEV02 的整题聚合机制，但完整 dev 回归尚未执行。
+规则模板直接使用图谱中已审核关系，输出范围小；LLM 会尝试组织更完整答案，触发更多 quote 和术语校验。历史候选 dev 中 LLM 有 4/8 可回答题被拒绝，Stage 8.5 candidate 已降为 1/8，但自动决策仍是 9/10，且 dev 已参与调试，不能与规则基线做独立优越性结论。剩余 DEV05 主要是固定语料没有直接 AdaBoost 机制证据。
 
 ### Q14：当前最好的正式结果是什么？
 

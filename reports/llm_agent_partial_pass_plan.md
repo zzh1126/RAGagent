@@ -7,11 +7,11 @@
 | 评测日期 | 2026-07-23 |
 | 当前分支 | `experiment/llm-agent-v2` |
 | 阶段 8.0 完成提交 | `7fbf566` |
-| 计划状态 | 阶段 8.0～8.4 已完成，准备进入阶段 8.5 dev 调试 |
+| 计划状态 | 阶段 8.0～8.5 已完成，准备进入阶段 8.6 pilot 冻结前回归 |
 | 当前 extension release | `extension-qwen3-4b-v1-bdedf7dc` |
 | release 有效状态 | `revoked_before_execution`，从未运行 |
 | v2 状态 | 四方法合同已冻结，`locked_no_release` |
-| 当前边界 | 下一阶段只实现 trace、CLI/Streamlit 与预热，不运行 final/extension |
+| 当前边界 | 下一阶段只运行一次 pilot 冻结前回归，不运行 final/extension |
 
 ## 一、总体结论
 
@@ -383,6 +383,8 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 
 这些是进入下一阶段的工程门槛，不是最终科研结论。
 
+完成结果：Stage 8.5 candidate 的 Structured Output Success 为 1.0000、No-answer Refusal Accuracy 为 2/2、Answerable Over-refusal 为 1/8、retry rate 为 3/10、unsupported Claim leakage 为 0，全部达到门槛。DEV02/03/10 返回过滤后的 `partial_pass`；DEV05 保持拒答，因为当前语料没有 AdaBoost 样本权重机制的直接原文。唯一代码修正是 quote 的大小写/连字符/引号规范化和保守 `overfit`/`do not generalize` 术语变体，并有实质改写 quote 的负向测试。完整依据见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
+
 ### 阶段 8.6：Pilot 回归与 v2 冻结
 
 - 参数冻结后运行一次 pilot 回归；
@@ -457,4 +459,4 @@ PROGRESS.md
 
 **No-Go：** LLM Planner、多 Agent、知识库扩充、自动图谱抽取、完整 Microsoft GraphRAG 和框架迁移。
 
-阶段 8.4 已补齐 routing/retrieval/verification/retry 延迟、CLI/评测 trace、Streamlit 的真实模型/fallback/partial 状态与合成预热，并完成四路径桌面/移动 browser smoke。下一步进入阶段 8.5，只用 dev、合成测试和单元测试复核历史过度拒答案例；仍不会运行 final/extension。
+阶段 8.5 已完成全部 10 道 dev 回归、四个历史过度拒答案例审计、评测指标增强和 DEV10 的低风险文本归一化修正。候选工程门槛全部通过，但 dev 结果不是独立效果证据，Dense Retrieval 也未触发。下一步进入阶段 8.6：只运行一次 pilot 冻结前回归并冻结 v2 runtime；仍不会运行 final/extension。

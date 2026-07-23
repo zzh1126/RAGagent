@@ -139,3 +139,5 @@ python scripts/smoke_llm_client.py --timeout 180
 阶段 8.3 已接入 Claim-level Verifier：逐 Claim 输出 C ID、supported/retained、有效 E/P ID 和 reason codes；默认 LLM 使用 partial-pass，规则基线继续 strict，并保留 LLM strict override。DEV02 脱敏 warm smoke 保留 2/4 Claim、删除 2/4 Claim，返回 `partial_pass`，retry=0、generation calls=1、unsupported leakage=0。该结果只证明单题过滤机制成立，不是完整 dev/pilot 回归或增强有效性结论；extension 继续锁定。
 
 阶段 8.4 已完成运行时 trace 与演示可观测性：`FinalResponse` 保存 routing、逐次 retrieval/generation/packing/verification、retry branch 和 end-to-end；GenerationCall 增加 provider/model 与 requested/actual backend。Streamlit 只在 cached workflow 启动时发送固定合成预热，不读取评测题面，问题缓存保持 disabled。pass、partial-pass、refuse 和 Ollama unavailable fallback 均完成桌面/移动 browser smoke。该阶段没有执行完整 dev/pilot/final/extension，也不能据此声称延迟或回答质量已经总体改善。
+
+阶段 8.5 已完成 10 道 dev 的完整工程回归。候选为 10/10 结构成功、0 fallback、9/10 自动决策、2/2 无答案正确拒答、1/8 answerable over-refusal、3/10 retry 和 0 unsupported Claim leakage。DEV02/03/10 返回过滤后的 `partial_pass`；DEV05 因固定六页语料没有 AdaBoost 样本权重机制原文继续拒答。Verifier 只增加大小写、ASCII/Unicode 连字符、弯引号和 `overfit`/`do not generalize` 直接变体的保守规范化，实质改写 quote 的负向测试仍拒绝。Dense Retrieval 不触发，因为唯一剩余错误不是正确 Chunk 未召回。该 dev 已用于调试，不能证明增强优于规则基线；下一步只进入一次 pilot 冻结前回归。
