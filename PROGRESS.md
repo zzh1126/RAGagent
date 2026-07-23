@@ -1325,3 +1325,70 @@ git diff --check
 ### 当前决定与下一步
 
 真实 LLM 已进入默认答案生成节点，结构化生成、引用/quote 边界、Verifier、一次补检索和运行时离线 fallback 已形成闭环；Planner 继续 No-Go。由于候选 dev 决策结果低于规则基线，当前只确认“实现完成且结构稳定”，不确认“增强有效”。extension 继续锁定；下一阶段先冻结实现、Prompt、配置和 trace 评分合同哈希，再创建一次性 release record，不能继续使用 dev 调参。
+
+## 2026-07-23 阶段 7.4A：Extension 实现冻结与一次性执行护栏
+
+### 完成事项
+
+- 新增冻结的 `config/extension_trace_contract.yaml`，在查看任何 extension 输出前固定：
+  - 方法顺序为 Rule Baseline、LLM Generator、LLM Generator No Verifier；
+  - 问题顺序保持数据集原顺序；
+  - generation call count、attempts、latency、structured success 和 fallback 均聚合初次生成与 Verifier 重试的完整 trace；
+  - Decision Accuracy 分母为全部 23 题，Refusal Accuracy 分母为 4 道无答案题，Over-refusal Rate 分母为 19 道可回答题；
+  - Citation Validity 使用不改变方法决策的标准 Verifier shadow 复核；
+  - Rule Baseline 的 structured/fallback 指标为 not applicable；
+  - 首个 LLM 问题在显式卸载模型后计冷启动，其余 LLM 问题计热端到端延迟；
+  - 盲评使用逐题随机答案顺序、A/B/C 方法标签和独立 method key。
+- 新增 `src/evaluation/extension_release.py`：
+  - 冻结全部 `src/**/*.py`、专用 runner、settings、题集、评分/trace 合同、图数据、Chunk 和 TF-IDF 索引；
+  - 单独计算 runtime bundle、Prompt v1、LLM wire Schema、settings 和 trace contract SHA-256；
+  - 记录 Python 与关键依赖版本、Ollama 版本和模型完整 digest；
+  - 文本哈希先将 CRLF/CR 归一化为 LF，二进制文件按原始字节计算，避免 Windows 检出导致指纹漂移；
+  - release 文件使用独占创建，不覆盖既有 manifest、record 或结果；
+  - 当前提交必须是冻结实现提交的后代，任何运行时代码、输入、依赖或 Prompt 变化都会使 release 校验失败。
+- 新增专用 `scripts/run_extension_evaluation.py`：
+  - 普通 `run_evaluation.py --split extension` 继续无条件拒绝；
+  - 专用 runner 在读取题目并调用 QA 工作流前，必须验证 implementation manifest、release record、runtime bundle、模型 digest 和固定 NetworkX 后端；
+  - 正式运行必须同时提供 `--execute-once`、精确 release ID 和 `--confirm-one-time-run`；
+  - 首次调用前以独占方式创建 execution state，禁止覆盖已有状态或输出；
+  - 每道题调用前先记录 method/question in-flight 状态，异常或中断转为 `failed_requires_manual_audit`，不自动重跑可能已经暴露的题目；
+  - 完成后生成三份方法报告、描述性汇总、盲评 CSV、独立 method key 和带文件哈希的 execution receipt；
+  - final v1.0 结果继续只读，不属于该 runner 的输出范围。
+- 新增 `scripts/create_extension_release.py` 与 `scripts/validate_extension_release.py`，分别负责在干净实现提交上创建一次性授权，以及离线/运行时复验 release 指纹。
+- 扩展 `validate_extension_holdout.py`：
+  - release 前继续要求无 implementation manifest、无 release record、无 extension 输出；
+  - release 后验证实现指纹和授权；
+  - 执行后验证 state、69 次方法/题目调用计数、receipt 和全部输出哈希；
+  - 旧 `evaluation_extension.json` 或实验目录旁路输出始终视为错误。
+- 新增 `tests/test_extension_release.py`，覆盖 trace 指标分母、Rule Baseline N/A、盲评随机化、孤立输出拒绝、completed receipt 哈希防篡改、release 不覆盖和 CRLF 稳定哈希。
+- 修复本地 Ollama 启动来源：
+  - 发现桌面 `ollama app` 仍按旧 C 盘目录自动拉起服务，导致当前 `ollama list` 只显示 `qwen3-vl:8b`；
+  - 停止桌面进程后，使用用户级 `OLLAMA_MODELS=E:\ollama-models` 启动独立隐藏 `ollama.exe serve`；
+  - 当前可见模型恢复为 `qwen3:4b`，完整 digest 为 `359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7`，大小 2,497,293,931 bytes。
+
+### 验证结果
+
+```bash
+pytest -q
+python scripts/validate_config.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_report_claims.py
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试：`67 passed`；
+- extension 仍为 23 题、19/4 行为分布，题集和评分合同 SHA-256 保持不变；
+- 当前有效执行状态仍为 `locked`，implementation manifest 与 release record 尚未创建；
+- 普通 runner 按预期拒绝 extension，专用 runner 因 release 不存在也按预期拒绝 preflight；
+- 旧实验配置、160 行用户确认评分和报告事实声明保持一致；
+- v1.0 的 23 个归档 payload 继续通过，Manifest SHA-256 为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- 无依赖冲突，无空白错误；没有调用 extension QA 工作流，没有生成任何 extension 答案或指标。
+
+### 当前状态与下一步
+
+一次性执行代码、trace 口径和 release 校验已经实现并通过测试，但执行锁尚未解除。下一步先提交本阶段代码，使运行实现获得稳定 Git commit；随后只在该干净提交上生成 implementation manifest 和 `authorized_not_executed` release record，再执行 preflight。本阶段不会运行 extension。

@@ -1,0 +1,80 @@
+schema_version: "1.0"
+artifact: extension_trace_metric_contract
+status: frozen_before_release
+
+method_order:
+  - rule_baseline
+  - llm_generator
+  - llm_generator_no_verifier
+
+question_order: dataset_order
+planner_backend: rule
+graph_backend: networkx
+
+generation_trace:
+  scope: all_answer_node_calls_including_verifier_retry
+  question_fields:
+    generation_call_count: count_all_generation_calls
+    generation_attempts: sum_attempts_across_all_generation_calls
+    generation_latency_ms: sum_latency_ms_across_all_generation_calls
+    structured_output_success: >-
+      Applicable only to LLM methods. True when at least one call requested Ollama and every
+      such call completed with a structured Ollama payload without fallback.
+    fallback_used: true_when_any_generation_call_uses_fallback
+
+automatic_metrics:
+  decision_accuracy:
+    numerator: questions_with_expected_final_decision
+    denominator: all_questions
+  refusal_accuracy:
+    numerator: expected_refusal_questions_returning_refuse
+    denominator: expected_refusal_questions
+  over_refusal_rate:
+    numerator: answerable_questions_returning_refuse
+    denominator: answerable_questions
+  citation_validity:
+    numerator: sum_shadow_verifier_citation_validity
+    denominator: questions_with_at_least_one_generated_claim
+    note: computed_with_the_standard_verifier_without_affecting_method_decision
+  structured_output_success_rate:
+    numerator: llm_questions_with_structured_output_success
+    denominator: all_questions_for_each_llm_method
+    offline_rule_status: not_applicable
+  fallback_rate:
+    numerator: llm_questions_with_any_fallback
+    denominator: all_questions_for_each_llm_method
+    offline_rule_status: not_applicable
+  cold_start_latency_ms:
+    value: end_to_end_latency_of_first_llm_generator_question_after_explicit_model_unload
+    denominator: one_question
+  warm_end_to_end_latency_ms:
+    value: mean_end_to_end_latency_for_remaining_llm_questions
+    excludes: first_cold_start_question
+
+latency_protocol:
+  run_rule_baseline_first: true
+  unload_model_before_first_llm_question: true
+  unload_endpoint: /api/generate
+  unload_keep_alive: 0
+  unload_between_llm_methods: false
+  use_workflow_monotonic_timer: true
+
+execution:
+  maximum_runs: 1
+  overwrite_outputs: false
+  resume_after_interrupted_question: false
+  require_release_id_confirmation: true
+  generic_evaluation_runner_must_remain_locked: true
+
+human_review_output:
+  blind_method_labels: true
+  randomize_answer_order_per_question: true
+  random_seed_source: release_record
+  separate_method_key: true
+  expose_expected_answer_fields: false
+  score_fields:
+    - answer_correctness
+    - evidence_faithfulness
+    - hallucination
+    - over_refusal
+    - readability

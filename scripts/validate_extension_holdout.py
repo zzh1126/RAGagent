@@ -4,6 +4,7 @@ import csv
 import hashlib
 import json
 import re
+import sys
 import unicodedata
 from collections import Counter
 from difflib import SequenceMatcher
@@ -13,6 +14,7 @@ import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 EVALUATION_DIR = PROJECT_ROOT / "data" / "evaluation"
 DATASET_PATH = EVALUATION_DIR / "extension_questions.jsonl"
 CONTRACT_PATH = PROJECT_ROOT / "config" / "extension_evaluation.yaml"
@@ -46,6 +48,16 @@ EXPECTED_METHODS = {
     "llm_generator",
     "llm_generator_no_verifier",
 }
+
+from src.evaluation.extension_release import (
+    EXECUTION_RECEIPT_PATH,
+    EXECUTION_STATE_PATH,
+    FINAL_OUTPUT_PATHS,
+    IMPLEMENTATION_MANIFEST_PATH,
+    load_release_artifacts,
+    validate_execution_artifacts,
+    validate_release_record,
+)
 
 
 def sha256(path: Path) -> str:
@@ -230,15 +242,51 @@ def main() -> None:
     }:
         errors.append("manifest closest question pair does not match recomputation")
 
-    if RELEASE_PATH.exists():
-        errors.append("extension release record exists before the implementation freeze is lifted")
-    forbidden_outputs = [
+    execution_status = "locked"
+    legacy_output_paths = [
         PROJECT_ROOT / "reports" / "evaluation_extension.json",
         *sorted((PROJECT_ROOT / "reports" / "experiments").glob("*_extension.json")),
     ]
-    existing_outputs = [str(path) for path in forbidden_outputs if path.exists()]
-    if existing_outputs:
-        errors.append(f"extension outputs exist while locked: {existing_outputs}")
+    existing_legacy_outputs = [str(path) for path in legacy_output_paths if path.exists()]
+    if existing_legacy_outputs:
+        errors.append(f"extension outputs exist outside the controlled runner: {existing_legacy_outputs}")
+
+    if RELEASE_PATH.exists():
+        try:
+            implementation, release = load_release_artifacts(PROJECT_ROOT)
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"invalid extension release artifacts: {exc}")
+        else:
+            errors.extend(
+                validate_release_record(
+                    PROJECT_ROOT,
+                    release,
+                    implementation,
+                    check_runtime_model=False,
+                    require_unexecuted=False,
+                )
+            )
+            execution_errors, execution_status = validate_execution_artifacts(
+                PROJECT_ROOT,
+                release,
+            )
+            errors.extend(execution_errors)
+    else:
+        if (PROJECT_ROOT / IMPLEMENTATION_MANIFEST_PATH).exists():
+            errors.append("implementation manifest exists without a release record")
+        controlled_outputs = [
+            EXECUTION_STATE_PATH,
+            EXECUTION_RECEIPT_PATH,
+            *FINAL_OUTPUT_PATHS.values(),
+        ]
+        existing_controlled_outputs = [
+            path.as_posix() for path in controlled_outputs if (PROJECT_ROOT / path).exists()
+        ]
+        if existing_controlled_outputs:
+            errors.append(
+                "extension outputs exist before release: "
+                + ", ".join(existing_controlled_outputs)
+            )
 
     if errors:
         for error in errors:
@@ -253,7 +301,7 @@ def main() -> None:
         f"OK: max_prior_similarity={max_similarity:.4f} "
         f"closest_pair={extension_id}/{prior_id}"
     )
-    print("OK: execution_status=locked no_extension_outputs=True")
+    print(f"OK: effective_execution_status={execution_status}")
 
 
 if __name__ == "__main__":

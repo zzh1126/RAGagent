@@ -175,7 +175,8 @@ def ensure_split_runnable(split: str) -> None:
         )
     if split == "extension":
         raise SystemExit(
-            "Refusing to run the locked extension holdout before an explicit release record exists."
+            "Refusing to run the locked extension through the generic runner. "
+            "Use scripts/run_extension_evaluation.py only with a valid release record."
         )
 
 
