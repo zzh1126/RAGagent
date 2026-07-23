@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "artifact": "extension_release_revocation",
+  "status": "revoked_before_execution",
+  "revocation_id": "extension-qwen3-4b-v1-bdedf7dc-revocation-v1",
+  "revoked_at": "2026-07-23T05:26:30.713914Z",
+  "revoked_release_id": "extension-qwen3-4b-v1-bdedf7dc",
+  "revoked_release_record": {
+    "path": "data/evaluation/extension_holdout_release.json",
+    "sha256": "af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c",
+    "recorded_status": "authorized_not_executed"
+  },
+  "implementation_manifest": {
+    "path": "data/evaluation/extension_implementation_manifest.json",
+    "sha256": "2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382",
+    "implementation_commit": "bdedf7dcb4e82bc918dfd7c92161501151b09742"
+  },
+  "hash_normalization": "text_crlf_and_cr_normalized_to_lf; binary_raw_bytes",
+  "revocation_basis_commit": "c21ce9f4e2389765e898b6b670332fcae908262b",
+  "reason_code": "protocol_upgrade_before_holdout_exposure",
+  "reason": "The v1 protocol was withdrawn before execution so the predeclared comparison can be upgraded with claim-level partial-pass verification.",
+  "execution_observations": {
+    "extension_outputs_observed": false,
+    "reports_extension_existed": false,
+    "execution_state_existed": false,
+    "execution_receipt_existed": false
+  },
+  "revocation_effect": {
+    "execution_authorized": false,
+    "historical_release_record_preserved": true,
+    "historical_implementation_manifest_preserved": true
+  },
+  "replacement_protocol": "v2",
+  "replacement_release_id": null
+}
