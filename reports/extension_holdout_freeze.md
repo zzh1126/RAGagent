@@ -2,7 +2,7 @@
 
 ## 冻结结论
 
-`extension` 扩展保留集已在 LLM Client、LLM Answer Generator 和业务 Prompt 实现前冻结。当前状态为 `frozen_locked`，只允许结构、哈希和重合度校验；禁止运行任何 QA 工作流、生成答案或据此调参。
+`extension` 扩展保留集已在 LLM Client、LLM Answer Generator 和业务 Prompt 实现前冻结。实现、Prompt、trace 口径与模型 digest 随后冻结在独立提交上，并已创建一次性 release record。当前有效状态为 `authorized_not_executed`：允许执行 preflight，但尚未运行任何 extension QA 工作流，也没有 extension 答案或指标。
 
 ## 冻结范围
 
@@ -15,7 +15,9 @@
 | 题集文件 | `data/evaluation/extension_questions.jsonl` |
 | 评分合同 | `config/extension_evaluation.yaml` |
 | 冻结 manifest | `data/evaluation/extension_holdout_manifest.json` |
-| release record | 不存在，执行锁未解除 |
+| 实现提交 | `bdedf7dcb4e82bc918dfd7c92161501151b09742` |
+| release ID | `extension-qwen3-4b-v1-bdedf7dc` |
+| release 状态 | `authorized_not_executed` |
 
 题型分布：
 
@@ -58,12 +60,19 @@ LLM Query Planner 未通过前置语义门槛，因此本保留集不报告 Rout
 | `extension_questions.jsonl` | `7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5` |
 | `extension_evaluation.yaml` | `a9415d4efc8b3e79bd65d6df84488364761695860bf53d04861e3e4148060b65` |
 | 题目 ID + 归一化题面指纹 | `1dfbf35117b5a22e28bcee8f27b3cdd1cf86e7542c76122c583ef6780217fc28` |
+| Runtime bundle | `b4676d37dc9f2babde6ade4f1a3d212ed775d590adf202e3cef710cadbbe03f0` |
+| Prompt v1 | `f4af2d9668b8ba53cb8f884ff840e4ce282d55d15e4468039b039ff3a0e5c60e` |
+| LLM wire Schema | `291e0ed4ccc600aed1043e745d64b9479db518a1f458beae00046a0c5ea7c932` |
+| Trace contract | `f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d` |
+| `qwen3:4b` 模型 digest | `359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7` |
 
 ## 可执行校验
 
 ```bash
 python scripts/validate_evaluation.py
 python scripts/validate_extension_holdout.py
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation.py --preflight
 ```
 
-`scripts/run_evaluation.py --split final` 和 `--split extension` 均会主动拒绝执行。实现完成后也不能直接删除锁；必须先冻结实现提交、模型配置和 Prompt 哈希，再创建独立 release record。
+`scripts/run_evaluation.py --split final` 和 `--split extension` 均会主动拒绝执行。extension 只能由 `scripts/run_extension_evaluation.py` 使用精确 release ID 和 `--confirm-one-time-run` 执行一次；任何已有 state、receipt 或输出都会阻止第二次运行。当前只完成 preflight，未执行正式命令。

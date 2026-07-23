@@ -1392,3 +1392,59 @@ git diff --check
 ### 当前状态与下一步
 
 一次性执行代码、trace 口径和 release 校验已经实现并通过测试，但执行锁尚未解除。下一步先提交本阶段代码，使运行实现获得稳定 Git commit；随后只在该干净提交上生成 implementation manifest 和 `authorized_not_executed` release record，再执行 preflight。本阶段不会运行 extension。
+
+## 2026-07-23 阶段 7.4B：实现指纹冻结与 Extension 一次性授权
+
+### 完成事项
+
+- 将 Stage 7.4A 的专用 runner、trace 合同和 release 校验提交为冻结实现：
+  - commit：`bdedf7dcb4e82bc918dfd7c92161501151b09742`；
+  - 提交信息：`feat: freeze controlled extension runner`。
+- 仅在该干净提交上运行 `python scripts/create_extension_release.py --create`，生成：
+  - `data/evaluation/extension_implementation_manifest.json`；
+  - `data/evaluation/extension_holdout_release.json`。
+- implementation manifest 冻结结果：
+  - runtime bundle SHA-256：`b4676d37dc9f2babde6ade4f1a3d212ed775d590adf202e3cef710cadbbe03f0`；
+  - settings SHA-256：`245af4032950698f5e8b9d6ca556a6380b5ada170cee8d8f429a56bb48bafece`；
+  - Prompt v1 SHA-256：`f4af2d9668b8ba53cb8f884ff840e4ce282d55d15e4468039b039ff3a0e5c60e`；
+  - LLM wire Schema SHA-256：`291e0ed4ccc600aed1043e745d64b9479db518a1f458beae00046a0c5ea7c932`；
+  - trace contract SHA-256：`f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d`；
+  - implementation manifest SHA-256：`2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382`；
+  - Python `3.12.7`，LangGraph `1.0.10`，Pydantic `2.8.2`，scikit-learn `1.5.1`；
+  - Ollama `0.32.1` / `qwen3:4b`，模型完整 digest `359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7`。
+- 一次性 release：
+  - release ID：`extension-qwen3-4b-v1-bdedf7dc`；
+  - 状态：`authorized_not_executed`；
+  - 最多执行次数：1；
+  - 固定 3 种方法、23 题原顺序、盲评随机种子、state/receipt 与 6 个结果路径；
+  - final 结果继续采用 `v1.0_final_read_only_unchanged` 策略。
+- 完成两类 preflight：
+  - `validate_extension_release.py --check-runtime-model --require-unexecuted` 验证实现、依赖、模型和无输出状态；
+  - `run_extension_evaluation.py --preflight` 验证专用 runner 的完整执行前条件；
+  - preflight 明确输出“extension questions were not sent to the QA workflow”。
+- 审计两个新 JSON：只包含版本、哈希、固定方法、模型元数据、随机种子和输出路径；不包含 Prompt 原文、模型 content、thinking、凭据或 extension 答案。
+- 同步 README、评测数据说明、extension 冻结记录、技术决策、研究报告与事实声明清单：当前统一表述为“release 已授权但尚未执行”，不得提前声称 enhanced 有效。
+
+### 验证结果
+
+```bash
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation.py --preflight
+python scripts/validate_extension_holdout.py
+python scripts/validate_report_claims.py
+pytest -q
+```
+
+- release/runtime/model 复验全部通过；
+- extension 有效状态：`authorized_not_executed`；
+- 报告事实声明：23 项来源检查、16 项必需声明、14 项禁止声明全部通过；
+- 全量测试：`67 passed`；
+- 配置、图谱、100 条关系证据、180 个 Chunk、LLM 探针、评测数据、旧实验、评分、5 张图、依赖和编译检查全部通过；
+- v1.0 的 23 个归档 payload 继续通过，Manifest SHA-256 仍为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `reports/extension/` 不存在，没有 execution state、receipt、方法报告、盲评表或 combined metrics；
+- 未调用 extension QA 工作流，未生成 extension 答案，未观察任何 extension 实验结果；
+- final 未运行、未修改。
+
+### 当前状态与下一步
+
+实现、Prompt、Schema、依赖、输入、模型和 trace 评分合同现已不可变地绑定到 release `extension-qwen3-4b-v1-bdedf7dc`。下一阶段只能使用 release record 中的精确命令执行一次正式 extension 比较；执行完成后先校验 receipt/输出哈希，再生成用户确认的盲评结果。在正式执行前不再修改任何 manifest 中列出的运行时文件。

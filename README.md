@@ -47,7 +47,14 @@ The Client always sends `think=false` and `stream=false`, reads only `message.co
 
 Set `AGENT_GENERATOR_BACKEND=offline_rule` to force the deterministic mode. `OLLAMA_BASE_URL` and `OLLAMA_MODEL` can override the non-secret local endpoint and model. If Ollama is unavailable, the LLM mode automatically falls back to the offline generator.
 
-The candidate 10-question dev run reached `10/10` structured outputs with no runtime fallback, but only `6/10` pass/refuse decisions; all four errors were over-refusals. This is development evidence, not an independent result, and does not establish that LLM generation outperforms the rule baseline. See `reports/llm_generator_dev_audit.md`. The extension holdout remains locked.
+The candidate 10-question dev run reached `10/10` structured outputs with no runtime fallback, but only `6/10` pass/refuse decisions; all four errors were over-refusals. This is development evidence, not an independent result, and does not establish that LLM generation outperforms the rule baseline. See `reports/llm_generator_dev_audit.md`.
+
+The extension implementation is frozen at commit `bdedf7d`, and release `extension-qwen3-4b-v1-bdedf7dc` is authorized but not executed. The generic evaluation runner remains locked. Validate the release without exposing holdout questions to the QA workflow:
+
+```bash
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation.py --preflight
+```
 
 ## Streamlit Demo
 
@@ -69,6 +76,6 @@ python scripts/generate_report_figures.py --check
 
 Dataset ownership and leakage rules are documented in `data/evaluation/README.md`. Generated reports are written under `reports/`.
 
-The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The 23-question `extension` holdout is also frozen and remains execution-locked until the LLM Generator implementation and configuration are frozen.
+The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The 23-question `extension` holdout is frozen separately; its implementation and one-time release are ready, but no extension QA run or result exists yet.
 
 The frozen holdout run is stored in `reports/evaluation_final.json`: 39 of 40 routing/refusal decisions were correct (`0.975`), including all four no-answer cases. The single residual error is an overly conservative refusal on an AdaBoost definition question.

@@ -35,13 +35,13 @@ REQUIRED_RULES = (
     TextRule("R12", "1.48 ms must be separated from online LLM latency", r"1\.48 ms[^\n]{0,50}不是在线 LLM 延迟"),
     TextRule(
         "R13",
-        "Generator wiring, Planner No-Go, and the extension lock must remain explicit",
-        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go，extension 仍锁定",
+        "Generator wiring, Planner No-Go, and the unexecuted release must remain explicit",
+        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go，extension release 已授权但尚未执行",
     ),
     TextRule(
         "R14",
-        "the extension holdout must be described as frozen and locked without outputs",
-        r"23 题 `extension_holdout`[\s\S]{0,300}(?:执行锁仍生效|锁定)[\s\S]{0,100}(?:没有 extension 输出|尚未生成任何 extension)",
+        "the extension holdout must be described as authorized but unexecuted",
+        r"一次性 release `extension-qwen3-4b-v1-bdedf7dc` 当前为 `authorized_not_executed`，没有 extension 输出",
     ),
     TextRule(
         "R15",
@@ -102,6 +102,12 @@ def expected_literals() -> dict[str, str]:
     extension_manifest = read_json(
         PROJECT_ROOT / "data" / "evaluation" / "extension_holdout_manifest.json"
     )
+    implementation_manifest = read_json(
+        PROJECT_ROOT / "data" / "evaluation" / "extension_implementation_manifest.json"
+    )
+    extension_release = read_json(
+        PROJECT_ROOT / "data" / "evaluation" / "extension_holdout_release.json"
+    )
     llm_dev = read_json(PROJECT_ROOT / "reports" / "evaluation_llm_generator_dev_candidate.json")
 
     kb = stats["knowledge_base"]
@@ -146,6 +152,14 @@ def expected_literals() -> dict[str, str]:
         "S19 LLM dev decision accuracy": (
             f"pass/refuse 决策准确率为 {llm_dev['decision_accuracy']:.4f}"
         ),
+        "S20 extension release ID": f"一次性 release `{extension_release['release_id']}`",
+        "S21 extension runtime bundle": implementation_manifest["runtime_bundle_sha256"],
+        "S22 extension prompt hash": implementation_manifest["prompt_contract"][
+            "system_prompt_sha256"
+        ],
+        "S23 extension trace contract hash": implementation_manifest[
+            "trace_contract_sha256"
+        ],
     }
 
 

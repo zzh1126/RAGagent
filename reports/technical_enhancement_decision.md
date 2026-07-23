@@ -13,7 +13,7 @@
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
 | 当前实施范围 | LLM Answer Generator、Verifier 与规则 fallback 已接线；不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
-| extension holdout | 23 题已冻结并锁定，尚未运行 |
+| extension holdout | 23 题、实现与一次性 release 已冻结，状态 `authorized_not_executed` |
 
 ## 前置条件审计
 
@@ -102,13 +102,13 @@ AnswerPayload 无法从正式答案字段解析
 
 1. 允许进入 LLM Answer Generator 的实现阶段；
 2. 暂不实现 LLM Query Planner，继续使用现有规则 Router；
-3. 独立 23 题 `extension_holdout` 和评分合同已经冻结；其后已完成统一 Schema、Client、Generator、Verifier 与 fallback 接线；
+3. 独立 23 题 `extension_holdout`、评分合同、完整 trace 口径与实现 bundle 已冻结，一次性 release `extension-qwen3-4b-v1-bdedf7dc` 已授权但尚未执行；
 4. final 继续只读，原 v1.0 结果、配置指纹和归档哈希不变；
 5. 不实施 Dense Retrieval，也不把 Planner 描述为已经可用。
 
 ## 重新进入条件
 
-以下条件用于完成增强 A。当前条件 1～5 已满足，条件 6 始终有效；但 dev 结果尚未证明增强效果：
+以下条件用于完成增强 A。当前条件 1～5 已满足，条件 6 始终有效；实现提交 `bdedf7d` 和模型 digest 已进入 release record，但 dev 结果尚未证明增强效果：
 
 1. 使用适合纯文本指令的本地模型，或修复当前 Ollama/model 组合，使 JSON Schema 输出进入 `message.content`；
 2. 在合成探针和 dev 上连续执行至少 20 次结构化输出，成功不少于 19 次；

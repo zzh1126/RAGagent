@@ -6,7 +6,7 @@
 > - 项目路径：`E:\RAGagent`
 > - 基线版本：`v1.0-baseline`
 > - 当前实验分支：`experiment/llm-agent-v2`
-> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、Verifier 与规则 fallback，extension 保留集仍锁定，尚无独立增强实验结论。
+> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、Verifier 与规则 fallback，extension 实现和一次性 release 已冻结但尚未执行，仍无独立增强实验结论。
 
 ## 摘要
 
@@ -274,13 +274,13 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 ## 5.8 技术增强决策
 
-**当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go，extension 仍锁定。**
+**当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go，extension release 已授权但尚未执行。**
 
 初始审计中，Ollama `0.32.1` 与 `qwen3-vl:8b` 的 5 次手工受控调用和 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空，因此该视觉模型组合仍为 No-Go，且没有读取 thinking 绕过接口合同。
 
 随后在独立分支安装纯文本 `qwen3:4b` 并执行三类各 20 次正式探针。结构化 Schema 成功为 60/60，空 `message.content` 和非空 thinking 均为 0；简单状态与嵌套 AnswerPayload 的语义成功均为 20/20，但 QueryPlan 语义成功仅为 1/20。冷启动约 20.698 s，全部热请求平均约 0.930 s、P95 约 1.294 s。因此当前只批准 LLM Answer Generator，继续使用规则 Router，不实现或宣称 LLM Planner。
 
-在任何业务实现前，项目已冻结 23 题 `extension_holdout` 和评分合同，题集 SHA-256 为 `7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5`。当前执行锁仍生效，没有 extension 输出或 enhanced 指标。统一 Client、LLM Generator、quote/ID 校验、Verifier 和离线 fallback 已完成；模拟服务不可用时，已知题可自动回退并继续 pass。候选 dev 的结构化输出成功率为 1.0000、fallback rate 为 0.0000、pass/refuse 决策准确率为 0.6000，4 个错误均为 answerable 问题的过度拒答；规则 dev 基线为 1.0000。该结果只用于开发调试，不能证明 LLM 增强有效。完整依据见 `reports/llm_generator_dev_audit.md`、`reports/technical_enhancement_decision.md` 与 `reports/extension_holdout_freeze.md`。
+在任何业务实现前，项目已冻结 23 题 `extension_holdout` 和评分合同，题集 SHA-256 为 `7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5`。实现随后冻结在提交 `bdedf7d`：runtime bundle SHA-256 为 `b4676d37dc9f2babde6ade4f1a3d212ed775d590adf202e3cef710cadbbe03f0`，Prompt v1 SHA-256 为 `f4af2d9668b8ba53cb8f884ff840e4ce282d55d15e4468039b039ff3a0e5c60e`，trace contract SHA-256 为 `f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d`。一次性 release `extension-qwen3-4b-v1-bdedf7dc` 当前为 `authorized_not_executed`，没有 extension 输出或 enhanced 指标。统一 Client、LLM Generator、quote/ID 校验、Verifier 和离线 fallback 已完成；模拟服务不可用时，已知题可自动回退并继续 pass。候选 dev 的结构化输出成功率为 1.0000、fallback rate 为 0.0000、pass/refuse 决策准确率为 0.6000，4 个错误均为 answerable 问题的过度拒答；规则 dev 基线为 1.0000。该结果只用于开发调试，不能证明 LLM 增强有效。完整依据见 `reports/llm_generator_dev_audit.md`、`reports/technical_enhancement_decision.md` 与 `reports/extension_holdout_freeze.md`。
 
 ---
 
@@ -507,7 +507,7 @@ $$
 
 ## 8.4 当前可提交性
 
-LLM Generator、统一 Schema、Client、Verifier 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；但目前只有 dev 调试结果，决策表现低于规则基线，独立 extension 实验尚未执行。v1.0 继续作为可提交保底版本，当前增强分支不能提前宣称效果提升。
+LLM Generator、统一 Schema、Client、Verifier 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；实现和一次性 extension release 已冻结，但正式执行尚未发生。目前只有 dev 调试结果，决策表现低于规则基线。v1.0 继续作为可提交保底版本，当前增强分支不能提前宣称效果提升。
 
 ---
 
@@ -566,7 +566,8 @@ python scripts/validate_scoring.py
 - [x] 在业务实现前冻结 23 题 extension holdout、评分合同和 SHA-256，当前保持执行锁；
 - [x] 实现强类型 AnswerPayload、统一 LLM Client、错误分类、一次重试、脱敏调用记录与合成 smoke；
 - [x] 实现 LLM Answer Generator、规则 fallback、quote/ID 校验与 Verifier 接线；
-- [ ] 冻结实现、Prompt 和配置哈希，建立一次性 release record 后再解除 extension 执行锁；
+- [x] 冻结实现、Prompt、配置、trace 合同和模型 digest，建立一次性 release record；当前状态 `authorized_not_executed`；
+- [ ] 使用专用 runner 执行一次 extension 并完成用户确认的盲评；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；
 - [ ] 制作答辩 PPT、演示脚本和录屏。

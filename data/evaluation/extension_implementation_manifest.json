@@ -1,0 +1,265 @@
+{
+  "schema_version": "1.0",
+  "artifact": "extension_implementation_freeze",
+  "status": "frozen_before_extension_execution",
+  "created_at": "2026-07-23T04:15:45.081830+00:00",
+  "implementation_commit": "bdedf7dcb4e82bc918dfd7c92161501151b09742",
+  "runtime_files": [
+    {
+      "path": "config/extension_evaluation.yaml",
+      "sha256": "a9415d4efc8b3e79bd65d6df84488364761695860bf53d04861e3e4148060b65"
+    },
+    {
+      "path": "config/extension_trace_contract.yaml",
+      "sha256": "f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d"
+    },
+    {
+      "path": "config/settings.yaml",
+      "sha256": "245af4032950698f5e8b9d6ca556a6380b5ada170cee8d8f429a56bb48bafece"
+    },
+    {
+      "path": "data/chroma/chunks_snapshot.jsonl",
+      "sha256": "631edd7068338086ac38388cdc446a5c1d39feb21ee7d6bdf2037d70e30d2014"
+    },
+    {
+      "path": "data/chroma/tfidf_matrix.pkl",
+      "sha256": "8695597703c2e7b5d843d8e978caca3b6e7e676d277a87491227256766312333"
+    },
+    {
+      "path": "data/chroma/tfidf_vectorizer.pkl",
+      "sha256": "38c9d28999cfcd48be701fe0a518a7a85ff884460bdcd8dc767037b50856e263"
+    },
+    {
+      "path": "data/evaluation/extension_holdout_manifest.json",
+      "sha256": "015ac58a74c1929b86c399f585be9bd710fbe2732d4f08b9da8f9f2b6c45dfe0"
+    },
+    {
+      "path": "data/evaluation/extension_questions.jsonl",
+      "sha256": "7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5"
+    },
+    {
+      "path": "data/graph/entities.csv",
+      "sha256": "f8135791a750e87ee9709353bdffc37ffb911a77996be13b82a399784356db0d"
+    },
+    {
+      "path": "data/graph/relations.csv",
+      "sha256": "c09da931f51f41f9683ff72d7ac7c2e6d89ba9fe8ed8731dc553c3afeda1a171"
+    },
+    {
+      "path": "data/processed/chunks.jsonl",
+      "sha256": "631edd7068338086ac38388cdc446a5c1d39feb21ee7d6bdf2037d70e30d2014"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "a3c6bec5025bda2d7cb5f9883793294f735ac1fc1283d7c1810476fef0100b80"
+    },
+    {
+      "path": "scripts/run_extension_evaluation.py",
+      "sha256": "3142d8d978a6f53c7cfb7fe8f3f32b65e5dcf14d5c41540cb9056191973e01f1"
+    },
+    {
+      "path": "src/__init__.py",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "src/agent/__init__.py",
+      "sha256": "80d7cff7e557d199a1114d1f7f45075c7e3bbdb356a43a5df1875250abd7e5d6"
+    },
+    {
+      "path": "src/agent/answer_generator.py",
+      "sha256": "f82b281aadfc313eb72e7a285b291a7f4b9745d2198e42d2c3d8a56fe7543139"
+    },
+    {
+      "path": "src/agent/generators/__init__.py",
+      "sha256": "12a9d2fd5ec3238b842122a0a91040347c4092bc6240d61f8759a168d36e7268"
+    },
+    {
+      "path": "src/agent/generators/base.py",
+      "sha256": "86483421beddbc8542fd3926b9ac8ddf2867d0f6e57881b36a8598b0408d456c"
+    },
+    {
+      "path": "src/agent/generators/context.py",
+      "sha256": "b8fed290aa7cdca9bf9aea64d811ad5fa661e917ed70c036557c19da89ff8d6f"
+    },
+    {
+      "path": "src/agent/generators/factory.py",
+      "sha256": "ba5ca0e895ceac6341f4b63beed99765cd58a681906b58bed91b5ac082160ea6"
+    },
+    {
+      "path": "src/agent/generators/fallback.py",
+      "sha256": "4d72722fbd5f7f0c586e5bb3f39b13552ab3b16b959230ca3a9acccd33f94b53"
+    },
+    {
+      "path": "src/agent/generators/llm_generator.py",
+      "sha256": "f9660bfa063e84293b34860c06e5f6321b5c4725c08d5d872d9282b5db5cdf81"
+    },
+    {
+      "path": "src/agent/workflow.py",
+      "sha256": "de104bccd7b4120ab3bfff42050d113e83c96b2eb2f194b888bb8f8e003096d6"
+    },
+    {
+      "path": "src/evaluation/__init__.py",
+      "sha256": "93e8e62c12e28113599a1d71ebc2068eb74199b044039be51d15e7c8b0108dbe"
+    },
+    {
+      "path": "src/evaluation/config.py",
+      "sha256": "ac9de71161b5fb5fc4535f02456a41e16a5119a4a11c322c9c90280771b2ab62"
+    },
+    {
+      "path": "src/evaluation/extension_release.py",
+      "sha256": "50703c2a216de256bea64b3a2bd3107b0cac56e977b5bf3e3c65fdfab62e300a"
+    },
+    {
+      "path": "src/evaluation/extension_runner.py",
+      "sha256": "f14e42b1be51153a5ae4cd6a522895b9652a1a1fc985f27302e6f4b0c553f0a8"
+    },
+    {
+      "path": "src/evaluation/schemas.py",
+      "sha256": "8d2e5726d4908a0c43dffa2beafaa5e6fb316dee3e78e23f58ce4426d54cbf79"
+    },
+    {
+      "path": "src/evaluation/workflow_factory.py",
+      "sha256": "eef6308580c2e0f46acf0513f14cd15238bf1dac0bf65928cc6a35ce1c798c74"
+    },
+    {
+      "path": "src/graph/__init__.py",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "src/graph/neo4j_repository.py",
+      "sha256": "d33373983c687183c61da0203ee0c7f06b5d68b832dfc6a84517e773c154fcd6"
+    },
+    {
+      "path": "src/graph/networkx_repository.py",
+      "sha256": "be0a0e4c74612102ff4e83e640a410080069791060b17c6a2b204ba4d3e0a865"
+    },
+    {
+      "path": "src/graph/repository.py",
+      "sha256": "06eb56e0edac04416819315e1ef332507bd5f2c257ad1b93df1341d32b208ec4"
+    },
+    {
+      "path": "src/ingestion/__init__.py",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "src/ingestion/html_processing.py",
+      "sha256": "84d69e22c28b00509051fec837d40b97adbb76e5161894d00c03d22c5665e51f"
+    },
+    {
+      "path": "src/llm/__init__.py",
+      "sha256": "4e45e9024412f340389977d37514eca05b8597885a633d7c655c45a5dec50896"
+    },
+    {
+      "path": "src/llm/base.py",
+      "sha256": "48e3a111a1ca2e9674cc94b76e2ba4072c4249473b42e74fd8e55d45956cc3b4"
+    },
+    {
+      "path": "src/llm/config.py",
+      "sha256": "97c0c03aa977dc6503758ae61f0d87a80caff44b6ee30456c55890e0ddebf11c"
+    },
+    {
+      "path": "src/llm/exceptions.py",
+      "sha256": "e85448231631b7ba267a68db064d7dba6f107a67f7cc63bfe8dadb0471b17103"
+    },
+    {
+      "path": "src/llm/factory.py",
+      "sha256": "6a4053df3712f42b4bf5dac7d658b54d5e8b6cde47f020d98df1b5304d2a3e08"
+    },
+    {
+      "path": "src/llm/ollama_client.py",
+      "sha256": "ce346883059608c52dbd7c062b04eaa7bdd054d82433afe146854d55c182425b"
+    },
+    {
+      "path": "src/llm/schemas.py",
+      "sha256": "ed6f6f597999f031c5e4def8687e53c4d014d7aa93dd9065f5902a423dc28980"
+    },
+    {
+      "path": "src/paths.py",
+      "sha256": "16e5d5827e5c77bdfcd1b41769b4e00516b8eadd586b17a8127c4784f82ac44d"
+    },
+    {
+      "path": "src/retrieval/__init__.py",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "src/retrieval/entity_linker.py",
+      "sha256": "7e2e7aabed383404630ddba0a04a65e46fcb4dc2178d7f910e0bdce0d12442d4"
+    },
+    {
+      "path": "src/retrieval/graph_retriever.py",
+      "sha256": "6af098e14bcd4c36cf1d1af528a335e4b9546d9492158099a740b7b478e03a2f"
+    },
+    {
+      "path": "src/retrieval/hybrid_retriever.py",
+      "sha256": "fe4669083b76ed144ab62d0513455fb268556748578ec7ad669aae287c0e8040"
+    },
+    {
+      "path": "src/retrieval/intent_router.py",
+      "sha256": "db0cd127a0e5d817b2aecafb458131b78787e09160ac2556198e8cde243b78cd"
+    },
+    {
+      "path": "src/retrieval/query_rewrite.py",
+      "sha256": "4328caea8af79fe7aa4d5eea26c60d35b52107f354b72760100501af44daa5cb"
+    },
+    {
+      "path": "src/retrieval/vector_rag.py",
+      "sha256": "fcd51eb7d849f483dcfea09c0528a41514a8717fac4a66a9baeef29ae2433cb8"
+    },
+    {
+      "path": "src/retrieval/vector_retriever.py",
+      "sha256": "7d484cb65d9eb553d0f1f21bfb7b2aa7ea3a68d5f3351cb4d5489640c42f2ca4"
+    },
+    {
+      "path": "src/schemas.py",
+      "sha256": "c59aa6b8e53a88af7a6037e7adff7b71dac6f00779a2380f39d301d34f649e31"
+    },
+    {
+      "path": "src/verification/__init__.py",
+      "sha256": "75fd46a4544e422532bb37c9993e02480560667537fb75f93dee97d524ae0540"
+    },
+    {
+      "path": "src/verification/evidence_verifier.py",
+      "sha256": "a0ac889e1ba3530ef9f15315df4664a67ba108c07b1212413200525b1b74cb85"
+    }
+  ],
+  "runtime_bundle_sha256": "b4676d37dc9f2babde6ade4f1a3d212ed775d590adf202e3cef710cadbbe03f0",
+  "hash_normalization": "text_crlf_and_cr_normalized_to_lf; binary_raw_bytes",
+  "prompt_contract": {
+    "version": "v1",
+    "system_prompt_sha256": "f4af2d9668b8ba53cb8f884ff840e4ce282d55d15e4468039b039ff3a0e5c60e",
+    "wire_schema_sha256": "291e0ed4ccc600aed1043e745d64b9479db518a1f458beae00046a0c5ea7c932"
+  },
+  "settings_sha256": "245af4032950698f5e8b9d6ca556a6380b5ada170cee8d8f429a56bb48bafece",
+  "trace_contract_path": "config/extension_trace_contract.yaml",
+  "trace_contract_sha256": "f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d",
+  "dataset_sha256": "7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5",
+  "scoring_contract_sha256": "a9415d4efc8b3e79bd65d6df84488364761695860bf53d04861e3e4148060b65",
+  "method_order": [
+    "rule_baseline",
+    "llm_generator",
+    "llm_generator_no_verifier"
+  ],
+  "python_version": "3.12.7",
+  "dependency_versions": {
+    "langgraph": "1.0.10",
+    "networkx": "3.3",
+    "pydantic": "2.8.2",
+    "PyYAML": "6.0.3",
+    "requests": "2.32.3",
+    "scikit-learn": "1.5.1"
+  },
+  "runtime_model": {
+    "provider": "ollama",
+    "base_url": "http://127.0.0.1:11434",
+    "version": "0.32.1",
+    "model": "qwen3:4b",
+    "model_digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "model_size_bytes": 2497293931
+  },
+  "agent_contract": {
+    "planner_backend": "rule",
+    "generator_backend": "llm",
+    "generator_fallback": "offline_rule",
+    "graph_backend": "networkx"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "artifact": "extension_holdout_release",
+  "status": "authorized_not_executed",
+  "release_id": "extension-qwen3-4b-v1-bdedf7dc",
+  "released_at": "2026-07-23T04:15:45.114831+00:00",
+  "authorized_implementation_commit": "bdedf7dcb4e82bc918dfd7c92161501151b09742",
+  "implementation_manifest_path": "data/evaluation/extension_implementation_manifest.json",
+  "implementation_manifest_sha256": "2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382",
+  "dataset_sha256": "7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5",
+  "scoring_contract_sha256": "a9415d4efc8b3e79bd65d6df84488364761695860bf53d04861e3e4148060b65",
+  "trace_contract_sha256": "f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d",
+  "runtime_bundle_sha256": "b4676d37dc9f2babde6ade4f1a3d212ed775d590adf202e3cef710cadbbe03f0",
+  "prompt_contract": {
+    "version": "v1",
+    "system_prompt_sha256": "f4af2d9668b8ba53cb8f884ff840e4ce282d55d15e4468039b039ff3a0e5c60e",
+    "wire_schema_sha256": "291e0ed4ccc600aed1043e745d64b9479db518a1f458beae00046a0c5ea7c932"
+  },
+  "runtime_model": {
+    "provider": "ollama",
+    "base_url": "http://127.0.0.1:11434",
+    "version": "0.32.1",
+    "model": "qwen3:4b",
+    "model_digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "model_size_bytes": 2497293931
+  },
+  "method_order": [
+    "rule_baseline",
+    "llm_generator",
+    "llm_generator_no_verifier"
+  ],
+  "maximum_execution_runs": 1,
+  "randomization_seed": 4456945680752234866,
+  "execution_state_path": "reports/extension/execution_state.json",
+  "execution_receipt_path": "reports/extension/execution_receipt.json",
+  "output_paths": {
+    "rule_baseline": "reports/extension/rule_baseline.json",
+    "llm_generator": "reports/extension/llm_generator.json",
+    "llm_generator_no_verifier": "reports/extension/llm_generator_no_verifier.json",
+    "combined_metrics": "reports/extension/combined_metrics.json",
+    "blind_review": "reports/extension/blind_review.csv",
+    "blind_method_key": "reports/extension/blind_method_key.json"
+  },
+  "authorized_command": "python scripts/run_extension_evaluation.py --execute-once --release-id extension-qwen3-4b-v1-bdedf7dc --confirm-one-time-run",
+  "final_result_policy": "v1.0_final_read_only_unchanged"
+}

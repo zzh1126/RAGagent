@@ -8,7 +8,7 @@
 - `demo_questions.jsonl`：8 题，可与开发集重合，用于 Streamlit 演示。
 - `pilot_questions.jsonl`：40 题，曾用于发现并修复两处实现缺口，不能再视为无泄漏最终结果。
 - `final_questions.jsonl`：重新创建的 40 题保留测试集，与开发集和先导集题面不重合；冻结后只运行一次。
-- `extension_questions.jsonl`：在 LLM Client 与 Generator 业务实现前冻结的 23 题扩展保留集；当前锁定，禁止运行或调参。
+- `extension_questions.jsonl`：在 LLM Client 与 Generator 业务实现前冻结的 23 题扩展保留集；实现和一次性 release 已冻结，但当前尚未运行，仍禁止用于调参。
 
 最终 40 题固定分布：
 
@@ -52,14 +52,19 @@
 - `required_aspects`：人工正确性评分必须覆盖的回答维度；
 - `forbidden_claims`：不得出现的错误或越界事实；
 - `config/extension_evaluation.yaml`：方法矩阵、指标分母、盲评协议和执行锁；
+- `config/extension_trace_contract.yaml`：完整 generation trace、冷/热延迟和一次性执行口径；
 - `extension_holdout_manifest.json`：题集与评分合同 SHA-256。
+- `extension_implementation_manifest.json`：实现、Prompt、Schema、依赖、输入和模型 digest；
+- `extension_holdout_release.json`：绑定实现提交的一次性执行授权。
 
 运行校验和评测：
 
 ```bash
 python scripts/validate_evaluation.py
 python scripts/validate_extension_holdout.py
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation.py --preflight
 python scripts/run_evaluation.py --split dev
 ```
 
-`run_evaluation.py` 会拒绝 `final` 和 `extension`。final 复用冻结结果；extension 只有在 LLM Generator 实现、测试和配置全部冻结后，创建独立 release record 才能运行一次。
+`run_evaluation.py` 始终拒绝 `final` 和 `extension`。final 复用冻结结果；extension 只能通过专用 runner、精确 release ID 和显式一次性确认执行。当前 release 状态为 `authorized_not_executed`，preflight 不会把 extension 问题发送给 QA 工作流。
