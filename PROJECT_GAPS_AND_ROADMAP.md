@@ -59,7 +59,7 @@
 | G03 | ClaimResult 未真正接线 | Schema 存在，VerifyResult 无逐 Claim 结果 | 无法过滤失败 Claim | P0 | 马上处理 |
 | G04 | 没有 `PARTIAL_PASS` | 决策只有 pass/retry/refuse | 部分正确无法安全输出 | P0 | 马上处理 |
 | G05 | 证据上下文未按题型平衡 | `intent_aware_v2` 已完成 50 题只读合同回归 | 风险已关闭 | Done | 阶段 8.1 完成 |
-| G06 | Prompt 未限制原子 Claim | Claims 无 max_length，可能一条含多个事实 | quote 只支持部分时整条失败 | P0 | 马上处理 |
+| G06 | Prompt 未限制原子 Claim | Prompt v2 与 1～4 Claim wire Schema 已通过 20/20 合成探针 | 风险已关闭 | Done | 阶段 8.2 完成 |
 | G07 | 重试过多 | dev 7/10 重试 | 延迟放大且未改善拒答 | P0 | 马上处理 |
 | G08 | 没有 LLM 正式 extension 结果 | extension 从未运行 | 无法回答 LLM 是否真正提升 | P0 | 完成 v2 后一次性运行 |
 | G09 | 延迟 trace 不完整 | packing latency 已接线，retrieval/verification/retry 仍待拆分 | 尚不能完整定位端到端耗时 | P1 | 部分完成 |
@@ -178,11 +178,11 @@ Packer 不修改原始 `RetrievalResult`，只返回选中证据、选择原因�
 - [x] 定义、对比、解释、多跳、关系、指标题、零路径预算和极端字符预算均有单元测试；
 - [x] dev/pilot 50 题只读回归平均选择 4.38 条、最长 7,783 字符，仅 `F-NA-01` 出现预期空证据 gap。
 
-真实 dev smoke 仍在一次重试后拒答：citation/path validity 均为 1.0000，但只有 1/3 Claim 通过术语覆盖。该结果说明 Packer 已完成并缩小了上下文噪声，但不能替代阶段 8.2/8.3 的原子 Claim 和 Partial-pass。
+阶段 8.1 的真实 dev smoke 在一次重试后拒答：citation/path validity 均为 1.0000，但只有 1/3 Claim 通过术语覆盖。该结果说明 Packer 已完成并缩小了上下文噪声。阶段 8.2 随后把 Claim coverage 提高到 0.5000，但仍需阶段 8.3 的 Claim-level Partial-pass 才能处理整题过度拒答。
 
 ## 6. P0：Prompt v2 与原子 Claim
 
-### 6.1 当前问题
+### 6.1 原问题
 
 当前 Prompt 已要求真实 E ID 和逐字 quote，但允许无限数量 Claim，也没有充分阻止一条 Claim 同时表达机制、结果和优势。
 
@@ -192,7 +192,7 @@ Packer 不修改原始 `RetrievalResult`，只返回选中证据、选择原因�
 
 这可能是多个可独立验证的事实。如果 quote 只支持其中一部分，当前 Verifier 会把整个 Claim 判为不支持。
 
-### 6.2 马上实施
+### 6.2 已完成
 
 Prompt v2 固定要求：
 
@@ -214,15 +214,20 @@ claims: list[LLMAnswerClaim] = Field(min_length=1, max_length=4)
 
 不实现简单的中文连接词硬拒绝规则。“并且、同时”可能出现在单一术语描述中，机械拦截会产生新的误杀。原子性通过 Prompt、Schema、合成反例和人工审计控制。
 
-### 6.3 验收标准
+### 6.3 验收结果
 
-- 第 5 条 Claim 被 Schema 拒绝；
-- Claim 无 E ID 或无 quote 时被拒绝；
-- quote 必须是对应 Chunk 原文子串；
-- 不允许未知字段；
-- 至少 20 次合成结构探针成功不少于 19 次；
-- 不记录 Prompt、原始 content 或 thinking；
-- Prompt v2 和 wire Schema 分别计算稳定 SHA-256。
+- [x] 第 5 条 Claim 被 Schema 拒绝；
+- [x] Claim 无 E ID 或无 quote 时被拒绝；
+- [x] E/P/R ID 在 wire Schema 中使用不同正则命名空间；
+- [x] quote 必须是对应 Chunk 连续、保留大小写的原文子串；
+- [x] 每个 evidence ID 必须有 quote，顶层路径必须等于 Claim 路径并集；
+- [x] 不允许未知字段；
+- [x] 20 次合成结构探针成功 `20/20`，四个场景各 5 次；
+- [x] 报告不记录 Prompt、原始 content、Claim 正文、quote 或 thinking；
+- [x] Prompt v2 SHA-256=`e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`；
+- [x] wire Schema SHA-256=`b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`。
+
+真实随机森林 smoke 生成 4 条分离 Claim，citation/path validity 均为 1.0000，Claim coverage 从阶段 8.1 的 0.3333 提高到 0.5000；但严格整题 Verifier 仍在一次重试后拒答。该结果说明 Prompt 结构已改善，但不能替代阶段 8.3 的逐 Claim 保留与删除，也不是独立效果实验。
 
 ## 7. P0：Claim-level Verifier 与 `PARTIAL_PASS`
 
@@ -679,7 +684,7 @@ Pilot 已观察到：
 
 完成确定性证据选择、题型配额、trace 和单元测试。
 
-### 阶段 8.2：Prompt v2
+### 阶段 8.2：Prompt v2（已完成）
 
 完成最多 4 条原子 Claim、quote 合同、Schema 和合成探针。
 
@@ -758,7 +763,7 @@ Pilot 已观察到：
 项目达到当前规划的“完整 LLM Agent 科研版本”，必须同时满足：
 
 1. v1 release 已在未执行状态下被不可变撤销；
-2. v2 Evidence Packer、Prompt、ClaimResult、Partial-pass 和 trace 已实现；其中 Packer 已完成，其余待后续阶段；
+2. v2 Evidence Packer、Prompt、ClaimResult、Partial-pass 和 trace 已实现；其中 Packer 与 Prompt 已完成，其余待后续阶段；
 3. dev 工程门槛通过；
 4. pilot 只做一次冻结前回归且未用于继续调参；
 5. v2 implementation manifest 和一次性 release 已冻结；
@@ -772,16 +777,16 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-下一步不是运行 extension，也不是直接改 Verifier。阶段 8.0 和 8.1 已验收，下一步只做阶段 8.2：
+下一步不是运行 extension。阶段 8.0～8.2 已验收，下一步只做阶段 8.3：
 
 ```text
-冻结 Prompt v2 文本
+逐 Claim 生成 ClaimResult
     ↓
-限制最多 4 条原子 Claim
+区分 supported / unsupported
     ↓
-强化 E/P 字段和逐字 quote 合同
+过滤失败 Claim 并重建答案
     ↓
-完成合成结构探针，不运行 extension
+实现 PASS / PARTIAL_PASS / REFUSE 与 strict 模式
 ```
 
-阶段 8.2 单独验收并写入 `PROGRESS.md` 后，再进入 Claim-level Verifier；不会在同一步运行 extension。
+阶段 8.3 单独验收并写入 `PROGRESS.md` 后，再进入 trace/UI；不会在同一步运行 extension。

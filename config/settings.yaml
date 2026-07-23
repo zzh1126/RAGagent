@@ -49,7 +49,7 @@ agent:
   generator_backend: llm
   planner_fallback: rule
   generator_fallback: offline_rule
-  generator_prompt_version: v1
+  generator_prompt_version: v2
   evidence_packer: intent_aware_v2
   max_text_evidence: 8
   max_graph_paths: 8

@@ -6,7 +6,7 @@
 > - 项目路径：`E:\RAGagent`
 > - 基线版本：`v1.0-baseline`
 > - 当前实验分支：`experiment/llm-agent-v2`
-> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、intent-aware Evidence Packer、Verifier 与规则 fallback；未执行的 v1 extension release 已撤销，v2 四方法合同已冻结但尚无 release，仍无独立增强实验结论。
+> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、intent-aware Evidence Packer、原子 Claim Prompt v2、Verifier 与规则 fallback；未执行的 v1 extension release 已撤销，v2 四方法合同已冻结但尚无 release，仍无独立增强实验结论。
 
 ## 摘要
 
@@ -254,7 +254,7 @@ Packer 不修改原始 `RetrievalResult`，只生成 `EvidencePack`；总上下�
 
 v1.0 使用的 `GroundedAnswerGenerator` 不调用在线 LLM。它将 approved 图关系转换为中文 Claim，并把每条 Claim 绑定到一个或多个 Evidence ID；定义题可使用图实体的中文描述和对应文本证据。若没有可用 Claim 和文本证据，则生成明确的“当前知识库证据不足”文本。
 
-当前分支默认使用 `qwen3:4b` 的 `LLMAnswerGenerator`。模型只能看到 Packer 选出的长度受控文本证据和图路径，并输出强类型 Claim、E/P/R ID 与 `supporting_quotes`；程序检查 ID 是否在本次可见集合内、quote 是否属于对应 Chunk，并对关键中英术语做保守覆盖校验。服务不可达、超时、空 content 或两次 Schema 失败时自动回退 `GroundedAnswerGenerator`。该机制提高了语言组织能力和运行时可用性，但 quote/术语检查不等同于完整语义蕴含判断。
+当前分支默认使用 `qwen3:4b` 的 `LLMAnswerGenerator`。模型只能看到 Packer 选出的长度受控文本证据和图路径。Prompt v2 要求每条 Claim 有明确主语且只表达一个可独立验证事实，将定义、机制、结果、优势和局限分开，并逐一披露无证据子问；wire Schema 将 Claims 限制为 1～4 条，分别约束 E/P/R ID 命名空间。每个 Claim 至少有一个 E ID 和逐字 quote，每个 E ID 都必须有 quote，顶层路径必须等于 Claim 路径并集。程序还检查 ID 可见性、quote 的连续原文子串和大小写，并对关键中英术语做保守覆盖校验。服务不可达、超时、空 content 或两次 Schema 失败时自动回退 `GroundedAnswerGenerator`。该机制提高了语言组织能力和运行时可用性，但 quote/术语检查不等同于完整语义蕴含判断。
 
 ## 5.6 Evidence Verifier
 
@@ -282,6 +282,10 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 **当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销，v2 合同已冻结但尚无可执行 release。**
 
 阶段 8.1 已完成 Evidence Packer、可见 ID 边界和逐次 packing trace。dev/pilot 50 题只读合同检查平均选择 4.38 条文本证据，最长上下文 7,783 字符，只有无答案题 `F-NA-01` 出现预期的 `no_text_evidence` gap。对“随机森林为什么更稳定”的真实 dev smoke 仍在一次重试后拒答：citation/path validity 均为 1.0000，但严格术语覆盖仅支持 1/3 Claim。因此 Packer 已通过工程验收，但尚未解决过度拒答，也不能视为独立增强效果结论。
+
+阶段 8.2 已冻结原子 Claim Prompt v2 和 wire Schema。Prompt v2 合成探针成功为 20/20，覆盖随机森林双事实、AdaBoost 三事实、Bagging/Boosting 对比和“部分有证据、部分无证据”四类人工场景；报告不保存 Prompt、回答正文、quote 或 thinking。Prompt v2 SHA-256 为 `e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`，wire Schema SHA-256 为 `b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`。这只是工程结构门槛，不是独立回答质量实验。
+
+同一随机森林 dev smoke 在 Prompt v2 下生成 4 条分离 Claim，citation/path validity 仍为 1.0000，Claim coverage 从 0.3333 提高到 0.5000，但未修改的整题 Verifier 仍在一次重试后 `refuse`。因此过度拒答尚未解决，下一步仍需 Claim-level retained/removed 结果与 `PARTIAL_PASS`。
 
 初始审计中，Ollama `0.32.1` 与 `qwen3-vl:8b` 的 5 次手工受控调用和 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空，因此该视觉模型组合仍为 No-Go，且没有读取 thinking 绕过接口合同。
 
@@ -337,7 +341,7 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 ## 6.5 工程测试
 
-当前全量测试为 `87 passed`，覆盖 GraphRepository、Vector/Graph Retriever、Evidence Packer、LLM Generator/fallback、LangGraph 工作流、Verifier 重试与拒答、评测集隔离、extension 治理、实验配置和实验运行器。独立 Packer 单元测试覆盖确定性去重、定义/对比/解释/多跳/关系/指标策略、标点变体、可见路径和字符预算；`pip check` 无依赖冲突，100 条 approved 图关系的证据回指校验通过。
+当前全量测试为 `104 passed`，覆盖 GraphRepository、Vector/Graph Retriever、Evidence Packer、Prompt v2/wire Schema、LLM Generator/fallback、LangGraph 工作流、Verifier 重试与拒答、评测集隔离、extension 治理、实验配置和实验运行器。Prompt 定向测试覆盖第 5 条 Claim、缺 E ID、缺 quote、E/P/R 混填、未知字段、非逐字 quote、多事实 Claim 和无证据子问；`pip check` 无依赖冲突，100 条 approved 图关系的证据回指校验通过。
 
 ## 6.6 运行命令
 
@@ -346,6 +350,7 @@ python scripts/validate_config.py
 python scripts/validate_graph_data.py
 python scripts/validate_graph_evidence.py
 python scripts/validate_evidence_packer.py
+python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_evaluation.py
 python scripts/validate_experiments.py
 pytest -q
@@ -506,7 +511,7 @@ $$
 
 ## 8.3 后续工作
 
-- 完成原子 Claim Prompt v2、逐 Claim 验证和 `PARTIAL_PASS`，在 dev/pilot 回归后冻结配置；
+- 完成逐 Claim 验证和 `PARTIAL_PASS`，在 dev/pilot 回归后冻结配置；
 - 创建新的 v2 implementation manifest 与一次性 release，再在独立 extension holdout 上只运行一次四方法实验；
 - 完善属性级问题对齐和错误前提验证；
 - 改进多目标实体和多跳路径覆盖；
@@ -516,7 +521,7 @@ $$
 
 ## 8.4 当前可提交性
 
-LLM Generator、Evidence Packer、统一 Schema、Client、Verifier 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；v1 extension release 已在正式执行前撤销，v2 四方法合同已冻结但尚无 release。目前只有 dev/pilot 工程审计，随机森林真实 smoke 仍发生过度拒答。v1.0 继续作为可提交保底版本，当前增强分支不能提前宣称效果提升。
+LLM Generator、Evidence Packer、Prompt v2、统一 Schema、Client、Verifier 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；v1 extension release 已在正式执行前撤销，v2 四方法合同已冻结但尚无 release。目前只有合成/dev/pilot 工程审计，随机森林 Prompt v2 smoke 仍发生过度拒答。v1.0 继续作为可提交保底版本，当前增强分支不能提前宣称效果提升。
 
 ---
 
@@ -555,6 +560,7 @@ python scripts/validate_config.py
 python scripts/validate_graph_data.py
 python scripts/validate_graph_evidence.py
 python scripts/validate_evidence_packer.py
+python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_evaluation.py
 python scripts/validate_extension_holdout.py
 python scripts/validate_experiments.py
@@ -578,7 +584,8 @@ python scripts/validate_scoring.py
 - [x] 实现 LLM Answer Generator、规则 fallback、quote/ID 校验与 Verifier 接线；
 - [x] 冻结 v1 实现、Prompt、配置、trace 合同和模型 digest，建立一次性 release record；在执行前撤销并冻结 v2 四方法合同；
 - [x] 实现 intent-aware Evidence Packer、题型配额、可见 ID 边界、字符预算和逐次 packing trace，并完成 dev/pilot 只读合同回归；
-- [ ] 实现原子 Claim Prompt v2、Claim-level Verifier 与 `PARTIAL_PASS`；
+- [x] 实现原子 Claim Prompt v2、1～4 条 Claim wire Schema、逐字 quote 合同与 20 次合成探针；
+- [ ] 实现 Claim-level Verifier 与 `PARTIAL_PASS`；
 - [ ] 使用专用 runner 执行一次 extension 并完成用户确认的盲评；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；

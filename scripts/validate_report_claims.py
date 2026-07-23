@@ -53,6 +53,16 @@ REQUIRED_RULES = (
         "dev results must be separated from independent enhancement evidence",
         r"候选 dev 的结构化输出成功率为 1\.0000[\s\S]{0,250}决策准确率为 0\.6000[\s\S]{0,150}(?:不能证明 LLM 增强有效|只用于开发调试)",
     ),
+    TextRule(
+        "R17",
+        "Prompt v2 synthetic probe must remain an engineering gate",
+        r"Prompt v2 合成探针成功为 20/20[\s\S]{0,500}(?:工程结构门槛|不是独立回答质量实验)",
+    ),
+    TextRule(
+        "R18",
+        "Prompt v2 must not be described as fixing over-refusal",
+        r"Claim coverage 从 0\.3333 提高到 0\.5000[\s\S]{0,180}(?:仍在一次重试后 `refuse`|过度拒答尚未解决)",
+    ),
 )
 
 
@@ -87,6 +97,16 @@ FORBIDDEN_RULES = (
         "dev tuning results incorrectly presented as LLM superiority",
         r"(?:候选 dev|dev 调试)[^。\n]{0,80}(?:证明|表明)[^。\n]{0,30}LLM[^。\n]{0,20}(?:优于|超过)规则",
     ),
+    TextRule(
+        "F15",
+        "unsupported claim that Prompt v2 fixed over-refusal",
+        r"Prompt v2[^。\n]{0,30}已(?:经)?(?:解决|消除)(?:了)?过度拒答",
+    ),
+    TextRule(
+        "F16",
+        "synthetic probe incorrectly presented as enhancement effectiveness",
+        r"20/20[^。\n]{0,40}(?:证明|表明)[^。\n]{0,20}(?:增强有效|优于规则|正式准确率)",
+    ),
 )
 
 
@@ -116,6 +136,9 @@ def expected_literals() -> dict[str, str]:
         / "extension-qwen3-4b-v1-bdedf7dc.json"
     )
     llm_dev = read_json(PROJECT_ROOT / "reports" / "evaluation_llm_generator_dev_candidate.json")
+    atomic_probe = read_json(
+        PROJECT_ROOT / "reports" / "llm_atomic_claim_prompt_v2_probe.json"
+    )
 
     kb = stats["knowledge_base"]
     graph = stats["graph"]
@@ -169,6 +192,17 @@ def expected_literals() -> dict[str, str]:
         ],
         "S24 extension effective status": (
             f"有效状态固定为 `{extension_revocation['status']}`"
+        ),
+        "S25 atomic Prompt probe": (
+            "Prompt v2 合成探针成功为 "
+            f"{atomic_probe['summary']['semantic_successes']}/"
+            f"{atomic_probe['summary']['total_runs']}"
+        ),
+        "S26 atomic Prompt hash": (
+            f"Prompt v2 SHA-256 为 `{atomic_probe['system_prompt_sha256']}`"
+        ),
+        "S27 atomic wire Schema hash": (
+            f"wire Schema SHA-256 为 `{atomic_probe['wire_schema_sha256']}`"
         ),
     }
 

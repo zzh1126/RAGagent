@@ -7,11 +7,11 @@
 | 评测日期 | 2026-07-23 |
 | 当前分支 | `experiment/llm-agent-v2` |
 | 阶段 8.0 完成提交 | `7fbf566` |
-| 计划状态 | 阶段 8.0/8.1 已完成，准备进入阶段 8.2 |
+| 计划状态 | 阶段 8.0～8.2 已完成，准备进入阶段 8.3 |
 | 当前 extension release | `extension-qwen3-4b-v1-bdedf7dc` |
 | release 有效状态 | `revoked_before_execution`，从未运行 |
 | v2 状态 | 四方法合同已冻结，`locked_no_release` |
-| 当前边界 | 下一阶段只实现原子 Claim Prompt v2，不运行 final/extension |
+| 当前边界 | 下一阶段只实现 Claim-level Verifier 与 Partial-pass，不运行 final/extension |
 
 ## 一、总体结论
 
@@ -329,7 +329,7 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 
 完成结果：12 个独立 Packer 单元测试覆盖定义、标点变体、对比、解释、多跳、关系、指标、去重和预算；50 道 dev/pilot 只读回归平均选择 4.38 条证据、最长上下文 7,783 字符，仅无答案题 `F-NA-01` 出现预期空证据 gap。真实 dev smoke 仍因严格 Claim 术语覆盖拒答，因此阶段 8.2/8.3 仍是必要工作。
 
-### 阶段 8.2：原子 Claim Prompt v2
+### 阶段 8.2：原子 Claim Prompt v2（已完成）
 
 - Prompt 增加单事实约束和最多 4 条 Claims；
 - wire Schema 增加 `max_length=4`；
@@ -337,6 +337,8 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 - 增加合成结构、无效引用、超长 Claim 列表和多事实 Claim 样例。
 
 验收：至少 20 次合成结构探针中成功不少于 19 次；不存在第 5 条 Claim；无真实证据 ID 时不能生成可接受 Claim。
+
+完成结果：Prompt v2 与 wire Schema 已冻结；Schema 强制 1～4 条 Claim、E/P/R 命名空间、每 Claim 至少一个 E ID 和 quote。四个合成场景各 5 次，共 `20/20` 同时通过结构与语义验证，报告未保存 Prompt、回答、quote 或 thinking。真实随机森林 smoke 生成 4 条分离 Claim并将严格覆盖提高到 0.5000，但旧整题 Verifier 仍拒答，因此不能宣称过度拒答已解决。
 
 ### 阶段 8.3：Claim-level Verifier 与 Partial-pass
 
@@ -451,4 +453,4 @@ PROGRESS.md
 
 **No-Go：** LLM Planner、多 Agent、知识库扩充、自动图谱抽取、完整 Microsoft GraphRAG 和框架迁移。
 
-下一步进入阶段 8.2：冻结原子 Claim Prompt v2、最多 4 条 Claim 的 wire Schema 和合成结构探针。本阶段不会改 Verifier，也不会运行 extension。
+下一步进入阶段 8.3：实现逐 Claim `ClaimResult`、过滤 unsupported Claim、`PARTIAL_PASS` 和 strict 对照模式。本阶段仍不会运行 final/extension。

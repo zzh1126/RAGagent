@@ -1,0 +1,49 @@
+schema_version: "1.0"
+artifact: atomic_claim_prompt_contract
+status: frozen_stage_8_2
+prompt_version: v2
+
+implementation:
+  source: src/agent/generators/llm_generator.py
+  generator_class: LLMAnswerGenerator
+  wire_schema: LLMAnswerDraft
+  maximum_claims: 4
+  system_prompt_sha256: e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad
+  wire_schema_sha256: b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb
+
+claim_contract:
+  one_independently_verifiable_fact_per_claim: true
+  explicit_subject_required: true
+  minimum_claims: 1
+  maximum_claims: 4
+  minimum_evidence_ids_per_claim: 1
+  minimum_supporting_quotes_per_claim: 1
+  every_evidence_id_requires_quote: true
+  quote_must_be_contiguous_verbatim_case_preserving: true
+  evidence_id_pattern: ^E[1-9][0-9]*$
+  graph_path_id_pattern: ^P[1-9][0-9]*$
+  relation_id_pattern: ^(?:|R[A-Za-z0-9_-]+)$
+  unsupported_requested_aspects_must_be_disclosed: true
+  model_memory_forbidden: true
+
+formal_probe:
+  script: scripts/probe_atomic_claim_prompt.py
+  validator: scripts/validate_atomic_claim_prompt.py
+  report: reports/llm_atomic_claim_prompt_v2_probe.json
+  model: qwen3:4b
+  total_runs: 20
+  minimum_successes: 19
+  scenarios:
+    - random_forest_relation_and_effect
+    - adaboost_three_atomic_facts
+    - bagging_boosting_comparison
+    - kmeans_unsupported_parameter
+  raw_prompt_recorded: false
+  raw_content_recorded: false
+  raw_thinking_recorded: false
+
+governance:
+  final_qa_allowed: false
+  extension_qa_allowed: false
+  creates_v2_extension_release: false
+  verifier_or_partial_pass_modified: false

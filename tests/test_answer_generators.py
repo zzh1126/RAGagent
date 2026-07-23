@@ -299,6 +299,30 @@ def test_llm_generator_rebuilds_answer_from_structured_claims() -> None:
     assert "优于所有其他算法" not in payload.answer
 
 
+def test_llm_generator_rejects_case_changed_nonverbatim_quote() -> None:
+    output = valid_output()
+    output["claims"][0]["supporting_quotes"][0]["quote"] = (
+        "random forests are ensemble methods based on randomized decision trees."
+    )
+    generator = LLMAnswerGenerator(StubLLMClient(output=output))
+
+    payload = generator.generate("随机森林属于什么模型族？", sample_retrieval())
+
+    assert any("supporting quote 不存在于 E1" in item for item in payload.unsupported_claims)
+
+
+def test_llm_generator_removes_top_level_path_not_used_by_claims() -> None:
+    output = valid_output()
+    output["claims"][0]["graph_path_ids"] = []
+    output["claims"][0]["relation_id"] = ""
+    generator = LLMAnswerGenerator(StubLLMClient(output=output))
+
+    payload = generator.generate("随机森林属于什么模型族？", sample_retrieval())
+
+    assert payload.graph_paths == []
+    assert "顶层 graph_paths 与 Claims 实际使用的路径不一致" in payload.unsupported_claims
+
+
 def test_unknown_evidence_path_and_relation_ids_cannot_pass_verification() -> None:
     output = valid_output()
     output["claims"][0].update(

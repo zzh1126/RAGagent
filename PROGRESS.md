@@ -1872,3 +1872,145 @@ git diff --check
 ### 当前状态与下一步
 
 阶段 8.1 已完成。Evidence Packer 已把“送给 LLM 的证据”从固定半预算 Serializer 升级为可审计的题型感知选择，同时保持完整 Retriever/Verifier 证据链不变。下一阶段只进入 8.2：冻结原子 Claim Prompt v2、限制最多 4 条 Claim、强化 E/P 字段与逐字 quote 合同并完成合成结构探针；仍不修改 Partial-pass 决策，也不运行 final/extension。
+
+## 2026-07-23 阶段 8.2：原子 Claim Prompt v2 与冻结结构探针
+
+### 完成事项
+
+- 将默认答案生成合同从 Prompt v1 升级为 Prompt v2：
+  - `config/settings.yaml` 的 `generator_prompt_version` 固定为 `v2`；
+  - `src/llm/config.py` 将运行时可接受版本收紧为 `Literal["v2"]`；
+  - `scripts/validate_config.py` 增加当前 Prompt 版本输出；
+  - `ANSWER_PROMPT_VERSION` 固定为 `v2`，`MAX_LLM_CLAIMS` 固定为 4。
+- 重写 `LLMAnswerGenerator` 的系统 Prompt，明确原子 Claim 合同：
+  - 每条 Claim 必须有明确主语，只表达一个可独立验证的专业事实；
+  - 定义、机制、过程、结果、优势、局限和比较事实应拆分；
+  - 训练顺序与后续学习器关注对象等不同事实必须拆分；
+  - 每条 Claim 至少引用一个真实 E ID，并为每个 E ID 提供对应原文 quote；
+  - quote 必须是对应证据中连续、逐字、保留大小写和标点的原文片段；
+  - E/P/R ID 分别只能进入 `evidence_ids`、`graph_path_ids` 和 `relation_id`；
+  - 只有 Claim 本身陈述图关系时才允许填写 P/R ID；
+  - 顶层 `graph_paths` 必须等于各 Claim 实际路径引用的去重并集；
+  - 部分子问缺证据时必须进入 `unsupported_claims`，不得猜测或隐藏缺口；
+  - 最多输出 4 条 Claim，不为凑数量重复事实。
+- 收紧 LLM wire Schema：
+  - 新增 `LLMAnswerQuote`，禁止未知字段并限制 quote 长度；
+  - `LLMAnswerDraft.claims` 强制为 1～4 条；
+  - E ID 正则固定为 `^E[1-9][0-9]*$`；
+  - P ID 正则固定为 `^P[1-9][0-9]*$`；
+  - R ID 正则固定为 `^(?:|R[A-Za-z0-9_-]+)$`；
+  - 每条 Claim 至少一个 E ID和一条 supporting quote；
+  - 所有 Schema 对象继续使用 `extra="forbid"`，未知字段直接失败。
+- 强化运行时引用边界：
+  - quote 校验不再 `casefold`，大小写变化不能冒充逐字引用；
+  - 每个 `evidence_id` 都必须至少有一条同 ID quote；
+  - 未展示的 E/P/R ID 继续记录为违规；
+  - 顶层多余路径不会进入最终 `AnswerPayload.graph_paths`，并记录路径并集不一致违规；
+  - 最终答案仍由通过 Schema 的 Claims 重建，不直接信任模型顶层 `answer` 文本。
+- 新增冻结合同 `config/atomic_claim_prompt_v2.yaml`：
+  - 状态固定为 `frozen_stage_8_2`；
+  - Prompt SHA-256 固定为 `e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`；
+  - wire Schema SHA-256 固定为 `b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`；
+  - 明确禁止 final/extension QA，不创建 v2 extension release，也不修改 Verifier/Partial-pass。
+- 新增合成结构探针与审计脚本：
+  - `scripts/probe_atomic_claim_prompt.py` 覆盖随机森林关系与方差、AdaBoost 三个原子事实、Bagging/Boosting 对比、KMeans 有证据事实与无证据参数四个场景；
+  - `scripts/validate_atomic_claim_prompt.py` 重算汇总、校验 Prompt/Schema 哈希、场景顺序、1～4 Claim 边界和脱敏报告；
+  - `tests/test_atomic_claim_prompt.py` 覆盖第 5 条 Claim、空 E ID、空 quote、E/P/R 混填、未知字段、复合 Claim、大小写改变 quote、部分支持与递归敏感字段检查；
+  - `tests/test_answer_generators.py` 增加大小写改变 quote 和顶层未使用路径的运行时回归；
+  - `src/agent/generators/__init__.py` 导出 `MAX_LLM_CLAIMS`。
+- 在正式探针前使用临时输出完成预检迭代：
+  - 先校验四个场景的原子事实匹配、quote 对齐、unsupported 子问和报告脱敏规则；
+  - 根据预检结果收紧 Prompt、Schema 与语义 validator 后再执行正式 20 次探针；
+  - 临时预检报告在正式报告生成后按单文件明确路径删除，未纳入 Git；
+  - 正式探针后不再修改 Prompt 或 wire Schema，后续若修改必须更新冻结合同并重新执行探针。
+- 同步项目文档和报告事实治理：
+  - 更新 `README.md`、`PROJECT_HANDBOOK.md`、`PROJECT_GAPS_AND_ROADMAP.md`、Partial-pass 计划、随机森林诊断和技术增强决策；
+  - 更新科研报告草稿、报告声明清单和评测数据说明；
+  - `scripts/validate_report_claims.py` 增加 Prompt v2 探针、Prompt/Schema 哈希、过度拒答仍存在的必需声明与禁止夸大规则；
+  - 明确 `20/20` 只是工程结构门槛，不是回答正确性、增强有效性或 extension 结论。
+
+### 正式合成探针
+
+- 正式命令使用本地 `qwen3:4b`、`temperature=0.0`、`seed=42`、`think=false` 和 `num_predict=1536`；
+- 四个场景各执行 5 次，共 20 次；
+- Schema 成功：`20/20`；
+- 语义合同成功：`20/20`；
+- fallback/error：`0`；
+- 平均延迟：`3391.0 ms`；
+- P95 延迟：`3994.3 ms`；
+- 四个场景均为 `5/5`；
+- 报告只保存场景名、Claim 数量、使用的 E/P ID、错误码、token 和延迟等审计字段；
+- 报告不保存 Prompt、用户上下文、模型回答、Claim 正文、quote、content 或 thinking；
+- 正式报告为 `reports/llm_atomic_claim_prompt_v2_probe.json`；
+- 正式报告 SHA-256 为 `e8f1ee797e0578c600b82b0d0cd0b687d2be6899a52909b0a584ce56c2b622be`。
+
+### 随机森林真实 smoke
+
+- 使用 Prompt v2 重新执行真实 dev 问题“随机森林为什么更稳定”；
+- 模型生成 4 条分离的原子 Claim；
+- 最终 decision=`refuse`；
+- evidence score=`0.8500`；
+- Claim coverage=`0.5000`，高于阶段 8.1 的 `0.3333`；
+- citation validity=`1.0000`；
+- path validity=`1.0000`；
+- retrieval sufficiency=`1.0000`；
+- retry count=`1`；
+- 两次 generation latency 分别为 `8176.2 ms` 和 `7400.9 ms`；
+- 两次 evidence packing latency 分别为 `1.863 ms` 和 `3.748 ms`。
+
+该 smoke 证明 Prompt v2 改善了 Claim 拆分和严格覆盖，但没有解决用户遇到的拒答。当前 Verifier 仍按整题聚合：任一 Claim 不满足严格支持条件就可能触发重试，重试后仍失败则整题 `REFUSE`。因此不能把 coverage 从 0.3333 提高到 0.5000 描述为“过度拒答已修复”。
+
+### 当前阶段验证
+
+```bash
+pytest -q
+pytest -q tests/test_atomic_claim_prompt.py tests/test_answer_generators.py
+python scripts/validate_config.py
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_chunks.py
+python scripts/validate_evidence_packer.py
+python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试：`104 passed`；
+- Stage 8.2 定向测试：`29 passed`；
+- 配置确认 `ollama/qwen3:4b + rule planner + llm generator + prompt v2 + intent_aware_v2 packer`；
+- 图数据、关系证据和 Chunk 校验全部通过；
+- Evidence Packer dev/pilot 50 题合同保持通过，平均 4.38 条证据、最长 7,783 字符；
+- 原子 Claim Prompt validator 确认四场景 `20/20`，且正式报告无敏感正文；
+- 五套评测数据、实验配置和用户确认评分保持一致；
+- 历史 LLM 探针保持 Schema 60/60、Generator Go、Planner No-Go；
+- 报告事实校验通过 27 项来源、18 项必需声明和 16 项禁止声明；
+- extension holdout 保持 23 题，v1 有效状态为 `revoked_before_execution`，v2 为 `locked_no_release`；
+- 历史 v1 release SHA-256 保持 `af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c`；
+- 历史 v1 implementation manifest SHA-256 保持 `2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382`；
+- 5 张报告图与 manifest 一致；
+- v1.0 baseline 的 23 个 payload 全部通过，Manifest SHA-256 保持 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `pip check` 无损坏依赖；
+- `git diff --check` 无空白错误，仅有 Windows LF/CRLF 提示；
+- `reports/extension/` 和 `extension_holdout_release_v2.json` 均不存在。
+
+### 本轮边界
+
+- 未修改 Verifier 的 Claim 支持算法或整题聚合决策；
+- 状态集合仍为 `PASS / RETRY / REFUSE`，尚未实现 `PARTIAL_PASS`；
+- 尚未实现 retained/removed Claim、逐 Claim 分数或 unsupported leakage 检查；
+- 未运行 final 或 extension QA，未创建 v2 release，未生成任何 extension 答案、receipt 或指标；
+- v1 release、implementation manifest、v1 配置、v1 trace contract、revocation record、题集、图谱、Chunk、索引和冻结结果均未删除或覆盖；
+- 工作区中的两份 DOCX 删除来自外部状态，本阶段不恢复、不修改、不暂存、不提交。
+
+### 当前状态与下一步
+
+阶段 8.2 已完成。LLM 现在受最多 4 条原子 Claim、严格 E/P/R 命名空间和逐字 quote 合同约束，且正式合成探针达到 `20/20`。用户遇到的“随机森林为什么更稳定”仍会被旧整题 Verifier 拒答，因此下一阶段进入 8.3：实现 Claim-level Verifier、保留/删除 Claim 和 `PARTIAL_PASS`，同时保留 strict 模式作为后续消融对照；继续不运行 final/extension。

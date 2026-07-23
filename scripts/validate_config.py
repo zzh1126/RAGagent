@@ -72,6 +72,7 @@ def main() -> None:
         f"OK: llm={llm_settings.provider}/{llm_settings.model} "
         f"planner={agent_settings.planner_backend} "
         f"generator={agent_settings.generator_backend} "
+        f"prompt={agent_settings.generator_prompt_version} "
         f"packer={agent_settings.evidence_packer}"
     )
 

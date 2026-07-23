@@ -8,6 +8,7 @@ from src.agent.generators.llm_generator import (
     LLMAnswerClaim,
     LLMAnswerDraft,
     LLMAnswerGenerator,
+    MAX_LLM_CLAIMS,
 )
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "LLMAnswerClaim",
     "LLMAnswerDraft",
     "LLMAnswerGenerator",
+    "MAX_LLM_CLAIMS",
     "create_answer_generator",
 ]

@@ -126,7 +126,7 @@ Retry count: 0
 ## 根因优先级
 
 1. **最高优先级：** 当前没有 Claim-level retained/removed 结果和 `PARTIAL_PASS`；
-2. **高优先级：** Prompt v1 没有充分强化 E ID 与 P ID 的字段边界；
+2. **已在阶段 8.2 修复：** Prompt v1 未充分强化 E/P/R 字段边界和原子 Claim；
 3. **高优先级：** Claim quote 可能只截取半句，未覆盖完整专业结论；
 4. **中优先级：** 任何 unsupported 都触发整题重试，第二次调用成本高且没有定向修复；
 5. **非主要原因：** 本题不属于文本召回失败，不能靠简单提高 top-k 或 Dense Retrieval 直接解决。
@@ -137,7 +137,7 @@ Retry count: 0
 
 1. 阶段 8.0：撤销未执行的 v1 extension release，建立 v2 合同（已完成）；
 2. 阶段 8.1：Evidence Packer 保留完整直接证据（已完成）；
-3. 阶段 8.2：Prompt v2 限制最多 4 个原子 Claim，强化 E/P 字段语义和直接 quote；
+3. 阶段 8.2：Prompt v2 限制最多 4 个原子 Claim，强化 E/P/R 字段语义和直接 quote（已完成）；
 4. 阶段 8.3：逐 Claim 输出 ClaimResult，删除失败项并实现 `PARTIAL_PASS`；
 5. dev 回归重点复核 `DEV02`，确保支持 Claim 被保留、错误 Claim 不进入用户答案；
 6. 参数冻结后才建立并运行一次 v2 extension。
@@ -161,6 +161,29 @@ Packing latency: 6.024 ms + 5.200 ms
 两次 Packer 调用都稳定选择 `E1,E4,E8,E2,E6,E5` 和 `P1,P2,P3`，当前首轮序列化上下文为 7,371 字符，无 coverage gap。该次模型没有再把 P ID 填入 `evidence_ids`，三条引用和图路径全部合法；但严格 Verifier 仍因两条 Claim 的“随机森林 / 平均 / 过拟合”等术语未被对应 quote 完整覆盖，只保留 1/3 Claim 支持并最终拒答。
 
 因此阶段 8.1 的结论是：证据选择、可见 ID 边界和 trace 已正常工作，Packer 耗时相对两次 LLM 生成很小；过度拒答仍未解决，剩余根因集中在原子 Claim、quote 对齐和整题聚合决策。不能把本次 smoke 描述为答案质量提升实验，也不能据此运行 extension。
+
+## 阶段 8.2 完成后的复核
+
+Prompt v2 将 wire Schema 限制为 1～4 条 Claim，并强化逐字 quote、E/P/R 命名空间、每个 E ID 的 quote 覆盖和顶层路径一致性。四个合成场景各运行 5 次，正式结构与语义探针为 `20/20`；该结果只属于工程门槛。
+
+同一真实 dev 问题再次执行：
+
+```text
+Decision: refuse
+Evidence score: 0.8500
+Claim coverage: 0.5000
+Citation validity: 1.0000
+Path validity: 1.0000
+Retrieval sufficiency: 1.0000
+Retry count: 1
+Generation latency: 8176.2 ms + 7400.9 ms
+Packing latency: 1.863 ms + 3.748 ms
+Generated Claims: 4
+```
+
+四条 Claim 已分别表达随机性来源、降低方差目的、单树高方差/过拟合倾向和平均预测；不存在 E/P/R 混填，所有 quote 均为直接原文。旧 Verifier 仍因“过拟合”以及“随机森林/决策树/方差”的跨语言术语覆盖只支持 2/4 Claim，并按整题策略拒答。
+
+因此阶段 8.2 改善了 Claim 粒度和严格覆盖，但没有完成最终修复。下一步必须逐 Claim 保留已支持结论并删除失败项；不能把 0.5000 的单题开发观察写成质量提升实验。
 
 期望的 v2 行为：
 

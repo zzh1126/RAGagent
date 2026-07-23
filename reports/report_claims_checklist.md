@@ -2,7 +2,7 @@
 
 ## 使用范围
 
-本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，LLM Generator 和 Stage 8.1 Evidence Packer 已完成工程接线，但过度拒答尚未解决，extension 仍处于锁定未运行状态。
+本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，Evidence Packer 与原子 Claim Prompt v2 已完成工程接线，但 Claim-level Partial-pass 尚未实现、过度拒答尚未解决，extension 仍处于锁定未运行状态。
 
 ## 权威证据源
 
@@ -31,6 +31,9 @@
 | `src/agent/generators/evidence_packer.py` | Stage 8.1 确定性证据选择、题型配额和字符预算实现 |
 | `scripts/validate_evidence_packer.py` | dev/pilot 50 题只读 Packer 合同检查 |
 | `reports/random_forest_over_refusal_diagnosis.md` | Packer 后随机森林真实 smoke 与剩余过度拒答证据 |
+| `config/atomic_claim_prompt_v2.yaml` | Prompt v2、wire Schema 哈希、1～4 Claim 与探针门槛 |
+| `reports/llm_atomic_claim_prompt_v2_probe.json` | 四场景 20 次脱敏合成结构探针 |
+| `scripts/validate_atomic_claim_prompt.py` | Prompt/Schema 哈希、探针门槛和无原文持久化校验 |
 | `config/settings.yaml` | 当前 rule Router、LLM Generator 与 offline_rule fallback 配置 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
@@ -63,6 +66,8 @@
 | C22 | v1 extension 实现提交为 `bdedf7d`，runtime/Prompt/trace 哈希与模型 digest 已冻结；文件原始状态为 `authorized_not_executed`，有效状态为 `revoked_before_execution` | 已核验 |
 | C23 | `intent_aware_v2` Packer 已实现确定性去重、题型配额、10,000 字符预算、可见 ID 边界和逐次 trace，且不修改原始 `RetrievalResult` | 已核验 |
 | C24 | Packer 的 50 题 dev/pilot 检查是工程合同回归，不是独立效果实验；随机森林真实 smoke 仍拒答，不能宣称过度拒答已解决 | 已核验 |
+| C25 | Prompt v2 限制 1～4 条原子 Claim，并冻结 Prompt/Schema 哈希；20/20 合成探针是工程门槛，不是独立回答质量结果 | 已核验 |
+| C26 | Prompt v2 随机森林 smoke 的 Claim coverage 为 0.5000，但整题仍 `refuse`；不能宣称 Prompt 已解决过度拒答 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -81,12 +86,15 @@
 - 将 dev 调试结果描述为独立保留集结果、统计显著结论或 LLM 已优于规则基线。
 - 将历史文件中的 `authorized_not_executed` 误写为当前有效执行授权，或在 execution receipt 出现前描述为已完成 extension 实验。
 - 将 Evidence Packer 的 dev/pilot 合同检查描述为回答质量提升实验，或声称它已经解决过度拒答。
+- 将 Prompt v2 的 20/20 合成探针描述为 LLM 优于规则基线、正式答案准确率或 extension 结果。
+- 声称 Prompt v2 已经解决过度拒答；当前随机森林 smoke 仍被严格整题 Verifier 拒答。
 
 ## 发布前检查
 
 ```bash
 python scripts/validate_report_claims.py
 python scripts/validate_evidence_packer.py
+python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_scoring.py
 python scripts/validate_extension_holdout.py
 python scripts/freeze_baseline.py --verify
