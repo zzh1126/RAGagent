@@ -44,9 +44,10 @@ def synthetic_result(
     fallback: bool = False,
     cold: bool = False,
     latency_ms: int = 20,
+    packing_latency_ms: float | None = None,
 ) -> dict:
     expected_decision = "refuse" if expected_behavior == "refuse" else "pass"
-    return {
+    result = {
         "question_id": question_id,
         "question": f"question {question_id}",
         "expected_behavior": expected_behavior,
@@ -75,6 +76,9 @@ def synthetic_result(
         "generation_latency_ms": float(latency_ms - 1),
         "generation_attempts": 1,
     }
+    if packing_latency_ms is not None:
+        result["evidence_packing_latency_ms"] = packing_latency_ms
+    return result
 
 
 def test_static_trace_contract_is_frozen_and_matches_scoring_methods() -> None:
@@ -232,6 +236,29 @@ def test_rule_trace_metrics_mark_llm_only_metrics_not_applicable() -> None:
     assert metrics["structured_output_success_rate"]["status"] == "not_applicable"
     assert metrics["fallback_rate"]["status"] == "not_applicable"
     assert metrics["cold_start_latency_ms"]["status"] == "not_applicable"
+    assert metrics["mean_evidence_packing_latency_ms"]["status"] == "not_applicable"
+
+
+def test_llm_trace_metrics_average_available_packing_latency() -> None:
+    metrics = summarize_method(
+        "llm_generator",
+        [
+            synthetic_result(
+                question_id="Q1",
+                expected_behavior="answer",
+                actual_decision="pass",
+                packing_latency_ms=2.0,
+            ),
+            synthetic_result(
+                question_id="Q2",
+                expected_behavior="answer",
+                actual_decision="pass",
+                packing_latency_ms=4.0,
+            ),
+        ],
+    )
+
+    assert metrics["mean_evidence_packing_latency_ms"]["value"] == 3.0
 
 
 def test_blind_review_is_deterministic_and_keeps_method_key_separate() -> None:

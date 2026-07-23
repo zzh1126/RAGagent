@@ -58,11 +58,11 @@
 | G02 | Verifier 过度拒答 | LLM dev 4/8 可回答题拒答 | 决策准确率仅 0.60 | P0 | 马上处理 |
 | G03 | ClaimResult 未真正接线 | Schema 存在，VerifyResult 无逐 Claim 结果 | 无法过滤失败 Claim | P0 | 马上处理 |
 | G04 | 没有 `PARTIAL_PASS` | 决策只有 pass/retry/refuse | 部分正确无法安全输出 | P0 | 马上处理 |
-| G05 | 证据上下文未按题型平衡 | Serializer 只有路径预算和词项排序 | 对比、定义、多跳证据覆盖不稳 | P0 | 马上处理 |
+| G05 | 证据上下文未按题型平衡 | `intent_aware_v2` 已完成 50 题只读合同回归 | 风险已关闭 | Done | 阶段 8.1 完成 |
 | G06 | Prompt 未限制原子 Claim | Claims 无 max_length，可能一条含多个事实 | quote 只支持部分时整条失败 | P0 | 马上处理 |
 | G07 | 重试过多 | dev 7/10 重试 | 延迟放大且未改善拒答 | P0 | 马上处理 |
 | G08 | 没有 LLM 正式 extension 结果 | extension 从未运行 | 无法回答 LLM 是否真正提升 | P0 | 完成 v2 后一次性运行 |
-| G09 | 延迟 trace 不完整 | 主要有总延迟和 generation trace | 无法准确定位 11.44 s 来源 | P1 | 与工作流同步做 |
+| G09 | 延迟 trace 不完整 | packing latency 已接线，retrieval/verification/retry 仍待拆分 | 尚不能完整定位端到端耗时 | P1 | 部分完成 |
 | G10 | Streamlit 不展示 LLM 参与细节 | 无 model/fallback/generation latency | 演示说服力不足 | P1 | 与 trace 同步做 |
 | G11 | 稀疏检索语义能力有限 | TF-IDF + 人工词表 | 同义改写和跨语言召回受限 | P2 | 条件触发 |
 | G12 | 混合融合较简单 | 图证据优先顺序合并，无 RRF/归一化 | 多来源排序可能偏置 | P2 | 先做误差分析 |
@@ -121,7 +121,7 @@ runner、release validator 和 holdout validator 都先检查撤销记录。直�
 
 ## 5. P0：Intent-aware Evidence Packer
 
-### 5.1 当前问题
+### 5.1 原问题
 
 `EvidenceContextSerializer` 已有两个有价值的能力：
 
@@ -138,9 +138,9 @@ runner、release validator 和 holdout validator 都先检查撤销记录。直�
 
 单纯提高 top-k 会增加上下文长度和模型负担，不保证覆盖平衡。
 
-### 5.2 马上实施
+### 5.2 已完成
 
-在 Retriever 与 LLM Generator 之间增加确定性 Packer：
+已在 Retriever 与 LLM Generator 之间增加确定性 Packer：
 
 ```text
 RetrievalResult
@@ -166,16 +166,19 @@ RetrievalResult
 
 Packer 不修改原始 `RetrievalResult`，只返回选中证据、选择原因和序列化上下文。这样可保留完整检索审计。
 
-### 5.3 验收标准
+### 5.3 验收结果
 
-- 相同输入产生完全相同的选择和顺序；
-- 不原地修改 RetrievalResult；
-- 不产生不存在的 E/P/R/Chunk ID；
-- 严格遵守最大证据条数和字符预算；
-- 对比双方有证据时都被覆盖；
-- 多跳路径绑定 Chunk 在预算内优先；
-- 输出 `packing_latency_ms`、selected IDs、reason codes 和 coverage gaps；
-- 定义、对比、多跳、指标题均有单元测试。
+- [x] 相同输入产生完全相同的选择和顺序；
+- [x] 不原地修改 RetrievalResult；
+- [x] 不产生不存在的 E/P/R/Chunk ID，并拒绝原检索中存在但本次未展示的 ID；
+- [x] 严格遵守最大证据条数和字符预算，不任意截断结构块；
+- [x] 对比双方有证据时各覆盖至少 2 条；
+- [x] 多跳路径绑定 Chunk 在预算内逐路径优先；
+- [x] 输出 `evidence_packing_latency_ms`、selected IDs、reason codes、实体覆盖和 coverage gaps；
+- [x] 定义、对比、解释、多跳、关系、指标题、零路径预算和极端字符预算均有单元测试；
+- [x] dev/pilot 50 题只读回归平均选择 4.38 条、最长 7,783 字符，仅 `F-NA-01` 出现预期空证据 gap。
+
+真实 dev smoke 仍在一次重试后拒答：citation/path validity 均为 1.0000，但只有 1/3 Claim 通过术语覆盖。该结果说明 Packer 已完成并缩小了上下文噪声，但不能替代阶段 8.2/8.3 的原子 Claim 和 Partial-pass。
 
 ## 6. P0：Prompt v2 与原子 Claim
 
@@ -507,7 +510,7 @@ TF-IDF 依赖词项重合，中文问题通过人工词表改写成英文。它�
 
 ### 12.2 为什么暂不立即做 Dense
 
-当前 4 个 LLM dev 错误全部表现为过度拒答，并不等同于“正确 Chunk 没被召回”。在未完成 Packer、原子 Claim 和 Partial-pass 前直接增加 Dense Retriever，会把多个变量混在一起，也无法解决语料本身缺失的问题。
+当前 4 个 LLM dev 错误全部表现为过度拒答，并不等同于“正确 Chunk 没被召回”。Packer 已完成且真实 smoke 仍定位到 Claim/Verifier 层；在原子 Claim 和 Partial-pass 尚未完成前直接增加 Dense Retriever，会把多个变量混在一起，也无法解决语料本身缺失的问题。
 
 ### 12.3 Dense Retrieval 触发门槛
 
@@ -668,11 +671,11 @@ Pilot 已观察到：
 
 ## 18. 马上要做的阶段顺序
 
-### 阶段 8.0：撤销 v1 release、建立 v2 合同
+### 阶段 8.0：撤销 v1 release、建立 v2 合同（已完成）
 
 只做治理、配置和护栏，不实现业务增强，不运行 extension。
 
-### 阶段 8.1：Evidence Packer
+### 阶段 8.1：Evidence Packer（已完成）
 
 完成确定性证据选择、题型配额、trace 和单元测试。
 
@@ -739,7 +742,7 @@ Pilot 已观察到：
 
 | 风险 | 概率 | 影响 | 应对 |
 | --- | --- | --- | --- |
-| revocation 实现错误导致 v1 仍可运行 | 中 | 高 | runner/validator 双重检查和专门测试 |
+| revocation 实现错误导致 v1 仍可运行 | 低 | 高 | runner/validator 双重检查和专门测试已通过 |
 | Partial-pass 放行错误前提 | 中 | 高 | premise failure 强制零 Claim retained |
 | 过滤后答案语义不连贯 | 中 | 中 | 按 retained Claims 重新构造，不删除自由文本片段 |
 | Prompt v2 输出截断 | 中 | 中 | 保留 1536 上限，先过结构探针再优化 |
@@ -755,7 +758,7 @@ Pilot 已观察到：
 项目达到当前规划的“完整 LLM Agent 科研版本”，必须同时满足：
 
 1. v1 release 已在未执行状态下被不可变撤销；
-2. v2 Evidence Packer、Prompt、ClaimResult、Partial-pass 和 trace 已实现；
+2. v2 Evidence Packer、Prompt、ClaimResult、Partial-pass 和 trace 已实现；其中 Packer 已完成，其余待后续阶段；
 3. dev 工程门槛通过；
 4. pilot 只做一次冻结前回归且未用于继续调参；
 5. v2 implementation manifest 和一次性 release 已冻结；
@@ -769,16 +772,16 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-下一步不是运行 extension，也不是直接改 Verifier。下一步只做阶段 8.0：
+下一步不是运行 extension，也不是直接改 Verifier。阶段 8.0 和 8.1 已验收，下一步只做阶段 8.2：
 
 ```text
-创建 v1 revocation record
+冻结 Prompt v2 文本
     ↓
-让旧 release ID 无法执行
+限制最多 4 条原子 Claim
     ↓
-创建 v2 evaluation/trace contract
+强化 E/P 字段和逐字 quote 合同
     ↓
-验证 extension 仍未暴露
+完成合成结构探针，不运行 extension
 ```
 
-阶段 8.0 单独验收并写入 `PROGRESS.md` 后，再进入阶段 8.1 Evidence Packer。
+阶段 8.2 单独验收并写入 `PROGRESS.md` 后，再进入 Claim-level Verifier；不会在同一步运行 extension。

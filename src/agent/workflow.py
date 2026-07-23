@@ -25,6 +25,7 @@ from src.retrieval.intent_router import IntentRouter, RouteDecision
 from src.retrieval.vector_retriever import TfidfVectorRetriever
 from src.schemas import (
     AnswerPayload,
+    EvidencePackingTrace,
     FinalResponse,
     GenerationCall,
     RetrievalResult,
@@ -48,6 +49,7 @@ class AgentState(TypedDict, total=False):
     retrieval: RetrievalResult
     answer_payload: AnswerPayload
     generation_trace: list[GenerationCall]
+    evidence_packing_trace: list[EvidencePackingTrace]
     verification: VerifyResult
     retry_count: int
     started_at: float
@@ -130,10 +132,16 @@ class QAWorkflow:
                 and payload.generation_attempts > 0
             ),
         )
-        return {
+        result = {
             "answer_payload": payload,
             "generation_trace": [*state.get("generation_trace", []), call],
         }
+        if payload.evidence_packing is not None:
+            result["evidence_packing_trace"] = [
+                *state.get("evidence_packing_trace", []),
+                payload.evidence_packing,
+            ]
+        return result
 
     def _verify_node(self, state: AgentState) -> dict:
         return {
@@ -175,6 +183,7 @@ class QAWorkflow:
                 retrieval=state["retrieval"],
                 verification=verification,
                 generation_trace=state.get("generation_trace", []),
+                evidence_packing_trace=state.get("evidence_packing_trace", []),
                 latency_ms=latency_ms,
                 retry_count=state.get("retry_count", 0),
             )

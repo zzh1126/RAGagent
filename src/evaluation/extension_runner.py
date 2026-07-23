@@ -72,6 +72,7 @@ def evaluate_extension_question(
         retry_count=shadow_verifier.max_retries,
     )
     trace = response.generation_trace
+    packing_trace = response.evidence_packing_trace
     llm_calls = [call for call in trace if call.requested_backend == "ollama"]
     expected_decision = "refuse" if item["expected_behavior"] == "refuse" else "pass"
     return {
@@ -90,9 +91,16 @@ def evaluate_extension_question(
         "verification": response.verification.model_dump(mode="json"),
         "shadow_verification": shadow.model_dump(mode="json"),
         "generation_trace": [call.model_dump(mode="json") for call in trace],
+        "evidence_packing_trace": [
+            item.model_dump(mode="json") for item in packing_trace
+        ],
         "generation_call_count": len(trace),
         "generation_attempts": sum(call.attempts for call in trace),
         "generation_latency_ms": round(sum(call.latency_ms for call in trace), 1),
+        "evidence_packing_latency_ms": round(
+            sum(item.evidence_packing_latency_ms for item in packing_trace),
+            3,
+        ),
         "structured_output_success": (
             bool(llm_calls) and all(call.structured_output_success for call in llm_calls)
         ),
@@ -131,6 +139,7 @@ def summarize_method(method_id: str, results: list[dict]) -> dict:
     is_llm = method_id != "rule_baseline"
     cold_rows = [row for row in results if row["cold_start"]]
     warm_rows = [row for row in results if is_llm and not row["cold_start"]]
+    packing_rows = [row for row in results if "evidence_packing_latency_ms" in row]
     total_attempts = sum(row["generation_attempts"] for row in results)
     return {
         "decision_accuracy": computed_metric(
@@ -182,6 +191,15 @@ def summarize_method(method_id: str, results: list[dict]) -> dict:
                 if results
                 else None
             )
+        ),
+        "mean_evidence_packing_latency_ms": scalar_metric(
+            (
+                sum(row["evidence_packing_latency_ms"] for row in packing_rows)
+                / len(packing_rows)
+                if is_llm and packing_rows
+                else None
+            ),
+            note="LLM evidence packing only",
         ),
         "generation_attempts_total": total_attempts,
         "question_count": len(results),

@@ -26,6 +26,7 @@ def create_answer_generator(
         max_graph_paths=settings.max_graph_paths,
         max_chars_per_evidence=settings.max_chars_per_evidence,
         max_context_chars=settings.max_context_chars,
+        comparison_evidence_per_entity=settings.comparison_evidence_per_entity,
     )
     primary = LLMAnswerGenerator(llm_client, context_serializer=context_serializer)
     return FallbackAnswerGenerator(primary=primary, fallback=offline)

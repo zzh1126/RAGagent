@@ -9,14 +9,14 @@
 | 工作区 | `E:\RAGagent` |
 | GitHub | `https://github.com/zzh1126/RAGagent.git` |
 | 当前分支 | `experiment/llm-agent-v2` |
-| 本文审计基线 | 阶段 8.0 完成状态 |
+| 本文审计基线 | 阶段 8.1 完成状态 |
 | 审计日期 | 2026-07-23 |
 | v1.0 标签 | `v1.0-baseline` |
 | 当前工作流引擎 | LangGraph `1.0.10` |
 | 当前默认图后端 | NetworkX `3.3` |
 | 当前默认生成器 | Ollama `qwen3:4b`，失败时回退规则生成器 |
 | 正式基线状态 | v1.0 规则基线已冻结、可复验 |
-| LLM 增强状态 | 主链路已实现，只有 dev 审计结果，尚无正式 extension 结论 |
+| LLM 增强状态 | 主链路与 intent-aware Evidence Packer 已实现；仍只有 dev/pilot 工程审计，尚无正式 extension 结论 |
 | extension 状态 | 23 题从未运行；v1 有效状态为 `revoked_before_execution`；v2 四方法合同已冻结但尚无 release |
 
 事实优先级如下：
@@ -345,11 +345,13 @@ LLM Query Planner 没有进入主链路。`qwen3:4b` 的 QueryPlan 探针只有 
 - 截断到 top-k；
 - 最终统一重编号 E1、E2……。
 
-当前不是学习排序，也不是 RRF。Evidence Packer v2 计划会优化送给 LLM 的证据，但不会自动改变底层 Retriever 的全部召回逻辑。
+当前不是学习排序，也不是 RRF。Evidence Packer v2 已在 Retriever 之后优化送给 LLM 的证据，但不会改写底层 Retriever 的完整召回结果。
 
-## 10. 证据上下文组织
+## 10. Evidence Packer 与上下文组织
 
-当前 `EvidenceContextSerializer` 的限制：
+阶段 8.1 已将原 `EvidenceContextSerializer` 演进为 `EvidencePacker` 的兼容外壳。Packer 位于 Retriever 与 LLM Generator 之间，只创建证据子集和序列化上下文，不原地修改 `RetrievalResult`。
+
+硬预算：
 
 | 参数 | 当前值 |
 | --- | ---: |
@@ -358,14 +360,21 @@ LLM Query Planner 没有进入主链路。`qwen3:4b` 的 QueryPlan 探针只有 
 | 单条文本最大字符 | 900 |
 | 总上下文最大字符 | 10000 |
 
-选择规则：
+intent 目标条数低于 8 条硬上限：定义、单跳关系和指标推荐最多 4 条；对比、解释、多跳和一般问题最多 6 条。对比题在证据可用时为前两个实体各保留 2 条；解释题平衡机制、优势和局限；多跳题优先覆盖每条可见 P path 的绑定 Chunk；指标题分别保留定义和适用场景。
 
-1. 如存在图路径，为路径绑定 Chunk 保留一半文本预算；
-2. 其余证据按查询词命中数、原 score 和原顺序重排；
-3. 超出字符预算时先移除末尾文本证据，再移除末尾图路径，最后硬截断；
-4. 输出问题、意图、模式、实体、可用路径 ID、路径、可用证据 ID 和原文。
+固定处理顺序：
 
-尚未实现：按定义、对比、原理、多跳、指标选择等题型分配精细证据配额。这正是下一阶段 Evidence Packer 的目标。
+1. 按 `chunk_id` 和 `evidence_id` 稳定去重；
+2. 保留图路径绑定 Chunk；
+3. 匹配实体名与标题、heading、正文，并兼容 `KMeans` / `K-means` 等标点变体；
+4. 执行 intent 配额；
+5. 按路径、实体、intent 标签、查询词、原 score 和原顺序稳定补齐；
+6. 在总字符预算内公平分配每条原文长度，不对最终结构做任意硬截断；
+7. LLM 生成边界只接受本次上下文可见的 E/P/R ID，原始完整检索结果仍交给 Verifier 审计。
+
+每次 LLM 生成、fallback 或 Verifier 重试都可记录一条 `EvidencePackingTrace`，包括 selected E/Chunk/P IDs、reason codes、实体覆盖、coverage gaps、截断/淘汰 IDs、输入/输出字符数和 `evidence_packing_latency_ms`。
+
+只读回归在 dev 10 题与 pilot 40 题上验证了 50 次打包：平均选择 4.38 条证据，最长上下文 7,783 字符，仅无答案题 `F-NA-01` 产生预期 `no_text_evidence` gap。该结果是工程合同检查，不是新的独立效果实验。
 
 ## 11. 答案生成器
 
@@ -823,7 +832,7 @@ Pilot 使用规则生成器，是历史先导数据，不是最终无泄漏结�
 
 由于项目决定先实现 Evidence Packer、原子 Claim 和 Partial-pass，原 v1 runtime 不再代表目标协议。阶段 8.0 已在独立提交中创建不可覆盖的撤销记录，runner 会在 runtime/model 校验和题集读取前拒绝原授权命令。
 
-版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。下一步实现 Evidence Packer；不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
+版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。Evidence Packer 已实现，下一步是 Prompt v2；不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
 
 ## 25. 复现与常用命令
 
@@ -842,6 +851,7 @@ python scripts/validate_config.py
 python scripts/validate_graph_data.py
 python scripts/validate_graph_evidence.py
 python scripts/validate_chunks.py
+python scripts/validate_evidence_packer.py
 python scripts/validate_evaluation.py
 python scripts/validate_experiments.py
 python scripts/validate_scoring.py
@@ -1007,10 +1017,11 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 4. 通过 E/P/R 标识把 Claim、图路径和官方 Chunk 关联；
 5. 实现了 Evidence Verifier、一次重试和保守拒答；
 6. 实现了真实本地 LLM 结构化生成与规则 fallback；
-7. 建立了冻结题集、哈希、消融、人工评分和一次性 release 护栏；
-8. 提供可运行的 Streamlit 证据展示界面。
+7. 实现了确定性的 intent-aware Evidence Packer、可见 ID 边界和逐次 packing trace；
+8. 建立了冻结题集、哈希、消融、人工评分和一次性 release 护栏；
+9. 提供可运行的 Streamlit 证据展示界面。
 
-尚不能算已完成贡献：Claim-level Partial-pass、intent-aware Evidence Packer、v2 四方法 extension 结论、Dense Retrieval。
+尚不能算已完成贡献：原子 Claim Prompt v2、Claim-level Partial-pass、v2 四方法 extension 结论、Dense Retrieval。
 
 ## 31. 常见答辩问答
 
@@ -1052,11 +1063,11 @@ LLM 只参与 answer 节点，把检索证据组织成结构化 Claims。Router 
 
 ### Q10：如何防止 LLM 编造？
 
-Prompt 禁止使用模型记忆；每条 Claim 必须绑定真实 E ID 和逐字 quote；程序检查 E/P/R ID 和 quote 子串；最终正文由 Claims 重建；Verifier 再检查术语、路径和问题限定条件。
+Prompt 禁止使用模型记忆；每条 Claim 必须绑定真实 E ID 和逐字 quote；Packer 将可用 ID 限定为本次可见证据子集；程序检查 E/P/R ID 和 quote 子串；最终正文由 Claims 重建；Verifier 再检查术语、路径和问题限定条件。
 
 ### Q11：为什么仍会过度拒答？
 
-当前 Verifier 把所有 Claim 聚合成整题决策。一个 Claim 不支持或一个限定条件未覆盖，就可能导致整题无法 PASS，并在重试后 REFUSE。当前 dev 的 4 个错误全部属于这一类。
+当前 Verifier 把所有 Claim 聚合成整题决策。一个 Claim 不支持或一个限定条件未覆盖，就可能导致整题无法 PASS，并在重试后 REFUSE。Evidence Packer 已完成，但最终真实 smoke 仍因 2/3 Claim 未通过术语覆盖而拒答，说明剩余故障确实位于 Prompt/Claim 验证层。
 
 ### Q12：Partial-pass 为什么重要？
 
@@ -1092,7 +1103,7 @@ Pilot 曾用于发现并修复实现缺口，因此已被消费。后续只允�
 
 ### Q20：下一步是什么？
 
-v1 revocation record 和 v2 实验合同已经完成。下一步实现 Evidence Packer，随后依次完成原子 Claim、Claim-level Verifier 与 `PARTIAL_PASS`；完成 dev/pilot 回归和配置冻结后只运行一次 extension。
+v1 revocation、v2 实验合同和 Evidence Packer 已完成。下一步只实现原子 Claim Prompt v2 与最多 4 条 Claim 的 wire Schema；随后再实现 Claim-level Verifier 与 `PARTIAL_PASS`。完成 dev/pilot 回归和配置冻结后只运行一次 extension。
 
 ## 32. 关联文档
 

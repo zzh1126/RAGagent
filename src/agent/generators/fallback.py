@@ -28,6 +28,7 @@ class FallbackAnswerGenerator:
             return self.primary.generate(query, retrieval)
         except EXPECTED_LLM_FAILURES as exc:
             failed_call = getattr(self.primary, "last_call", None)
+            evidence_packing = getattr(self.primary, "last_evidence_packing", None)
             payload = self.fallback.generate(query, retrieval)
             return payload.model_copy(
                 update={
@@ -35,6 +36,7 @@ class FallbackAnswerGenerator:
                     "fallback_reason": type(exc).__name__,
                     "generation_attempts": failed_call.attempts if failed_call else 1,
                     "generation_latency_ms": failed_call.latency_ms if failed_call else 0.0,
+                    "evidence_packing": evidence_packing,
                 }
             )
 

@@ -71,7 +71,8 @@ def main() -> None:
     print(
         f"OK: llm={llm_settings.provider}/{llm_settings.model} "
         f"planner={agent_settings.planner_backend} "
-        f"generator={agent_settings.generator_backend}"
+        f"generator={agent_settings.generator_backend} "
+        f"packer={agent_settings.evidence_packer}"
     )
 
 

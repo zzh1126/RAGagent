@@ -50,7 +50,9 @@ agent:
   planner_fallback: rule
   generator_fallback: offline_rule
   generator_prompt_version: v1
+  evidence_packer: intent_aware_v2
   max_text_evidence: 8
   max_graph_paths: 8
+  comparison_evidence_per_entity: 2
   max_chars_per_evidence: 900
   max_context_chars: 10000

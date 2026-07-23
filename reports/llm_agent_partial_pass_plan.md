@@ -6,12 +6,12 @@
 | --- | --- |
 | 评测日期 | 2026-07-23 |
 | 当前分支 | `experiment/llm-agent-v2` |
-| 当前治理提交 | `a518404` |
-| 计划状态 | 阶段 8.0 已完成，准备进入阶段 8.1 |
+| 阶段 8.0 完成提交 | `7fbf566` |
+| 计划状态 | 阶段 8.0/8.1 已完成，准备进入阶段 8.2 |
 | 当前 extension release | `extension-qwen3-4b-v1-bdedf7dc` |
 | release 有效状态 | `revoked_before_execution`，从未运行 |
 | v2 状态 | 四方法合同已冻结，`locked_no_release` |
-| 当前边界 | 下一阶段只实现 Evidence Packer，不运行 final/extension |
+| 当前边界 | 下一阶段只实现原子 Claim Prompt v2，不运行 final/extension |
 
 ## 一、总体结论
 
@@ -318,7 +318,7 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 
 验收：旧授权命令必须明确失败；v1 文件未删除、未覆盖；extension 输出仍不存在。
 
-### 阶段 8.1：Evidence Packer
+### 阶段 8.1：Evidence Packer（已完成）
 
 - 新建确定性 Packer；
 - 实现去重、图路径绑定、实体/标题匹配和题型配额；
@@ -326,6 +326,8 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 - 增加定义、对比、多跳、指标题单元测试。
 
 验收：相同输入稳定输出；不修改 `RetrievalResult`；严格遵守条数和字符预算；对比题在证据可用时覆盖双方。
+
+完成结果：12 个独立 Packer 单元测试覆盖定义、标点变体、对比、解释、多跳、关系、指标、去重和预算；50 道 dev/pilot 只读回归平均选择 4.38 条证据、最长上下文 7,783 字符，仅无答案题 `F-NA-01` 出现预期空证据 gap。真实 dev smoke 仍因严格 Claim 术语覆盖拒答，因此阶段 8.2/8.3 仍是必要工作。
 
 ### 阶段 8.2：原子 Claim Prompt v2
 
@@ -422,7 +424,8 @@ Dense Retrieval 不进入当前关键路径。只有在阶段 8.5 的错误归�
 data/evaluation/<v1-revocation-record>.json
 config/extension_evaluation_v2.yaml
 config/extension_trace_contract_v2.yaml
-src/agent/generators/context.py 或 evidence_packer.py
+src/agent/generators/context.py
+src/agent/generators/evidence_packer.py
 src/agent/generators/llm_generator.py
 src/schemas.py
 src/verification/evidence_verifier.py
@@ -431,8 +434,10 @@ src/evaluation/extension_runner.py
 src/evaluation/extension_release.py
 app/streamlit_app.py
 tests/test_answer_generators.py
+tests/test_evidence_packer.py
 tests/test_day4_workflow.py
 tests/test_extension_release.py
+scripts/validate_evidence_packer.py
 PROGRESS.md
 ```
 
@@ -446,4 +451,4 @@ PROGRESS.md
 
 **No-Go：** LLM Planner、多 Agent、知识库扩充、自动图谱抽取、完整 Microsoft GraphRAG 和框架迁移。
 
-下一步进入阶段 8.1：实现确定性的 intent-aware Evidence Packer、packing trace 和题型回归测试。本阶段不会改 Prompt/Verifier，也不会运行 extension。
+下一步进入阶段 8.2：冻结原子 Claim Prompt v2、最多 4 条 Claim 的 wire Schema 和合成结构探针。本阶段不会改 Verifier，也不会运行 extension。

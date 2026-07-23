@@ -1750,3 +1750,125 @@ git diff --check
 ### 当前状态与下一步
 
 阶段 8.0 已完成，原 v1 授权的误执行风险已关闭，v2 研究问题和评测口径已在业务增强前冻结。下一阶段进入 8.1：只实现确定性的 intent-aware Evidence Packer、packing trace、字符预算和题型覆盖测试；完成 dev/pilot 回归前仍不运行 extension。
+
+## 2026-07-23 阶段 8.1：Intent-aware Evidence Packer 与可见证据边界
+
+### 完成事项
+
+- 新增 `src/agent/generators/evidence_packer.py`，实现确定性的 `intent_aware_v2` Evidence Packer：
+  - 按 `chunk_id` 和 `evidence_id` 稳定去重文本证据，按 `path_id` 稳定去重图路径；
+  - 优先选择图路径绑定 Chunk，再按实体标题/heading/正文匹配、题型标签、查询词、原检索分数和原顺序稳定补齐；
+  - 实体匹配兼容 `KMeans` / `K-means` 等标点变体；
+  - 定义、单跳关系和指标推荐题的目标上限为 4 条；对比、解释、多跳和一般问题的目标上限为 6 条；配置硬上限仍为 8 条；
+  - 对比题在证据可用时为前两个实体各保留 2 条；
+  - 解释题平衡机制、优势和局限证据；
+  - 多跳题优先为每条可见图路径保留绑定 Chunk；
+  - 指标推荐题同时保留指标定义和适用场景；
+  - 总上下文严格限制为 10,000 字符，单条证据最多 900 字符；预算不足时移除完整证据或路径块并记录 gap，不对最终结构任意硬截断。
+- 将 `EvidenceContextSerializer` 改为兼容外壳：
+  - 旧 `serialize()` 调用仍可使用；
+  - 新 `pack()` 返回结构化 `EvidencePack`；
+  - Retriever 输出的原始 `RetrievalResult` 不被原地修改。
+- 扩展统一 Schema：
+  - 新增 `EvidencePackingTrace`，记录 selected E/Chunk/P IDs、reason codes、实体覆盖、coverage gaps、截断/淘汰 ID、输入/输出字符数、目标条数、硬预算和 `evidence_packing_latency_ms`；
+  - 新增 `EvidencePack`，封装本次 Generator 可见的文本证据、图路径、序列化上下文和 trace；
+  - `AnswerPayload` 保留当前生成调用的 packing trace；
+  - `FinalResponse` 保留首轮与重试的完整 `evidence_packing_trace` 列表。
+- 收紧 LLM 可见证据边界：
+  - `LLMAnswerGenerator` 只接受本次 packed context 中可见的 E/P/R ID；
+  - 原始完整 `RetrievalResult` 仍交给 Verifier，Packer 不缩小验证审计范围；
+  - 无文本证据时也返回带 trace 的受控空证据 payload；
+  - LLM 服务失败并回退 `GroundedAnswerGenerator` 时保留本次 packing trace；
+  - Verifier 触发一次重试时分别记录两次 packing trace。
+- 扩展运行与评测 trace：
+  - `scripts/run_agent.py` 输出 packing 调用数、selected IDs、paths、gap 和 packing latency；
+  - `scripts/run_evaluation.py` 输出逐题 packing trace、总 packing latency、均值和 Packer 版本；
+  - `src/evaluation/extension_runner.py` 预接 v2 packing trace 与均值字段，但本阶段没有运行 extension；
+  - `config/settings.yaml` 新增 `evidence_packer=intent_aware_v2` 和 `comparison_evidence_per_entity=2`；
+  - `src/llm/config.py` 与 `scripts/validate_config.py` 同步强类型配置和状态输出。
+- 新增测试与验证：
+  - `tests/test_evidence_packer.py` 覆盖稳定去重、非原地修改、定义题、标点变体、对比配额、解释题、多跳、零路径预算、字符预算、指标推荐、intent 目标和空证据；
+  - `tests/test_answer_generators.py` 覆盖未展示 ID 拒绝、fallback trace 和工作流重试 trace；
+  - `tests/test_extension_release.py` 覆盖新 trace 字段与 v1 治理隔离；
+  - 新增 `scripts/validate_evidence_packer.py`，只读取 dev/pilot，执行 Router、Retriever 与 Packer 合同检查，不调用 LLM，也不读取 final/extension 题面。
+- 同步项目文档：
+  - 更新 `README.md`、`PROJECT_HANDBOOK.md`、`PROJECT_GAPS_AND_ROADMAP.md`、Partial-pass 计划和随机森林过度拒答诊断；
+  - 更新科研报告、报告事实检查清单、技术增强决策和评测数据说明；
+  - 明确 Packer 是确定性上下文组织，不是 Dense Retrieval、RRF 或学习式重排；
+  - 明确 Packer 已完成但过度拒答尚未解决，不能提前宣称 LLM 增强有效。
+
+### 工程回归与真实 smoke
+
+- `python scripts/validate_evidence_packer.py`：
+  - dev 10 题与 pilot 40 题，共 50 题；
+  - 相同输入重复打包结果稳定；
+  - 平均选择 4.38 条文本证据；
+  - 最长上下文 7,783 字符；
+  - coverage gap 仅 1 次，为无答案题 `F-NA-01` 的预期 `no_text_evidence`；
+  - 未修改任何原始 `RetrievalResult`，未产生未知 E/P/Chunk ID。
+- 对真实 dev 问题“随机森林为什么更稳定”执行最终 LLM smoke：
+  - decision=`refuse`；
+  - evidence score=`0.8000`；
+  - claim coverage=`0.3333`；
+  - citation validity=`1.0000`；
+  - path validity=`1.0000`；
+  - retrieval sufficiency=`1.0000`；
+  - retry count=`1`；
+  - 两次 generation latency 分别为 `10186.3 ms` 与 `8696.6 ms`；
+  - 两次 packing latency 分别为 `6.024 ms` 与 `5.200 ms`；
+  - 两次均选择 `E1,E4,E8,E2,E6,E5` 和 `P1,P2,P3`，首轮上下文为 7,371 字符且无 gap；
+  - P/E ID 混填问题没有再次出现，但仍有 2/3 Claim 未通过严格术语覆盖。
+- 本次 smoke 证明证据选择、可见 ID 边界和 trace 正常工作，但没有证明回答质量提升；剩余根因集中在原子 Claim、quote 对齐和整题聚合决策。
+
+### 当前阶段验证
+
+```bash
+pytest -q
+python scripts/validate_config.py
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_chunks.py
+python scripts/validate_evidence_packer.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试：`87 passed`；
+- 配置确认 `ollama/qwen3:4b + rule planner + llm generator + intent_aware_v2 packer`；
+- 图数据确认 50 个实体、100 条 approved 关系和 100 份有效关系证据；
+- 文档数据确认 164 个 Section、180 个 Chunk；
+- Packer 合同检查：50 题全部通过；
+- 五套评测数据确认 dev=10、demo=8、pilot=40、final=40、extension=23；
+- 实验配置和用户确认评分一致，160 行评分覆盖 4 种方法和 9 个错误案例；
+- LLM 探针保持 Schema 60/60、Generator Go、Planner No-Go；
+- extension holdout 保持 23 题和原题集哈希，v1 有效状态为 `revoked_before_execution`，v2 为 `locked_no_release`；
+- 历史 v1 release SHA-256 保持 `af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c`；
+- 历史 v1 implementation manifest SHA-256 保持 `2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382`；
+- 报告事实校验：24 项来源、16 项必需声明、14 项禁止声明全部通过；
+- 5 张报告图与 manifest 一致；
+- v1.0 归档 23 个 payload 全部通过，Manifest SHA-256 保持 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `pip check` 无损坏依赖；
+- `git diff --check` 无空白错误，仅有 Windows LF/CRLF 提示；
+- `reports/extension/` 和 `extension_holdout_release_v2.json` 均不存在。
+
+### 本轮边界
+
+- 未修改 Prompt v1、Verifier 决策逻辑或 `PASS / RETRY / REFUSE` 状态集合；
+- 未实现原子 Claim Prompt v2、Claim-level Verifier 或 `PARTIAL_PASS`；
+- 未运行 final 或 extension QA，也未生成任何 extension 指标；
+- `reports/extension/` 与 `extension_holdout_release_v2.json` 仍不存在；
+- v1 release、implementation manifest、v1 配置、v1 trace contract、revocation record、题集、图谱、Chunk、索引和冻结结果均未删除或覆盖；
+- 工作区中的两份 DOCX 删除来自外部状态，本阶段不恢复、不修改、不暂存、不提交。
+
+### 当前状态与下一步
+
+阶段 8.1 已完成。Evidence Packer 已把“送给 LLM 的证据”从固定半预算 Serializer 升级为可审计的题型感知选择，同时保持完整 Retriever/Verifier 证据链不变。下一阶段只进入 8.2：冻结原子 Claim Prompt v2、限制最多 4 条 Claim、强化 E/P 字段与逐字 quote 合同并完成合成结构探针；仍不修改 Partial-pass 决策，也不运行 final/extension。

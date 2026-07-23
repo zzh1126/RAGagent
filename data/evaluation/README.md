@@ -8,7 +8,7 @@
 - `demo_questions.jsonl`：8 题，可与开发集重合，用于 Streamlit 演示。
 - `pilot_questions.jsonl`：40 题，曾用于发现并修复两处实现缺口，不能再视为无泄漏最终结果。
 - `final_questions.jsonl`：重新创建的 40 题保留测试集，与开发集和先导集题面不重合；冻结后只运行一次。
-- `extension_questions.jsonl`：在 LLM Client 与 Generator 业务实现前冻结的 23 题扩展保留集；从未运行，v1 release 已在执行前撤销，仍禁止用于调参。
+- `extension_questions.jsonl`：在 LLM Client 与 Generator 业务实现前冻结的 23 题扩展保留集；从未运行，v1 release 已在执行前撤销，v2 尚无 release，仍禁止读取题面用于调参或执行 QA。
 
 最终 40 题固定分布：
 
@@ -64,9 +64,10 @@
 
 ```bash
 python scripts/validate_evaluation.py
+python scripts/validate_evidence_packer.py
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
 python scripts/run_evaluation.py --split dev
 ```
 
-`run_evaluation.py` 始终拒绝 `final` 和 `extension`。final 复用冻结结果。v1 release 文件保留历史值 `authorized_not_executed`，但不可变 revocation record 将其有效状态改为 `revoked_before_execution`；旧授权命令在读取题集前失败。v2 合同已经冻结，但 `extension_holdout_release_v2.json` 尚不存在，因此当前没有任何可执行的 extension release。
+`run_evaluation.py` 始终拒绝 `final` 和 `extension`。final 复用冻结结果。`validate_evidence_packer.py` 只在 dev/pilot 上执行 Router、Retriever 与确定性打包合同检查，不调用 LLM，也不读取 final/extension 题面。v1 release 文件保留历史值 `authorized_not_executed`，但不可变 revocation record 将其有效状态改为 `revoked_before_execution`；旧授权命令在读取题集前失败。v2 合同已经冻结，但 `extension_holdout_release_v2.json` 尚不存在，因此当前没有任何可执行的 extension release。

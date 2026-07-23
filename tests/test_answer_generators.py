@@ -243,6 +243,8 @@ def test_llm_generator_uses_wire_schema_and_sets_runtime_metadata() -> None:
     assert payload.fallback_used is False
     assert payload.generation_attempts == 1
     assert payload.generation_latency_ms == 12.5
+    assert payload.evidence_packing is not None
+    assert payload.evidence_packing.selected_evidence_ids == ["E1"]
     assert payload.claims[0].evidence_ids == ["E1"]
     assert client.calls[0]["node"] == "llm_generate_answer"
     wire_properties = client.calls[0]["response_model"].model_json_schema()["properties"]
@@ -250,6 +252,39 @@ def test_llm_generator_uses_wire_schema_and_sets_runtime_metadata() -> None:
     assert "fallback_reason" not in wire_properties
     assert "claims" in client.calls[0]["response_model"].model_json_schema()["required"]
     assert "AVAILABLE_TEXT_EVIDENCE_IDS: E1" in client.calls[0]["messages"][-1]["content"]
+
+
+def test_llm_rejects_ids_present_in_retrieval_but_hidden_by_packer() -> None:
+    output = valid_output()
+    output["claims"][0].update(
+        evidence_ids=["E2"],
+        graph_path_ids=["P2"],
+        supporting_quotes=[
+            {
+                "evidence_id": "E2",
+                "quote": "token token token token",
+            }
+        ],
+    )
+    output["graph_paths"] = ["P2"]
+    generator = LLMAnswerGenerator(
+        StubLLMClient(output=output),
+        context_serializer=EvidenceContextSerializer(
+            max_text_evidence=1,
+            max_graph_paths=1,
+        ),
+    )
+
+    payload = generator.generate(
+        "随机森林属于什么模型族？",
+        sample_retrieval(duplicate=True),
+    )
+
+    assert payload.evidence_packing is not None
+    assert payload.evidence_packing.selected_evidence_ids == ["E1"]
+    assert payload.evidence_packing.selected_graph_path_ids == ["P1"]
+    assert any("E2" in item for item in payload.unsupported_claims)
+    assert any("P2" in item for item in payload.unsupported_claims)
 
 
 def test_llm_generator_rebuilds_answer_from_structured_claims() -> None:
@@ -352,6 +387,8 @@ def test_expected_llm_failure_falls_back_to_offline_generator() -> None:
     assert payload.fallback_used is True
     assert payload.fallback_reason == "LLMUnavailableError"
     assert payload.generation_attempts == 1
+    assert payload.evidence_packing is not None
+    assert payload.evidence_packing.selected_evidence_ids == ["E1"]
     assert "随机森林" in payload.answer
 
 
@@ -387,5 +424,20 @@ def test_default_workflow_can_run_injected_llm_generator_path() -> None:
     assert response.answer_payload.fallback_used is False
     assert response.answer_payload is not None
     assert len(response.generation_trace) == 1
+    assert len(response.evidence_packing_trace) == 1
+    assert response.evidence_packing_trace[0].selected_evidence_ids
     assert response.generation_trace[0].structured_output_success is True
     assert client.calls
+
+
+def test_workflow_preserves_one_packing_trace_per_retry_generation() -> None:
+    client = StubLLMClient(output=valid_output())
+    workflow = build_default_workflow(llm_client=client)
+
+    response = workflow.invoke("随机森林的学习率是多少")
+
+    assert response.verification.decision == "refuse"
+    assert response.retry_count == 1
+    assert len(response.generation_trace) == 2
+    assert len(response.evidence_packing_trace) == 2
+    assert len(client.calls) == 2

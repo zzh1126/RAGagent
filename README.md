@@ -29,6 +29,7 @@ Build or validate the local data, then run the unified QA workflow:
 python scripts/validate_config.py
 python scripts/validate_graph_data.py
 python scripts/validate_graph_evidence.py
+python scripts/validate_evidence_packer.py
 python scripts/run_agent.py "随机森林为什么更稳定"
 python scripts/run_agent.py "类别不平衡时用什么指标"
 pytest -q
@@ -55,6 +56,10 @@ Set `AGENT_GENERATOR_BACKEND=offline_rule` to force the deterministic mode. `OLL
 
 The candidate 10-question dev run reached `10/10` structured outputs with no runtime fallback, but only `6/10` pass/refuse decisions; all four errors were over-refusals. This is development evidence, not an independent result, and does not establish that LLM generation outperforms the rule baseline. See `reports/llm_generator_dev_audit.md`.
 
+Stage 8.1 adds the deterministic `intent_aware_v2` Evidence Packer between retrieval and LLM generation. It deduplicates chunks, preserves graph-bound evidence, balances intent-specific evidence, enforces item and character budgets without mutating `RetrievalResult`, restricts LLM validation to visible E/P/R IDs, and records per-call packing traces. The read-only dev/pilot contract check covers 50 questions with mean 4.38 selected chunks, maximum context length 7,783 characters, and one expected `no_text_evidence` gap on no-answer case `F-NA-01`.
+
+This does not yet fix over-refusal. A current real dev smoke for “随机森林为什么更稳定” still refused after one retry: all citations and paths were valid, but two of three Claims failed the strict term-coverage check. Prompt v2 and claim-level partial pass remain the next stages.
+
 The historical extension implementation is frozen at commit `bdedf7d`. Its release file still preserves the original `authorized_not_executed` value, while the immutable revocation record makes the effective status `revoked_before_execution`. The old command now fails before model inspection, holdout loading, or QA workflow construction. Versioned v2 scoring and trace contracts predeclare a four-method comparison, but no v2 release exists yet.
 
 ```bash
@@ -76,6 +81,7 @@ Open `http://localhost:8501`. The interface exposes the answer, graph paths, off
 
 ```bash
 python scripts/validate_evaluation.py
+python scripts/validate_evidence_packer.py
 python scripts/validate_extension_holdout.py
 python scripts/run_evaluation.py --split dev --output reports/evaluation_custom_dev.json
 python scripts/validate_scoring.py

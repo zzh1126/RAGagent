@@ -11,7 +11,7 @@
 | 理论首选增强 | 增强 A：可插拔真实 LLM 结构化生成 + 离线规则 fallback |
 | 初始决定 | `qwen3-vl:8b` 为 **No-Go**，保留 v1.0 |
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
-| 当前实施范围 | LLM Answer Generator、Verifier 与规则 fallback 已接线；不接入 LLM Query Planner |
+| 当前实施范围 | LLM Answer Generator、intent-aware Evidence Packer、Verifier 与规则 fallback 已接线；不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
 | extension holdout | 23 题从未运行；v1 release 已在执行前撤销，v2 四方法合同已冻结但尚无 release |
 
@@ -124,8 +124,11 @@ python scripts/check_enhancement_readiness.py
 python scripts/check_enhancement_readiness.py --probe-ollama --model qwen3-vl:8b
 python scripts/probe_llm_structured.py --model qwen3:4b --runs-per-schema 20 --target-gate generator --unload-before-run
 python scripts/validate_llm_probe.py
+python scripts/validate_evidence_packer.py
 python scripts/validate_extension_holdout.py
 python scripts/smoke_llm_client.py --timeout 180
 ```
 
 `check_enhancement_readiness.py` 只输出环境变量名称和模型清单，不输出密钥值；正式探针报告保存结构化解析结果、哈希和计时，但不保存 thinking 内容。统一 Client 的合成 smoke 已分别完成一次冷启动和一次热调用，均一次成功，耗时约 21.14 s 与 0.58 s。随后默认主链路已接入 LLM Generator；候选 dev 为 10/10 结构成功、0 fallback、6/10 决策正确，不能据此声称增强优于规则基线。
+
+阶段 8.1 已进一步接入 `intent_aware_v2` Evidence Packer。它在不修改完整 `RetrievalResult` 的前提下完成稳定去重、图路径绑定、题型配额、字符预算、可见 E/P/R ID 边界和逐次 trace。dev/pilot 50 题只读合同检查平均选择 4.38 条证据、最长上下文 7,783 字符，仅 `F-NA-01` 出现预期空证据 gap。该结果只证明 Packer 工程合同成立；真实问题“随机森林为什么更稳定”仍因严格 Claim 术语覆盖在一次重试后拒答，因此下一阶段仍是原子 Claim Prompt v2 和 Claim-level `PARTIAL_PASS`，不能运行或宣称 extension 结果。

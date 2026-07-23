@@ -36,6 +36,7 @@ def evaluate_question(workflow, item: dict) -> dict:
     response = workflow.invoke(item["question"])
     generation = response.answer_payload
     generation_trace = response.generation_trace
+    packing_trace = response.evidence_packing_trace
     llm_calls = [call for call in generation_trace if call.requested_backend == "ollama"]
     expected_decision = "refuse" if item["expected_behavior"] == "refuse" else "pass"
     retrieved_entities = {entity.entity_id for entity in response.retrieval.entities}
@@ -75,6 +76,13 @@ def evaluate_question(workflow, item: dict) -> dict:
         "generation_call_count": len(generation_trace),
         "generation_attempts": sum(call.attempts for call in generation_trace),
         "generation_latency_ms": round(sum(call.latency_ms for call in generation_trace), 1),
+        "evidence_packing_latency_ms": round(
+            sum(trace.evidence_packing_latency_ms for trace in packing_trace),
+            3,
+        ),
+        "evidence_packing_trace": [
+            trace.model_dump(mode="json") for trace in packing_trace
+        ],
         "structured_output_success": bool(
             llm_calls and all(call.structured_output_success for call in llm_calls)
         ),
@@ -109,6 +117,10 @@ def summarize(results: list[dict], engine: str) -> dict:
             sum(row["generation_latency_ms"] for row in results) / total,
             2,
         ),
+        "mean_evidence_packing_latency_ms": round(
+            sum(row["evidence_packing_latency_ms"] for row in results) / total,
+            3,
+        ),
         "structured_output_success_rate": round(
             sum(row["structured_output_success"] for row in results) / total,
             4,
@@ -126,11 +138,14 @@ def generator_metadata(workflow) -> dict:
     generator = workflow.answer_generator
     primary = getattr(generator, "primary", generator)
     client = getattr(primary, "client", None)
+    serializer = getattr(primary, "context_serializer", None)
+    packer = getattr(serializer, "packer", None)
     return {
         "requested_backend": "llm" if client is not None else "offline_rule",
         "provider": getattr(client, "provider", None),
         "model": getattr(client, "model", None),
         "prompt_version": ANSWER_PROMPT_VERSION if client is not None else None,
+        "evidence_packer_version": getattr(packer, "VERSION", None),
     }
 
 

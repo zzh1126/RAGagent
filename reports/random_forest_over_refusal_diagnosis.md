@@ -135,12 +135,32 @@ Retry count: 0
 
 不对冻结 runtime 做临时补丁。按既定顺序：
 
-1. 阶段 8.0：撤销未执行的 v1 extension release，建立 v2 合同；
-2. 阶段 8.1：Evidence Packer 保留完整直接证据；
+1. 阶段 8.0：撤销未执行的 v1 extension release，建立 v2 合同（已完成）；
+2. 阶段 8.1：Evidence Packer 保留完整直接证据（已完成）；
 3. 阶段 8.2：Prompt v2 限制最多 4 个原子 Claim，强化 E/P 字段语义和直接 quote；
 4. 阶段 8.3：逐 Claim 输出 ClaimResult，删除失败项并实现 `PARTIAL_PASS`；
 5. dev 回归重点复核 `DEV02`，确保支持 Claim 被保留、错误 Claim 不进入用户答案；
 6. 参数冻结后才建立并运行一次 v2 extension。
+
+## 阶段 8.1 完成后的复核
+
+最终 `intent_aware_v2` Packer 接线后，对同一 dev 问题再次执行真实 `qwen3:4b` smoke：
+
+```text
+Decision: refuse
+Evidence score: 0.8000
+Claim coverage: 0.3333
+Citation validity: 1.0000
+Path validity: 1.0000
+Retrieval sufficiency: 1.0000
+Retry count: 1
+Generation latency: 10186.3 ms + 8696.6 ms
+Packing latency: 6.024 ms + 5.200 ms
+```
+
+两次 Packer 调用都稳定选择 `E1,E4,E8,E2,E6,E5` 和 `P1,P2,P3`，当前首轮序列化上下文为 7,371 字符，无 coverage gap。该次模型没有再把 P ID 填入 `evidence_ids`，三条引用和图路径全部合法；但严格 Verifier 仍因两条 Claim 的“随机森林 / 平均 / 过拟合”等术语未被对应 quote 完整覆盖，只保留 1/3 Claim 支持并最终拒答。
+
+因此阶段 8.1 的结论是：证据选择、可见 ID 边界和 trace 已正常工作，Packer 耗时相对两次 LLM 生成很小；过度拒答仍未解决，剩余根因集中在原子 Claim、quote 对齐和整题聚合决策。不能把本次 smoke 描述为答案质量提升实验，也不能据此运行 extension。
 
 期望的 v2 行为：
 

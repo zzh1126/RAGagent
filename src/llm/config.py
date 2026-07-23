@@ -48,7 +48,9 @@ class AgentLLMSettings(BaseModel):
     planner_fallback: Literal["rule"] = "rule"
     generator_fallback: Literal["offline_rule"] = "offline_rule"
     generator_prompt_version: Literal["v1"] = "v1"
+    evidence_packer: Literal["intent_aware_v2"] = "intent_aware_v2"
     max_text_evidence: int = Field(default=8, ge=1, le=20)
     max_graph_paths: int = Field(default=8, ge=0, le=20)
+    comparison_evidence_per_entity: int = Field(default=2, ge=1, le=4)
     max_chars_per_evidence: int = Field(default=900, ge=200, le=4000)
     max_context_chars: int = Field(default=10000, ge=2000, le=30000)

@@ -7,7 +7,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from src.agent.generators.context import EvidenceContextSerializer
 from src.llm.base import LLMClient
 from src.llm.schemas import LLMCallRecord
-from src.schemas import AnswerClaim, AnswerPayload, EvidenceQuote, RetrievalResult
+from src.schemas import (
+    AnswerClaim,
+    AnswerPayload,
+    EvidencePack,
+    EvidencePackingTrace,
+    EvidenceQuote,
+    RetrievalResult,
+)
 
 
 ANSWER_PROMPT_VERSION = "v1"
@@ -53,26 +60,40 @@ class LLMAnswerGenerator:
     ) -> None:
         self.client = client
         self.context_serializer = context_serializer or EvidenceContextSerializer()
+        self._last_pack: EvidencePack | None = None
 
     @property
     def last_call(self) -> LLMCallRecord | None:
         return getattr(self.client, "last_call", None)
 
+    @property
+    def last_evidence_packing(self) -> EvidencePackingTrace | None:
+        return self._last_pack.trace if self._last_pack is not None else None
+
     def generate(self, query: str, retrieval: RetrievalResult) -> AnswerPayload:
-        if not retrieval.text_evidence:
+        self._last_pack = self.context_serializer.pack(query, retrieval)
+        pack = self._last_pack
+        if not pack.text_evidence:
             return AnswerPayload(
                 answer="当前检索结果中没有可供大模型使用的官方文本证据。",
                 unsupported_claims=["未检索到可供生成器使用的文本证据"],
                 confidence=0.0,
                 generator_backend="ollama",
+                evidence_packing=pack.trace,
             )
 
-        context = self.context_serializer.serialize(query, retrieval)
+        packed_retrieval = retrieval.model_copy(
+            update={
+                "graph_paths": pack.graph_paths,
+                "text_evidence": pack.text_evidence,
+            },
+            deep=True,
+        )
         started_at = time.perf_counter()
         draft = self.client.generate_structured(
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": context},
+                {"role": "user", "content": pack.context},
             ],
             response_model=LLMAnswerDraft,
             node="llm_generate_answer",
@@ -81,9 +102,10 @@ class LLMAnswerGenerator:
         record = self.last_call
         return self._to_payload(
             draft,
-            retrieval,
+            packed_retrieval,
             attempts=record.attempts if record else 1,
             latency_ms=record.latency_ms if record else elapsed_ms,
+            evidence_packing=pack.trace,
         )
 
     @staticmethod
@@ -97,6 +119,7 @@ class LLMAnswerGenerator:
         *,
         attempts: int,
         latency_ms: float,
+        evidence_packing: EvidencePackingTrace | None = None,
     ) -> AnswerPayload:
         evidence_by_id = {item.evidence_id: item for item in retrieval.text_evidence}
         valid_evidence_ids = set(evidence_by_id)
@@ -162,6 +185,7 @@ class LLMAnswerGenerator:
             generator_backend="ollama",
             generation_attempts=attempts,
             generation_latency_ms=latency_ms,
+            evidence_packing=evidence_packing,
         )
 
     @staticmethod

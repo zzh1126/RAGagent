@@ -41,6 +41,15 @@ def main() -> None:
             f"actual={call.actual_backend} fallback={call.fallback_used} "
             f"attempts={call.attempts} latency_ms={call.latency_ms:.1f}"
         )
+    print(f"EVIDENCE_PACKING_CALLS: {len(response.evidence_packing_trace)}")
+    for index, packing in enumerate(response.evidence_packing_trace, start=1):
+        print(
+            f"  EVIDENCE_PACK_{index}: selected={packing.selected_evidence_ids} "
+            f"paths={packing.selected_graph_path_ids} "
+            f"latency_ms={packing.evidence_packing_latency_ms:.3f}"
+        )
+        if packing.coverage_gaps:
+            print(f"    coverage_gaps={packing.coverage_gaps}")
     print(f"GENERATOR_ANSWER: {response.answer_payload.answer}")
     print("GENERATOR_CLAIMS:")
     for claim in response.answer_payload.claims:

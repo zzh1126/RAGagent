@@ -57,6 +57,39 @@ class RetrievalResult(BaseModel):
     text_evidence: list[TextEvidence] = Field(default_factory=list)
 
 
+class EvidencePackingTrace(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    packer_version: Literal["intent_aware_v2"] = "intent_aware_v2"
+    intent: str
+    selected_evidence_ids: list[str] = Field(default_factory=list)
+    selected_chunk_ids: list[str] = Field(default_factory=list)
+    selected_graph_path_ids: list[str] = Field(default_factory=list)
+    reason_codes_by_evidence: dict[str, list[str]] = Field(default_factory=dict)
+    entity_coverage: dict[str, int] = Field(default_factory=dict)
+    coverage_gaps: list[str] = Field(default_factory=list)
+    truncated_evidence_ids: list[str] = Field(default_factory=list)
+    dropped_evidence_ids: list[str] = Field(default_factory=list)
+    input_evidence_count: int = Field(default=0, ge=0)
+    deduplicated_evidence_count: int = Field(default=0, ge=0)
+    input_character_count: int = Field(default=0, ge=0)
+    packed_character_count: int = Field(default=0, ge=0)
+    selection_target: int = Field(default=1, ge=1)
+    max_text_evidence: int = Field(ge=1)
+    max_graph_paths: int = Field(ge=0)
+    max_context_chars: int = Field(ge=1)
+    evidence_packing_latency_ms: float = Field(default=0.0, ge=0.0)
+
+
+class EvidencePack(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    context: str
+    graph_paths: list[GraphPath] = Field(default_factory=list)
+    text_evidence: list[TextEvidence] = Field(default_factory=list)
+    trace: EvidencePackingTrace
+
+
 class EvidenceQuote(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -87,6 +120,7 @@ class AnswerPayload(BaseModel):
     fallback_reason: str | None = None
     generation_attempts: int = Field(default=0, ge=0)
     generation_latency_ms: float = Field(default=0.0, ge=0.0)
+    evidence_packing: EvidencePackingTrace | None = None
 
 
 class ClaimResult(BaseModel):
@@ -122,5 +156,6 @@ class FinalResponse(BaseModel):
     retrieval: RetrievalResult
     verification: VerifyResult
     generation_trace: list[GenerationCall] = Field(default_factory=list)
+    evidence_packing_trace: list[EvidencePackingTrace] = Field(default_factory=list)
     latency_ms: int = 0
     retry_count: int = 0
