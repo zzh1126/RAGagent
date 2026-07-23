@@ -1610,3 +1610,39 @@ git diff --check
 ### 当前状态与下一步
 
 项目现已有一份完整事实手册和一份可执行不足路线图。下一步仍严格从阶段 8.0 开始：创建 v1 revocation record、使旧 release ID 无法执行、建立 v2 evaluation/trace contract；验收后才进入 Evidence Packer。
+
+## 2026-07-23 阶段 7.7：随机森林稳定性问题的过度拒答复现
+
+### 完成事项
+
+- 在用户通过 Streamlit 提问“随机森林为什么更稳定？”并遇到拒答后，使用默认 LLM 主链路复现同一问题。
+- LLM 主链路复现结果：
+  - intent=`explanation`，mode=`hybrid`；
+  - decision=`refuse`；
+  - evidence score=`0.7200`；
+  - claim coverage=`0.4000`；
+  - citation validity=`0.6000`；
+  - path validity=`1.0000`；
+  - retrieval sufficiency=`1.0000`；
+  - retry count=`1`；
+  - generation calls=`2`；
+  - fallback=`false`。
+- 确认 Retriever 已返回 Random Forests 官方章节 E1/E2 和三条有效图路径，因此本题不是知识库缺失或召回失败。
+- 定位三类生成/验证问题：
+  - “平均预测降低方差”的 quote 只截取 `By taking an average of those predictions,`，没有直接覆盖 Random Forest 和 variance；
+  - 噪声鲁棒性 Claim 将图路径 `P2` 错填入 `evidence_ids`；
+  - 缓解过拟合 Claim 将图路径 `P3` 错填入 `evidence_ids`。
+- 当前 Verifier 因只有 2/5 Claim 通过、存在 unsupported 项且没有 `partial_pass`，在一次重试后把整题拒答。
+- 使用 `AGENT_GENERATOR_BACKEND=offline_rule` 对同一问题做对照：
+  - decision=`pass`；
+  - evidence score、claim coverage、citation validity、path validity、retrieval sufficiency 均为 `1.0000`；
+  - retry count=`0`。
+- 对照结果证明本题的主要故障位于 LLM Claim 引用与严格整题决策，而不是图谱、Chunk 或 Retriever。
+- 新增独立诊断文档 `reports/random_forest_over_refusal_diagnosis.md`，记录完整复现数据、错误 Claim、根因、规则基线对照、正式修复路径和临时规则模式命令。
+
+### 当前处理决定
+
+- 不直接修改冻结 runtime，也不运行 extension；
+- 正式修复仍按阶段 8.0～8.3 顺序进行：release 治理 -> Evidence Packer -> Prompt v2 -> Claim-level `PARTIAL_PASS`；
+- `DEV02` 将作为 v2 dev 回归的必测案例；
+- 当前需要稳定演示时可显式使用 `offline_rule`，但必须标注为规则基线，不能冒充 LLM 输出。
