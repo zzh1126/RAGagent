@@ -1448,3 +1448,74 @@ pytest -q
 ### 当前状态与下一步
 
 实现、Prompt、Schema、依赖、输入、模型和 trace 评分合同现已不可变地绑定到 release `extension-qwen3-4b-v1-bdedf7dc`。下一阶段只能使用 release record 中的精确命令执行一次正式 extension 比较；执行完成后先校验 receipt/输出哈希，再生成用户确认的盲评结果。在正式执行前不再修改任何 manifest 中列出的运行时文件。
+
+## 2026-07-23 阶段 7.5：Partial-pass 建议评测与 v2 合并计划
+
+### 完成事项
+
+- 根据用户提出的 5 项不足，对候选 dev 结果、当前 Schema、Evidence Context Serializer、LLM Prompt、Evidence Verifier、LangGraph 决策路径、extension 协议和延迟 trace 做了对应核查。
+- 确认当前候选 dev 的主要瓶颈是过度拒答：
+  - Decision Accuracy：`0.6000`；
+  - Structured Output Success：`1.0000`；
+  - Fallback Rate：`0.0000`；
+  - 平均端到端延迟：`11437.7 ms`；
+  - 平均生成延迟：`5691.18 ms`；
+  - 7/10 题触发一次重试；
+  - 2/2 无答案题正确拒答；
+  - 4/8 可回答题被过度拒答，分别为 `DEV02`、`DEV03`、`DEV05`、`DEV10`。
+- 确认代码已逐 Claim 循环检查，但当前仍是整题聚合决策：
+  - `ClaimResult` 已定义但未进入 `VerifyResult`；
+  - `VerifyDecision` 只有 `pass/retry/refuse`；
+  - 任一 unsupported 项会阻止 `pass`，通常触发一次重试后整题拒答；
+  - 当前 Prompt 没有最多 4 条 Claim 和明确的原子事实限制；
+  - Context Serializer 尚未按题型平衡证据。
+- 新增独立计划文档 `reports/llm_agent_partial_pass_plan.md`，正式接受并合并：
+  - intent-aware Evidence Packer；
+  - Prompt v2 原子 Claim 与最多 4 条限制；
+  - Claim-level Verifier 和 ClaimResult trace；
+  - `PASS / PARTIAL_PASS / RETRY / REFUSE` 四状态；
+  - Rule、LLM Strict、LLM No Verifier、LLM Partial-pass 四方法对照；
+  - retrieval、packing、generation、verification、retry 和 end-to-end 分阶段延迟；
+  - Streamlit 真实模型、fallback、Verifier 和延迟状态展示。
+- 对用户建议做了两项实验口径修正：
+  - pilot 已参与历史修复，不再用于自由调参；只允许在参数冻结后做一次预声明门槛的回归，且不得按逐题结果继续调参；
+  - `partial_pass` 只表示保留了部分受支持 Claim，不自动计为答案正确，完整性仍由 Answer Correctness 人工评分。
+- Dense Retrieval 设为条件增强：只有当剩余可回答错误中至少 30% 明确属于“正确 Chunk 在语料中但未进入 top-k”的召回失败时才单独立项。
+- LLM Planner、多 Agent、扩充知识源/实体关系、自动图谱抽取、复杂动态图、完整 Microsoft GraphRAG 和框架迁移继续为 No-Go。
+- 制定阶段 8.0～8.8 的实施与验收顺序：release 治理 -> Evidence Packer -> Prompt v2 -> Claim-level Partial-pass -> trace/UI -> dev -> pilot 回归与 v2 冻结 -> extension 一次性实验 -> 盲评和报告。
+
+### Release 治理决定
+
+- 当前 release `extension-qwen3-4b-v1-bdedf7dc` 仍是文件层面的 `authorized_not_executed`，但根据本轮计划立即暂停执行。
+- 截至本轮仍未运行 extension，`reports/extension/` 不存在，也没有观察任何 extension 输出，因此可以在无结果泄漏的前提下升级实验协议。
+- 在任何 runtime、Prompt、Packer 或 Verifier 改动前，阶段 8.0 必须先：
+  - 创建独立且不可覆盖的 v1 revocation record；
+  - 保留原 release、implementation manifest 和 v1 trace contract，不删除、不覆盖；
+  - 让 runner/validator 对已撤销 release ID 无条件拒绝执行；
+  - 新建版本化 `extension_evaluation_v2.yaml` 和 `extension_trace_contract_v2.yaml`；
+  - 完成 v2 后重新冻结 runtime、Prompt、Schema、配置、依赖和模型 digest，并创建新的单次 release。
+- 该决定取代阶段 7.4B 中“下一步直接执行 v1 extension”的后续安排，但不改写或删除 7.4B 的历史记录。
+
+### 本轮边界与验证
+
+- 本轮只新增计划文档并更新 `PROGRESS.md`；
+- 未修改任何 `src/**/*.py`、冻结配置、题集、图数据、Chunk、索引、release 或 implementation manifest；
+- 未调用 final 或 extension QA 工作流；
+- 未生成 extension execution state、receipt、答案、方法报告或盲评表；
+- 用户提供的 DOCX 保持未跟踪、未修改，不纳入提交。
+
+```bash
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation.py --preflight
+git diff --check
+```
+
+- release/runtime/model 复验通过，runtime bundle、Prompt 和 trace contract 哈希保持不变；
+- preflight 返回 `effective_execution_status=authorized_not_executed`；
+- preflight 明确确认 extension questions were not sent to the QA workflow；
+- `reports/extension/` 仍不存在；
+- `git diff --check` 通过，仅有 Windows 工作区的 LF/CRLF 提示，没有空白错误。
+
+### 当前状态与下一步
+
+评测结论为 **Go**，但不是直接执行 extension。下一步只实施阶段 8.0：建立 v1 撤销记录、执行护栏和 v2 实验合同；该阶段验收完成后再进入 Evidence Packer，继续保持 final 只读和 extension 未执行状态。
