@@ -20,6 +20,7 @@ def test_hybrid_workflow_answers_with_verified_evidence():
     workflow = build_default_workflow(ROOT, generator_backend="offline_rule")
     response = workflow.invoke("随机森林为什么更稳定")
 
+    assert workflow.verifier.decision_policy == "strict"
     assert response.retrieval.mode == "hybrid"
     assert response.verification.decision == "pass"
     assert "[E" in response.answer
@@ -65,7 +66,8 @@ def test_workflow_refuses_false_graph_premise():
     response = workflow.invoke("KMeans 是监督分类算法吗")
 
     assert response.verification.decision == "refuse"
-    assert response.retry_count == 1
+    assert response.retry_count == 0
+    assert "premise_not_supported" in response.verification.reason_codes
 
 
 def test_workflow_accepts_true_graph_premise():
@@ -104,3 +106,11 @@ def test_weak_evidence_retries_once_then_refuses():
 
     assert response.verification.decision == "refuse"
     assert response.retry_count == 1
+
+
+def test_llm_workflow_defaults_to_partial_pass_and_supports_strict_override():
+    partial_workflow = build_default_workflow(ROOT)
+    strict_workflow = build_default_workflow(ROOT, verifier_policy="strict")
+
+    assert partial_workflow.verifier.decision_policy == "partial_pass"
+    assert strict_workflow.verifier.decision_policy == "strict"

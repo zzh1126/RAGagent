@@ -134,4 +134,6 @@ python scripts/smoke_llm_client.py --timeout 180
 
 阶段 8.1 已进一步接入 `intent_aware_v2` Evidence Packer。它在不修改完整 `RetrievalResult` 的前提下完成稳定去重、图路径绑定、题型配额、字符预算、可见 E/P/R ID 边界和逐次 trace。dev/pilot 50 题只读合同检查平均选择 4.38 条证据、最长上下文 7,783 字符，仅 `F-NA-01` 出现预期空证据 gap。该结果只证明 Packer 工程合同成立；当时真实问题“随机森林为什么更稳定”仍因严格 Claim 术语覆盖在一次重试后拒答，并将剩余工作定位为原子 Claim Prompt v2 和 Claim-level `PARTIAL_PASS`。阶段 8.2 的当前结果见下段。
 
-阶段 8.2 已接入原子 Claim Prompt v2：wire Schema 限制 1～4 条 Claim，并区分 E/P/R ID、逐字 quote 和无证据子问。四场景正式合成探针为 `20/20`，且不保存 Prompt、模型正文、quote 或 thinking。随机森林真实 smoke 的 Claim coverage 从 0.3333 提高到 0.5000，但严格整题 Verifier 仍拒答，因此下一阶段只进入 Claim-level `PARTIAL_PASS`；该开发观察不能证明增强优于规则基线。
+阶段 8.2 已接入原子 Claim Prompt v2：wire Schema 限制 1～4 条 Claim，并区分 E/P/R ID、逐字 quote 和无证据子问。四场景正式合成探针为 `20/20`，且不保存 Prompt、模型正文、quote 或 thinking。随机森林真实 smoke 的 Claim coverage 从 0.3333 提高到 0.5000，但严格整题 Verifier 仍拒答；当时将下一阶段限定为 Claim-level `PARTIAL_PASS`。该开发观察不能证明增强优于规则基线。
+
+阶段 8.3 已接入 Claim-level Verifier：逐 Claim 输出 C ID、supported/retained、有效 E/P ID 和 reason codes；默认 LLM 使用 partial-pass，规则基线继续 strict，并保留 LLM strict override。DEV02 脱敏 warm smoke 保留 2/4 Claim、删除 2/4 Claim，返回 `partial_pass`，retry=0、generation calls=1、unsupported leakage=0。该结果只证明单题过滤机制成立，不是完整 dev/pilot 回归或增强有效性结论；extension 继续锁定。

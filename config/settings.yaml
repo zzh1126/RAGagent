@@ -31,6 +31,7 @@ verification:
   retry_threshold: 0.55
   max_retries: 1
   min_vector_score: 0.08
+  decision_policy: partial_pass
 
 llm:
   provider: ollama

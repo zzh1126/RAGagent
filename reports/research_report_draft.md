@@ -285,7 +285,9 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 阶段 8.2 已冻结原子 Claim Prompt v2 和 wire Schema。Prompt v2 合成探针成功为 20/20，覆盖随机森林双事实、AdaBoost 三事实、Bagging/Boosting 对比和“部分有证据、部分无证据”四类人工场景；报告不保存 Prompt、回答正文、quote 或 thinking。Prompt v2 SHA-256 为 `e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`，wire Schema SHA-256 为 `b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`。这只是工程结构门槛，不是独立回答质量实验。
 
-同一随机森林 dev smoke 在 Prompt v2 下生成 4 条分离 Claim，citation/path validity 仍为 1.0000，Claim coverage 从 0.3333 提高到 0.5000，但未修改的整题 Verifier 仍在一次重试后 `refuse`。因此过度拒答尚未解决，下一步仍需 Claim-level retained/removed 结果与 `PARTIAL_PASS`。
+同一随机森林 dev smoke 在 Prompt v2 下生成 4 条分离 Claim，citation/path validity 仍为 1.0000，Claim coverage 从 0.3333 提高到 0.5000，但阶段 8.2 的整题 Verifier 仍在一次重试后 `refuse`。该历史对照说明 Prompt 改善不能替代决策层过滤。
+
+阶段 8.3 已接入 Claim-level Verifier 和 `PARTIAL_PASS`。每条 Claim 现在具有 C ID、supported/retained、有效 E/P ID 和 reason codes；默认 LLM 使用 partial-pass，规则基线保持 strict。DEV02 脱敏 smoke 保留 C1/C2、删除 C3/C4，decision=`partial_pass`，Claim coverage=0.5000，citation/path validity=1.0000，retry count=0，generation call count=1，unsupported Claim leakage=0；warm generation latency 为 7275.8 ms，end-to-end latency 为 7288 ms。该单题开发 smoke 只证明过滤机制按设计工作，不是完整 dev/pilot 回归，也不能证明 LLM 增强有效。
 
 初始审计中，Ollama `0.32.1` 与 `qwen3-vl:8b` 的 5 次手工受控调用和 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空，因此该视觉模型组合仍为 No-Go，且没有读取 thinking 绕过接口合同。
 
@@ -341,7 +343,7 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 ## 6.5 工程测试
 
-当前全量测试为 `104 passed`，覆盖 GraphRepository、Vector/Graph Retriever、Evidence Packer、Prompt v2/wire Schema、LLM Generator/fallback、LangGraph 工作流、Verifier 重试与拒答、评测集隔离、extension 治理、实验配置和实验运行器。Prompt 定向测试覆盖第 5 条 Claim、缺 E ID、缺 quote、E/P/R 混填、未知字段、非逐字 quote、多事实 Claim 和无证据子问；`pip check` 无依赖冲突，100 条 approved 图关系的证据回指校验通过。
+当前全量测试为 `116 passed`，覆盖 GraphRepository、Vector/Graph Retriever、Evidence Packer、Prompt v2/wire Schema、LLM Generator/fallback、Claim-level Verifier、strict/partial-pass 状态机、LangGraph 工作流、评测集隔离、extension 治理、实验配置和实验运行器。定向测试覆盖第 5 条 Claim、缺 E ID、缺 quote、E/P/R 混填、非逐字 quote、多事实 Claim、逐 Claim reason codes、retained/removed 过滤、Schema 汇总一致性、错误前提、零支持重试和 partial 无泄漏；`pip check` 无依赖冲突，100 条 approved 图关系的证据回指校验通过。
 
 ## 6.6 运行命令
 
@@ -351,6 +353,7 @@ python scripts/validate_graph_data.py
 python scripts/validate_graph_evidence.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_claim_level_verifier.py
 python scripts/validate_evaluation.py
 python scripts/validate_experiments.py
 pytest -q
@@ -585,7 +588,7 @@ python scripts/validate_scoring.py
 - [x] 冻结 v1 实现、Prompt、配置、trace 合同和模型 digest，建立一次性 release record；在执行前撤销并冻结 v2 四方法合同；
 - [x] 实现 intent-aware Evidence Packer、题型配额、可见 ID 边界、字符预算和逐次 packing trace，并完成 dev/pilot 只读合同回归；
 - [x] 实现原子 Claim Prompt v2、1～4 条 Claim wire Schema、逐字 quote 合同与 20 次合成探针；
-- [ ] 实现 Claim-level Verifier 与 `PARTIAL_PASS`；
+- [x] 实现 Claim-level Verifier、retained/removed Claim、`PARTIAL_PASS` 与 strict 对照模式；
 - [ ] 使用专用 runner 执行一次 extension 并完成用户确认的盲评；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；

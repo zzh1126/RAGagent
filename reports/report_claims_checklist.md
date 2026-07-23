@@ -2,7 +2,7 @@
 
 ## 使用范围
 
-本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，Evidence Packer 与原子 Claim Prompt v2 已完成工程接线，但 Claim-level Partial-pass 尚未实现、过度拒答尚未解决，extension 仍处于锁定未运行状态。
+本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，Evidence Packer、原子 Claim Prompt v2 和 Claim-level Partial-pass 已完成工程接线，但尚未完成整体 dev/pilot 回归，extension 仍处于锁定未运行状态。
 
 ## 权威证据源
 
@@ -34,6 +34,9 @@
 | `config/atomic_claim_prompt_v2.yaml` | Prompt v2、wire Schema 哈希、1～4 Claim 与探针门槛 |
 | `reports/llm_atomic_claim_prompt_v2_probe.json` | 四场景 20 次脱敏合成结构探针 |
 | `scripts/validate_atomic_claim_prompt.py` | Prompt/Schema 哈希、探针门槛和无原文持久化校验 |
+| `src/verification/evidence_verifier.py` | Claim-level supported/retained、四状态决策、strict 对照和 reason codes |
+| `scripts/validate_claim_level_verifier.py` | 合成状态机与脱敏 DEV02 smoke 合同检查 |
+| `reports/claim_level_partial_pass_dev02_smoke.json` | 不含问题/答案/Claim/quote 的 DEV02 Partial-pass 工程 smoke |
 | `config/settings.yaml` | 当前 rule Router、LLM Generator 与 offline_rule fallback 配置 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
@@ -65,9 +68,11 @@
 | C21 | 候选 dev 结构化输出 10/10、fallback 0/10、决策 6/10；4 个错误均为过度拒答，不能证明优于规则基线 | 已核验 |
 | C22 | v1 extension 实现提交为 `bdedf7d`，runtime/Prompt/trace 哈希与模型 digest 已冻结；文件原始状态为 `authorized_not_executed`，有效状态为 `revoked_before_execution` | 已核验 |
 | C23 | `intent_aware_v2` Packer 已实现确定性去重、题型配额、10,000 字符预算、可见 ID 边界和逐次 trace，且不修改原始 `RetrievalResult` | 已核验 |
-| C24 | Packer 的 50 题 dev/pilot 检查是工程合同回归，不是独立效果实验；随机森林真实 smoke 仍拒答，不能宣称过度拒答已解决 | 已核验 |
+| C24 | Packer 的 50 题 dev/pilot 检查是工程合同回归，不是独立效果实验；阶段 8.2 随机森林 smoke 仍拒答 | 已核验 |
 | C25 | Prompt v2 限制 1～4 条原子 Claim，并冻结 Prompt/Schema 哈希；20/20 合成探针是工程门槛，不是独立回答质量结果 | 已核验 |
-| C26 | Prompt v2 随机森林 smoke 的 Claim coverage 为 0.5000，但整题仍 `refuse`；不能宣称 Prompt 已解决过度拒答 | 已核验 |
+| C26 | Prompt v2 随机森林 smoke 的 Claim coverage 为 0.5000，但阶段 8.2 整题仍 `refuse`；不能宣称 Prompt 单独解决过度拒答 | 已核验 |
+| C27 | Stage 8.3 DEV02 脱敏 smoke 为 2/4 Claim retained、2/4 removed、`partial_pass`、retry=0、generation calls=1、unsupported leakage=0 | 已核验 |
+| C28 | Stage 8.3 单题 smoke 只证明过滤机制，不是整体 dev/pilot 结果、正式准确率或 LLM 优于规则的证据 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -87,7 +92,9 @@
 - 将历史文件中的 `authorized_not_executed` 误写为当前有效执行授权，或在 execution receipt 出现前描述为已完成 extension 实验。
 - 将 Evidence Packer 的 dev/pilot 合同检查描述为回答质量提升实验，或声称它已经解决过度拒答。
 - 将 Prompt v2 的 20/20 合成探针描述为 LLM 优于规则基线、正式答案准确率或 extension 结果。
-- 声称 Prompt v2 已经解决过度拒答；当前随机森林 smoke 仍被严格整题 Verifier 拒答。
+- 声称 Prompt v2 单独解决了过度拒答；阶段 8.2 的 strict smoke 仍拒答。
+- 将 Stage 8.3 单题 DEV02 Partial-pass smoke 描述为总体过度拒答已解决、正式准确率提升或 LLM 优于规则基线。
+- 将 `partial_pass` 状态自动等同于人工正确答案。
 
 ## 发布前检查
 
@@ -95,6 +102,7 @@
 python scripts/validate_report_claims.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_claim_level_verifier.py
 python scripts/validate_scoring.py
 python scripts/validate_extension_holdout.py
 python scripts/freeze_baseline.py --verify

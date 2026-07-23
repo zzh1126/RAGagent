@@ -349,7 +349,7 @@ def test_unknown_evidence_path_and_relation_ids_cannot_pass_verification() -> No
     assert any("R999" in item for item in result.unsupported_claims)
 
 
-def test_model_declared_unsupported_claim_prevents_pass() -> None:
+def test_model_declared_gap_produces_partial_pass() -> None:
     output = valid_output()
     output["unsupported_claims"] = ["证据没有给出具体超参数"]
     generator = LLMAnswerGenerator(StubLLMClient(output=output))
@@ -363,7 +363,8 @@ def test_model_declared_unsupported_claim_prevents_pass() -> None:
         graph_repo=StubGraphRepository(),
     )
 
-    assert result.decision == "refuse"
+    assert result.decision == "partial_pass"
+    assert result.retained_claim_ids == ["C1"]
     assert "证据没有给出具体超参数" in result.unsupported_claims
 
 

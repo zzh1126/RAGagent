@@ -65,6 +65,12 @@ def main() -> None:
         agent_settings = AgentLLMSettings.model_validate(settings.get("agent", {}))
     except ValidationError as exc:
         fail(f"invalid LLM or Agent settings: {exc}")
+    verifier_policy = settings.get("verification", {}).get(
+        "decision_policy",
+        "partial_pass",
+    )
+    if verifier_policy not in {"strict", "partial_pass"}:
+        fail(f"invalid verification.decision_policy: {verifier_policy}")
 
     print("OK: config files are valid")
     print(f"OK: sources={len(source_rows)} node_types={len(required_node_types)}")
@@ -73,7 +79,8 @@ def main() -> None:
         f"planner={agent_settings.planner_backend} "
         f"generator={agent_settings.generator_backend} "
         f"prompt={agent_settings.generator_prompt_version} "
-        f"packer={agent_settings.evidence_packer}"
+        f"packer={agent_settings.evidence_packer} "
+        f"verifier={verifier_policy}"
     )
 
 

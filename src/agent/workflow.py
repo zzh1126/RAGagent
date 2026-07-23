@@ -24,11 +24,13 @@ from src.retrieval.hybrid_retriever import HybridRetriever
 from src.retrieval.intent_router import IntentRouter, RouteDecision
 from src.retrieval.vector_retriever import TfidfVectorRetriever
 from src.schemas import (
+    AnswerClaim,
     AnswerPayload,
     EvidencePackingTrace,
     FinalResponse,
     GenerationCall,
     RetrievalResult,
+    VerifierDecisionPolicy,
     VerifyResult,
 )
 from src.verification.evidence_verifier import EvidenceVerifier
@@ -98,7 +100,12 @@ class QAWorkflow:
         builder.add_conditional_edges(
             "verify",
             self._next_after_verify,
-            {"retry": "retry", "pass": "finalize", "refuse": "finalize"},
+            {
+                "retry": "retry",
+                "pass": "finalize",
+                "partial_pass": "finalize",
+                "refuse": "finalize",
+            },
         )
         builder.add_edge("retry", "answer")
         builder.add_edge("finalize", END)
@@ -171,15 +178,16 @@ class QAWorkflow:
 
     def _finalize_node(self, state: AgentState) -> dict:
         verification = state["verification"]
-        answer = state["answer_payload"].answer
-        if verification.decision == "refuse":
-            answer = self.answer_generator.refusal_answer()
+        answer_payload = self._visible_answer_payload(
+            state["answer_payload"],
+            verification,
+        )
         latency_ms = int((time.perf_counter() - state["started_at"]) * 1000)
         return {
             "final_response": FinalResponse(
                 query=state["query"],
-                answer=answer,
-                answer_payload=state["answer_payload"],
+                answer=answer_payload.answer,
+                answer_payload=answer_payload,
                 retrieval=state["retrieval"],
                 verification=verification,
                 generation_trace=state.get("generation_trace", []),
@@ -188,6 +196,61 @@ class QAWorkflow:
                 retry_count=state.get("retry_count", 0),
             )
         }
+
+    def _visible_answer_payload(
+        self,
+        payload: AnswerPayload,
+        verification: VerifyResult,
+    ) -> AnswerPayload:
+        if verification.decision == "pass":
+            return payload
+
+        retained_indexes = set(verification.retained_claim_indexes)
+        retained_claims = [
+            claim
+            for index, claim in enumerate(payload.claims, start=1)
+            if index in retained_indexes
+        ]
+        retained_graph_paths = list(
+            dict.fromkeys(
+                path_id
+                for claim in retained_claims
+                for path_id in claim.graph_path_ids
+            )
+        )
+        if verification.decision == "partial_pass":
+            answer = self._render_partial_answer(retained_claims)
+            confidence = min(payload.confidence, verification.claim_coverage)
+        else:
+            answer = self.answer_generator.refusal_answer()
+            confidence = 0.0
+            retained_claims = []
+            retained_graph_paths = []
+        return payload.model_copy(
+            update={
+                "answer": answer,
+                "claims": retained_claims,
+                "graph_paths": retained_graph_paths,
+                "confidence": confidence,
+            },
+            deep=True,
+        )
+
+    @staticmethod
+    def _render_partial_answer(claims: list[AnswerClaim]) -> str:
+        lines: list[str] = []
+        for claim in claims:
+            references = list(
+                dict.fromkeys([*claim.evidence_ids, *claim.graph_path_ids])
+            )
+            citation_text = "".join(f"[{reference_id}]" for reference_id in references)
+            lines.append(f"- {claim.claim} {citation_text}".rstrip())
+        confirmed = "\n".join(lines)
+        return (
+            "根据当前知识库，可以确认：\n"
+            f"{confirmed}\n\n"
+            "但问题中的其余方面缺少足够证据，因此不作进一步判断。"
+        )
 
     def _invoke_local(self, state: AgentState) -> AgentState:
         state.update(self._route_node(state))
@@ -210,6 +273,7 @@ def build_default_workflow(
     *,
     router: IntentRouter | None = None,
     verifier=None,
+    verifier_policy: VerifierDecisionPolicy | None = None,
     answer_generator: AnswerGenerator | None = None,
     llm_client: LLMClient | None = None,
     generator_backend: str | None = None,
@@ -253,11 +317,18 @@ def build_default_workflow(
         default_top_k=int(settings["retrieval"].get("final_top_k", 8)),
     )
     verification = settings.get("verification", {})
+    configured_policy = verification.get("decision_policy", "partial_pass")
+    default_policy = verifier_policy or (
+        "strict"
+        if agent_settings.generator_backend == "offline_rule"
+        else configured_policy
+    )
     default_verifier = EvidenceVerifier(
         pass_threshold=float(verification.get("pass_threshold", 0.80)),
         retry_threshold=float(verification.get("retry_threshold", 0.55)),
         max_retries=int(verification.get("max_retries", 1)),
         min_vector_score=float(verification.get("min_vector_score", 0.08)),
+        decision_policy=default_policy,
     )
     if verifier is None:
         verifier = default_verifier

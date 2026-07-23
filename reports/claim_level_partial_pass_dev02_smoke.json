@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "artifact": "claim_level_partial_pass_dev_smoke",
+  "generated_at": "2026-07-23T10:16:35.554088+00:00",
+  "question_id": "DEV02",
+  "question_sha256": "7fb15877fc87b2d2ea34903cf047d96e7b65355f0dd647ee777c31cb4b78a08d",
+  "development_only": true,
+  "independent_quality_result": false,
+  "model": "qwen3:4b",
+  "prompt_version": "v2",
+  "verifier_policy": "partial_pass",
+  "decision": "partial_pass",
+  "evidence_score": 0.85,
+  "claim_coverage": 0.5,
+  "citation_validity": 1.0,
+  "path_validity": 1.0,
+  "retrieval_sufficiency": 1.0,
+  "generated_claim_count": 4,
+  "supported_claim_count": 2,
+  "supported_claim_ids": [
+    "C1",
+    "C2"
+  ],
+  "unsupported_claim_ids": [
+    "C3",
+    "C4"
+  ],
+  "retained_claim_ids": [
+    "C1",
+    "C2"
+  ],
+  "removed_claim_ids": [
+    "C3",
+    "C4"
+  ],
+  "unsupported_claim_leakage_count": 0,
+  "retry_count": 0,
+  "generation_call_count": 1,
+  "generation_attempts": 1,
+  "generation_latency_ms": 7275.8,
+  "evidence_packing_latency_ms": 1.901,
+  "verification_latency_ms": 0.342,
+  "end_to_end_latency_ms": 7288,
+  "fallback_used": false,
+  "raw_prompt_recorded": false,
+  "raw_question_recorded": false,
+  "raw_answer_recorded": false,
+  "raw_claims_recorded": false,
+  "raw_quotes_recorded": false,
+  "raw_thinking_recorded": false
+}

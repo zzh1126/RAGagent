@@ -55,12 +55,12 @@
 | ID | 不足 | 证据 | 影响 | 优先级 | 计划状态 |
 | --- | --- | --- | --- | --- | --- |
 | G01 | v1 extension 授权与最新暂停决定并存 | v1 已建立不可变撤销记录，runner 先于题集读取拒绝旧 ID | 风险已关闭 | Done | 阶段 8.0 完成 |
-| G02 | Verifier 过度拒答 | LLM dev 4/8 可回答题拒答 | 决策准确率仅 0.60 | P0 | 马上处理 |
-| G03 | ClaimResult 未真正接线 | Schema 存在，VerifyResult 无逐 Claim 结果 | 无法过滤失败 Claim | P0 | 马上处理 |
-| G04 | 没有 `PARTIAL_PASS` | 决策只有 pass/retry/refuse | 部分正确无法安全输出 | P0 | 马上处理 |
+| G02 | Verifier 过度拒答 | DEV02 已由 refuse 修复为 2/4 Claim 的 partial_pass；整体 dev 尚待回归 | 单题机制已修复，整体比例未知 | P0 | 阶段 8.5 复核 |
+| G03 | ClaimResult 未真正接线 | VerifyResult 已输出逐 Claim supported/retained/reason codes | 风险已关闭 | Done | 阶段 8.3 完成 |
+| G04 | 没有 `PARTIAL_PASS` | 四状态决策、过滤和固定限制句已接入 | 风险已关闭 | Done | 阶段 8.3 完成 |
 | G05 | 证据上下文未按题型平衡 | `intent_aware_v2` 已完成 50 题只读合同回归 | 风险已关闭 | Done | 阶段 8.1 完成 |
 | G06 | Prompt 未限制原子 Claim | Prompt v2 与 1～4 Claim wire Schema 已通过 20/20 合成探针 | 风险已关闭 | Done | 阶段 8.2 完成 |
-| G07 | 重试过多 | dev 7/10 重试 | 延迟放大且未改善拒答 | P0 | 马上处理 |
+| G07 | 重试过多 | DEV02 从 1 次重试降为 0；整体 dev 7/10 历史值待重测 | 单题已缓解，整体比例未知 | P0 | 阶段 8.5 复核 |
 | G08 | 没有 LLM 正式 extension 结果 | extension 从未运行 | 无法回答 LLM 是否真正提升 | P0 | 完成 v2 后一次性运行 |
 | G09 | 延迟 trace 不完整 | packing latency 已接线，retrieval/verification/retry 仍待拆分 | 尚不能完整定位端到端耗时 | P1 | 部分完成 |
 | G10 | Streamlit 不展示 LLM 参与细节 | 无 model/fallback/generation latency | 演示说服力不足 | P1 | 与 trace 同步做 |
@@ -178,7 +178,7 @@ Packer 不修改原始 `RetrievalResult`，只返回选中证据、选择原因�
 - [x] 定义、对比、解释、多跳、关系、指标题、零路径预算和极端字符预算均有单元测试；
 - [x] dev/pilot 50 题只读回归平均选择 4.38 条、最长 7,783 字符，仅 `F-NA-01` 出现预期空证据 gap。
 
-阶段 8.1 的真实 dev smoke 在一次重试后拒答：citation/path validity 均为 1.0000，但只有 1/3 Claim 通过术语覆盖。该结果说明 Packer 已完成并缩小了上下文噪声。阶段 8.2 随后把 Claim coverage 提高到 0.5000，但仍需阶段 8.3 的 Claim-level Partial-pass 才能处理整题过度拒答。
+阶段 8.1 的真实 dev smoke 在一次重试后拒答：citation/path validity 均为 1.0000，但只有 1/3 Claim 通过术语覆盖。阶段 8.2 随后把 Claim coverage 提高到 0.5000；阶段 8.3 最终保留 2/4 Claim并返回 `partial_pass`。这一序列说明 Packer 缩小了上下文噪声，但真正修复整题拒答需要 Claim-level 决策。
 
 ## 6. P0：Prompt v2 与原子 Claim
 
@@ -227,13 +227,13 @@ claims: list[LLMAnswerClaim] = Field(min_length=1, max_length=4)
 - [x] Prompt v2 SHA-256=`e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`；
 - [x] wire Schema SHA-256=`b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`。
 
-真实随机森林 smoke 生成 4 条分离 Claim，citation/path validity 均为 1.0000，Claim coverage 从阶段 8.1 的 0.3333 提高到 0.5000；但严格整题 Verifier 仍在一次重试后拒答。该结果说明 Prompt 结构已改善，但不能替代阶段 8.3 的逐 Claim 保留与删除，也不是独立效果实验。
+阶段 8.2 的随机森林 smoke 生成 4 条分离 Claim，citation/path validity 均为 1.0000，Claim coverage 从阶段 8.1 的 0.3333 提高到 0.5000，但 strict 整题策略仍在一次重试后拒答。阶段 8.3 随后验证逐 Claim 保留与删除可以把同题转为 `partial_pass`；两者都只是开发工程观察，不是独立效果实验。
 
 ## 7. P0：Claim-level Verifier 与 `PARTIAL_PASS`
 
-### 7.1 当前问题
+### 7.1 原问题
 
-当前代码已经逐 Claim 检查引用、quote 和术语，但验证结果被聚合成一个比例。现有 `ClaimResult` 未接入 `VerifyResult`，FinalResponse 也不删除失败 Claim。
+阶段 8.3 前的代码已经逐 Claim 检查引用、quote 和术语，但验证结果被聚合成一个比例。旧 `ClaimResult` 未接入 `VerifyResult`，FinalResponse 也不删除失败 Claim。
 
 当前 dev 的直接后果：
 
@@ -244,19 +244,24 @@ claims: list[LLMAnswerClaim] = Field(min_length=1, max_length=4)
 | Over-refusal | 50% |
 | 全部 dev 重试 | 7/10 |
 
-### 7.2 新 ClaimResult
+### 7.2 已实现的 ClaimResult
 
-计划至少包含：
+当前包含：
 
 ```python
 class ClaimResult(BaseModel):
+    claim_id: str
     claim_index: int
     claim: str
     status: Literal["supported", "unsupported"]
-    evidence_ids: list[str]
-    graph_path_ids: list[str]
-    reason_codes: list[str]
+    supported: bool
     retained: bool
+    evidence_ids: list[str]
+    valid_evidence_ids: list[str]
+    graph_path_ids: list[str]
+    valid_graph_path_ids: list[str]
+    relation_id: str
+    reason_codes: list[str]
 ```
 
 推荐 reason codes：
@@ -267,7 +272,9 @@ class ClaimResult(BaseModel):
 - `quote_not_in_source`；
 - `missing_grounding_term`；
 - `unknown_graph_path`；
+- `invalid_graph_path`；
 - `invalid_relation_id`；
+- `evidence_not_relevant`；
 - `query_alignment_failed`；
 - `premise_not_supported`。
 
@@ -289,7 +296,7 @@ class ClaimResult(BaseModel):
 - 部分回答的限制句不复述未经支持的专业事实；
 - `partial_pass` 不自动计为人工正确。
 
-### 7.4 验收标准
+### 7.4 验收结果
 
 | 输入情况 | 期望结果 |
 | --- | --- |
@@ -301,6 +308,8 @@ class ClaimResult(BaseModel):
 | 未知 E/P/R ID | 对应 Claim 删除 |
 | quote 非原文 | 对应 Claim 删除 |
 | partial 用户答案 | 不包含 removed Claim |
+
+以上状态机均有自动测试。DEV02 脱敏 warm smoke 进一步确认：generated=4、supported=2、retained=`C1,C2`、removed=`C3,C4`、decision=`partial_pass`、retry=0、generation calls=1、unsupported leakage=0。该单题结果不替代阶段 8.5 的完整 dev 回归。
 
 ## 8. P0/P1：重试与延迟
 
@@ -688,9 +697,9 @@ Pilot 已观察到：
 
 完成最多 4 条原子 Claim、quote 合同、Schema 和合成探针。
 
-### 阶段 8.3：Claim-level Verifier
+### 阶段 8.3：Claim-level Verifier（已完成）
 
-完成 ClaimResult、过滤、`PARTIAL_PASS`、strict 模式和状态机测试。
+完成 ClaimResult、过滤、`PARTIAL_PASS`、strict 模式和状态机测试。DEV02 脱敏 smoke 保留 C1/C2、删除 C3/C4，零 unsupported leakage，且不再触发重试。
 
 ### 阶段 8.4：Trace 与 Streamlit
 
@@ -763,7 +772,7 @@ Pilot 已观察到：
 项目达到当前规划的“完整 LLM Agent 科研版本”，必须同时满足：
 
 1. v1 release 已在未执行状态下被不可变撤销；
-2. v2 Evidence Packer、Prompt、ClaimResult、Partial-pass 和 trace 已实现；其中 Packer 与 Prompt 已完成，其余待后续阶段；
+2. v2 Evidence Packer、Prompt、ClaimResult 和 Partial-pass 已实现；完整分阶段 trace 仍待阶段 8.4；
 3. dev 工程门槛通过；
 4. pilot 只做一次冻结前回归且未用于继续调参；
 5. v2 implementation manifest 和一次性 release 已冻结；
@@ -777,16 +786,16 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-下一步不是运行 extension。阶段 8.0～8.2 已验收，下一步只做阶段 8.3：
+下一步不是运行 extension。阶段 8.0～8.3 已验收，下一步只做阶段 8.4：
 
 ```text
-逐 Claim 生成 ClaimResult
+记录 routing/retrieval/verification/retry 延迟
     ↓
-区分 supported / unsupported
+扩展 CLI 与评测 trace
     ↓
-过滤失败 Claim 并重建答案
+Streamlit 展示模型、fallback、延迟和 PARTIAL_PASS
     ↓
-实现 PASS / PARTIAL_PASS / REFUSE 与 strict 模式
+增加预热与 partial 状态样式
 ```
 
-阶段 8.3 单独验收并写入 `PROGRESS.md` 后，再进入 trace/UI；不会在同一步运行 extension。
+阶段 8.4 单独验收并写入 `PROGRESS.md` 后，再进入 dev 调试；不会在同一步运行 extension。

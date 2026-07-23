@@ -39,6 +39,11 @@ def evaluate_question(workflow, item: dict) -> dict:
     packing_trace = response.evidence_packing_trace
     llm_calls = [call for call in generation_trace if call.requested_backend == "ollama"]
     expected_decision = "refuse" if item["expected_behavior"] == "refuse" else "pass"
+    decision_correct = (
+        response.verification.decision == "refuse"
+        if expected_decision == "refuse"
+        else response.verification.decision in {"pass", "partial_pass"}
+    )
     retrieved_entities = {entity.entity_id for entity in response.retrieval.entities}
     for path in response.retrieval.graph_paths:
         for triple in path.triples:
@@ -55,7 +60,7 @@ def evaluate_question(workflow, item: dict) -> dict:
         "question": item["question"],
         "expected_decision": expected_decision,
         "actual_decision": response.verification.decision,
-        "decision_correct": response.verification.decision == expected_decision,
+        "decision_correct": decision_correct,
         "keyword_coverage": round(keyword_coverage, 4),
         "entity_coverage": round(entity_coverage, 4),
         "citation_present": bool(response.retrieval.text_evidence) if expected_decision == "pass" else True,

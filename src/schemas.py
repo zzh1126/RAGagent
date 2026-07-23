@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 ReviewStatus = Literal["pending", "approved", "rejected"]
 RetrievalMode = Literal["vector", "graph", "hybrid"]
-VerifyDecision = Literal["pass", "retry", "refuse"]
+VerifyDecision = Literal["pass", "partial_pass", "retry", "refuse"]
+VerifierDecisionPolicy = Literal["strict", "partial_pass"]
+VerifierPolicy = Literal["strict", "partial_pass", "disabled"]
+ClaimStatus = Literal["supported", "unsupported"]
 GeneratorBackend = Literal["offline_rule", "ollama"]
 
 
@@ -124,19 +127,90 @@ class AnswerPayload(BaseModel):
 
 
 class ClaimResult(BaseModel):
-    claim: str
-    evidence_ids: list[str] = Field(default_factory=list)
+    model_config = ConfigDict(extra="forbid")
+
+    claim_id: str = Field(pattern=r"^C[1-9][0-9]*$")
+    claim_index: int = Field(ge=1)
+    claim: str = Field(min_length=1)
+    status: ClaimStatus
     supported: bool = False
+    retained: bool = False
+    evidence_ids: list[str] = Field(default_factory=list)
+    valid_evidence_ids: list[str] = Field(default_factory=list)
+    graph_path_ids: list[str] = Field(default_factory=list)
+    valid_graph_path_ids: list[str] = Field(default_factory=list)
+    relation_id: str = ""
+    reason_codes: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_status(self) -> "ClaimResult":
+        if self.supported != (self.status == "supported"):
+            raise ValueError("ClaimResult supported must match status")
+        if self.retained and not self.supported:
+            raise ValueError("unsupported Claim cannot be retained")
+        return self
 
 
 class VerifyResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     decision: VerifyDecision
+    decision_policy: VerifierPolicy = "strict"
     evidence_score: float
     claim_coverage: float = 0.0
     citation_validity: float = 0.0
     path_validity: float = 0.0
     retrieval_sufficiency: float = 0.0
     unsupported_claims: list[str] = Field(default_factory=list)
+    reason_codes: list[str] = Field(default_factory=list)
+    claim_results: list[ClaimResult] = Field(default_factory=list)
+    generated_claim_count: int = Field(default=0, ge=0)
+    supported_claim_count: int = Field(default=0, ge=0)
+    removed_claim_count: int = Field(default=0, ge=0)
+    supported_claim_ids: list[str] = Field(default_factory=list)
+    unsupported_claim_ids: list[str] = Field(default_factory=list)
+    retained_claim_ids: list[str] = Field(default_factory=list)
+    removed_claim_ids: list[str] = Field(default_factory=list)
+    retained_claim_indexes: list[int] = Field(default_factory=list)
+    partial_pass_reason: str | None = None
+    verification_latency_ms: float = Field(default=0.0, ge=0.0)
+
+    @model_validator(mode="after")
+    def validate_claim_summary(self) -> "VerifyResult":
+        if not self.claim_results:
+            return self
+        if len(self.claim_results) != self.generated_claim_count:
+            raise ValueError("generated_claim_count must match claim_results")
+        supported_ids = [
+            result.claim_id for result in self.claim_results if result.supported
+        ]
+        unsupported_ids = [
+            result.claim_id for result in self.claim_results if not result.supported
+        ]
+        retained_ids = [
+            result.claim_id for result in self.claim_results if result.retained
+        ]
+        removed_ids = [
+            result.claim_id for result in self.claim_results if not result.retained
+        ]
+        if self.supported_claim_count != len(supported_ids):
+            raise ValueError("supported_claim_count does not match claim_results")
+        if self.supported_claim_ids != supported_ids:
+            raise ValueError("supported_claim_ids does not match claim_results")
+        if self.unsupported_claim_ids != unsupported_ids:
+            raise ValueError("unsupported_claim_ids does not match claim_results")
+        if self.retained_claim_ids != retained_ids:
+            raise ValueError("retained_claim_ids does not match claim_results")
+        if self.removed_claim_ids != removed_ids:
+            raise ValueError("removed_claim_ids does not match claim_results")
+        if self.removed_claim_count != len(removed_ids):
+            raise ValueError("removed_claim_count does not match claim_results")
+        expected_indexes = [
+            result.claim_index for result in self.claim_results if result.retained
+        ]
+        if self.retained_claim_indexes != expected_indexes:
+            raise ValueError("retained_claim_indexes does not match claim_results")
+        return self
 
 
 class GenerationCall(BaseModel):

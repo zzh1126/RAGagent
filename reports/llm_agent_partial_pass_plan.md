@@ -7,11 +7,11 @@
 | 评测日期 | 2026-07-23 |
 | 当前分支 | `experiment/llm-agent-v2` |
 | 阶段 8.0 完成提交 | `7fbf566` |
-| 计划状态 | 阶段 8.0～8.2 已完成，准备进入阶段 8.3 |
+| 计划状态 | 阶段 8.0～8.3 已完成，准备进入阶段 8.4 |
 | 当前 extension release | `extension-qwen3-4b-v1-bdedf7dc` |
 | release 有效状态 | `revoked_before_execution`，从未运行 |
 | v2 状态 | 四方法合同已冻结，`locked_no_release` |
-| 当前边界 | 下一阶段只实现 Claim-level Verifier 与 Partial-pass，不运行 final/extension |
+| 当前边界 | 下一阶段只实现 trace、CLI/Streamlit 与预热，不运行 final/extension |
 
 ## 一、总体结论
 
@@ -340,7 +340,7 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 
 完成结果：Prompt v2 与 wire Schema 已冻结；Schema 强制 1～4 条 Claim、E/P/R 命名空间、每 Claim 至少一个 E ID 和 quote。四个合成场景各 5 次，共 `20/20` 同时通过结构与语义验证，报告未保存 Prompt、回答、quote 或 thinking。真实随机森林 smoke 生成 4 条分离 Claim并将严格覆盖提高到 0.5000，但旧整题 Verifier 仍拒答，因此不能宣称过度拒答已解决。
 
-### 阶段 8.3：Claim-level Verifier 与 Partial-pass
+### 阶段 8.3：Claim-level Verifier 与 Partial-pass（已完成）
 
 - 扩展 `ClaimResult` 和 `VerifyResult`；
 - 逐 Claim 保存 reason code；
@@ -350,6 +350,8 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 - 保留 strict 模式供消融。
 
 验收：混合 Claim -> `partial_pass`；全部支持 -> `pass`；全部失败 -> 最多重试一次后 `refuse`；错误前提不能部分放行；用户答案中不出现被移除 Claim。
+
+完成结果：`ClaimResult` 已扩展为 C ID、supported/retained、有效 E/P ID 和 reason codes；`VerifyResult` 已接入保留/删除集合、四状态决策和 verification latency。默认 LLM 使用 partial-pass，离线规则基线保持 strict，显式 strict override 可用于消融。合成合同检查覆盖 pass、partial、retry、refuse、错误前提和无泄漏；DEV02 脱敏 smoke 为 2/4 Claim retained、2/4 removed、retry=0、generation calls=1、unsupported leakage=0。该 smoke 不是整体 dev 或独立效果实验。
 
 ### 阶段 8.4：工作流、trace 与 Streamlit
 
@@ -453,4 +455,4 @@ PROGRESS.md
 
 **No-Go：** LLM Planner、多 Agent、知识库扩充、自动图谱抽取、完整 Microsoft GraphRAG 和框架迁移。
 
-下一步进入阶段 8.3：实现逐 Claim `ClaimResult`、过滤 unsupported Claim、`PARTIAL_PASS` 和 strict 对照模式。本阶段仍不会运行 final/extension。
+下一步进入阶段 8.4：补齐 routing/retrieval/verification/retry 延迟、CLI/评测 trace、Streamlit 的真实模型/fallback/partial 状态与预热。本阶段仍不会运行 final/extension。

@@ -60,8 +60,13 @@ REQUIRED_RULES = (
     ),
     TextRule(
         "R18",
-        "Prompt v2 must not be described as fixing over-refusal",
-        r"Claim coverage 从 0\.3333 提高到 0\.5000[\s\S]{0,180}(?:仍在一次重试后 `refuse`|过度拒答尚未解决)",
+        "Prompt v2 strict smoke must remain separated from the Stage 8.3 fix",
+        r"Claim coverage 从 0\.3333 提高到 0\.5000[\s\S]{0,220}阶段 8\.2[^。\n]{0,80}`refuse`",
+    ),
+    TextRule(
+        "R19",
+        "Stage 8.3 DEV02 smoke must remain a development mechanism check",
+        r"阶段 8\.3[\s\S]{0,800}DEV02[\s\S]{0,800}`partial_pass`[\s\S]{0,500}(?:不是完整 dev/pilot 回归|只证明过滤机制)",
     ),
 )
 
@@ -107,6 +112,16 @@ FORBIDDEN_RULES = (
         "synthetic probe incorrectly presented as enhancement effectiveness",
         r"20/20[^。\n]{0,40}(?:证明|表明)[^。\n]{0,20}(?:增强有效|优于规则|正式准确率)",
     ),
+    TextRule(
+        "F17",
+        "single DEV02 smoke incorrectly presented as overall effectiveness",
+        r"DEV02[^。\n]{0,120}(?:证明|表明)[^。\n]{0,30}(?:总体过度拒答已解决|LLM[^。\n]{0,10}优于规则|正式准确率提升)",
+    ),
+    TextRule(
+        "F18",
+        "partial-pass incorrectly equated with a correct answer",
+        r"partial_pass(?: 状态)?就是(?:人工)?正确答案",
+    ),
 )
 
 
@@ -138,6 +153,9 @@ def expected_literals() -> dict[str, str]:
     llm_dev = read_json(PROJECT_ROOT / "reports" / "evaluation_llm_generator_dev_candidate.json")
     atomic_probe = read_json(
         PROJECT_ROOT / "reports" / "llm_atomic_claim_prompt_v2_probe.json"
+    )
+    partial_smoke = read_json(
+        PROJECT_ROOT / "reports" / "claim_level_partial_pass_dev02_smoke.json"
     )
 
     kb = stats["knowledge_base"]
@@ -203,6 +221,17 @@ def expected_literals() -> dict[str, str]:
         ),
         "S27 atomic wire Schema hash": (
             f"wire Schema SHA-256 为 `{atomic_probe['wire_schema_sha256']}`"
+        ),
+        "S28 partial-pass retained and removed Claims": (
+            "DEV02 脱敏 smoke 保留 "
+            f"{'/'.join(partial_smoke['retained_claim_ids'])}、删除 "
+            f"{'/'.join(partial_smoke['removed_claim_ids'])}"
+        ),
+        "S29 partial-pass warm generation latency": (
+            f"warm generation latency 为 {partial_smoke['generation_latency_ms']:.1f} ms"
+        ),
+        "S30 partial-pass end-to-end latency": (
+            f"end-to-end latency 为 {partial_smoke['end_to_end_latency_ms']} ms"
         ),
     }
 

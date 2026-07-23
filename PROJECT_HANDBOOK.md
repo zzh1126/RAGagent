@@ -9,14 +9,14 @@
 | 工作区 | `E:\RAGagent` |
 | GitHub | `https://github.com/zzh1126/RAGagent.git` |
 | 当前分支 | `experiment/llm-agent-v2` |
-| 本文审计基线 | 阶段 8.2 完成状态 |
+| 本文审计基线 | 阶段 8.3 完成状态 |
 | 审计日期 | 2026-07-23 |
 | v1.0 标签 | `v1.0-baseline` |
 | 当前工作流引擎 | LangGraph `1.0.10` |
 | 当前默认图后端 | NetworkX `3.3` |
 | 当前默认生成器 | Ollama `qwen3:4b`，失败时回退规则生成器 |
 | 正式基线状态 | v1.0 规则基线已冻结、可复验 |
-| LLM 增强状态 | Evidence Packer 与原子 Claim Prompt v2 已实现；仍只有合成/dev/pilot 工程审计，尚无正式 extension 结论 |
+| LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；仍只有合成/dev 工程审计，尚无正式 extension 结论 |
 | extension 状态 | 23 题从未运行；v1 有效状态为 `revoked_before_execution`；v2 四方法合同已冻结但尚无 release |
 
 事实优先级如下：
@@ -127,12 +127,12 @@ qwen3:4b 结构化 Claim 生成
    ↓                 运行故障
 Evidence Verifier  ←────────→ GroundedAnswerGenerator fallback
    ↓
-PASS / RETRY / REFUSE
+PASS / PARTIAL_PASS / RETRY / REFUSE
    ↓
 最终回答 + E/P/R 引用 + 验证指标 + trace
 ```
 
-当前状态机还没有 `PARTIAL_PASS`。该状态属于下一阶段计划，不应描述成已实现功能。
+阶段 8.3 已接入 `PARTIAL_PASS`。LLM 默认使用逐 Claim 保留策略；离线规则生成器默认保持 strict，LLM 也可通过显式 strict override 作为消融对照。
 
 ## 7. 数据处理流水线
 
@@ -485,7 +485,7 @@ Verifier 检查：
 8. “是否/是不是”类问题的图谱前提是否成立；
 9. 对比题是否至少链接两个实体。
 
-### 13.2 当前评分公式
+### 13.2 当前评分与决策
 
 ```text
 evidence_score =
@@ -501,19 +501,27 @@ evidence_score =
 - `retry_threshold=0.55`；
 - `min_vector_score=0.08`；
 - `max_retries=1`。
+- `decision_policy=partial_pass`，规则生成器默认覆盖为 strict。
 
-PASS 还要求：
+PASS 要求：
 
-- claim coverage ≥ 0.80；
+- 所有 Claim 均受支持；
 - citation validity ≥ 0.80；
 - path validity ≥ 0.80；
 - `unsupported_claims` 为空。
 
-否则，只要还有重试机会且分数、unsupported 或 retrieval sufficiency 任一条件触发，就会 RETRY；重试后仍不通过则 REFUSE。
+默认 LLM partial-pass 策略按以下顺序决策：
 
-### 13.3 当前核心缺陷
+- 全部 Claim 支持且无缺口：`pass`；
+- 至少一个 Claim 支持，但存在 removed Claim 或明确证据缺口：`partial_pass`；
+- 零 Claim 支持、缺口仍可能通过扩大检索恢复：最多 `retry` 一次；
+- 零 Claim 支持且不可恢复、错误前提或重试后仍失败：`refuse`。
 
-Verifier 虽然逐 Claim 循环检查，但只输出全局比例和 unsupported 列表。`ClaimResult` Schema 已存在却没有进入 `VerifyResult`。任何一个不支持的 Claim 都可能阻止整题 PASS，导致“部分证据不足”演变为“整题拒答”。
+`partial_pass` 不触发第二次 LLM。strict 策略使用同一组 ClaimResult，但只有完整通过才保留答案；混合 Claim 仍按 retry 后 refuse 处理。
+
+### 13.3 Claim-level 过滤
+
+Verifier 为每条 Claim 生成 `C1...Cn`，记录 supported、retained、reason codes、原始/有效 E/P ID 和关系 ID。FinalResponse 只保留 retained Claims；removed Claim 的正文只存在于验证诊断，不进入用户答案。错误前提会把全部 Claim 标为 unsupported，不能借部分回答绕过。
 
 ## 14. LangGraph 工作流
 
@@ -522,7 +530,7 @@ Verifier 虽然逐 Claim 循环检查，但只输出全局比例和 unsupported 
 ```text
 route -> retrieve -> answer -> verify
                            ↓
-                   pass/refuse -> finalize -> END
+          pass/partial_pass/refuse -> finalize -> END
                            ↓
                          retry -> answer
 ```
@@ -536,7 +544,7 @@ route -> retrieve -> answer -> verify
 
 LangGraph 安装时使用真实 `StateGraph`；未安装时有相同转移逻辑的本地状态机 fallback。当前环境已安装 LangGraph，正式运行 `engine=langgraph`。
 
-当前 LangGraph conditional edges 只有 `retry/pass/refuse`，还没有 `partial_pass`。
+LangGraph 与本地 fallback 状态机都支持 `retry/pass/partial_pass/refuse`。`partial_pass` 直接进入 finalize，不再经过 retry。
 
 ## 15. 核心 Schema
 
@@ -550,8 +558,8 @@ LangGraph 安装时使用真实 `StateGraph`；未安装时有相同转移逻辑
 | `EvidenceQuote` | evidence ID 与 12～500 字符原文 quote |
 | `AnswerClaim` | Claim、E/P/R 引用和 quotes |
 | `AnswerPayload` | 答案、Claims、路径、unsupported、置信度和生成元数据 |
-| `ClaimResult` | 当前只含 claim、evidence IDs 和 supported，尚未接线 |
-| `VerifyResult` | 决策、证据分数、coverage、validity、sufficiency 和 unsupported |
+| `ClaimResult` | C ID、Claim、supported/retained、有效 E/P ID、R ID 和 reason codes |
+| `VerifyResult` | 四状态决策、逐 Claim 结果、保留/删除 ID、coverage、validity、sufficiency 和验证耗时 |
 | `GenerationCall` | 请求/实际后端、fallback、尝试次数、延迟和结构成功 |
 | `FinalResponse` | 问题、最终答案、检索、验证、完整生成 trace、总延迟和重试数 |
 
@@ -835,7 +843,7 @@ Pilot 使用规则生成器，是历史先导数据，不是最终无泄漏结�
 
 由于项目决定先实现 Evidence Packer、原子 Claim 和 Partial-pass，原 v1 runtime 不再代表目标协议。阶段 8.0 已在独立提交中创建不可覆盖的撤销记录，runner 会在 runtime/model 校验和题集读取前拒绝原授权命令。
 
-版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。Evidence Packer 与 Prompt v2 已实现，下一步是 Claim-level Verifier 与 `PARTIAL_PASS`；不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
+版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。Evidence Packer、Prompt v2、Claim-level Verifier 与 `PARTIAL_PASS` 已实现；下一步是阶段 trace/UI 和 dev 回归，不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
 
 ## 25. 复现与常用命令
 
@@ -856,6 +864,7 @@ python scripts/validate_graph_evidence.py
 python scripts/validate_chunks.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_claim_level_verifier.py
 python scripts/validate_evaluation.py
 python scripts/validate_experiments.py
 python scripts/validate_scoring.py
@@ -1070,17 +1079,17 @@ LLM 只参与 answer 节点，把检索证据组织成结构化 Claims。Router 
 
 Prompt 禁止使用模型记忆；每条 Claim 必须绑定真实 E ID 和逐字 quote；Packer 将可用 ID 限定为本次可见证据子集；程序检查 E/P/R ID 和 quote 子串；最终正文由 Claims 重建；Verifier 再检查术语、路径和问题限定条件。
 
-### Q11：为什么仍会过度拒答？
+### Q11：过度拒答修复到什么程度？
 
-当前 Verifier 把所有 Claim 聚合成整题决策。一个 Claim 不支持或一个限定条件未覆盖，就可能导致整题无法 PASS，并在重试后 REFUSE。Prompt v2 已把随机森林回答拆成 4 条原子 Claim，并将严格覆盖从 0.3333 提高到 0.5000，但仍有 2 条未通过术语覆盖，因此整题继续拒答。剩余故障位于 Claim-level 验证与整题聚合决策。
+阶段 8.3 已解决“一个 Claim 失败导致所有支持 Claim 一起丢弃”的机制问题。随机森林 DEV02 现在保留 2/4 Claim、删除 2/4 Claim并返回 `partial_pass`，重试从 1 次降为 0。尚未运行完整 dev/pilot 回归，因此不能声称总体过度拒答率已经达到目标。
 
 ### Q12：Partial-pass 为什么重要？
 
-它允许保留已被证据支持的 Claim，删除不支持 Claim，并明确披露其余方面证据不足。这样可降低过度拒答，同时不放松证据边界。当前尚未实现。
+它允许保留已被证据支持的 Claim，删除不支持 Claim，并明确披露其余方面证据不足。阶段 8.3 已实现该机制；`partial_pass` 只是验证状态，不自动等于人工正确答案。
 
 ### Q13：规则基线为什么比当前 LLM dev 准确？
 
-规则模板直接使用图谱中已审核关系，输出范围小；LLM 会尝试组织更完整答案，触发更多 quote 和术语校验。当前 Verifier 对混合 Claim 过严，使 LLM 4/8 可回答题被拒绝。
+规则模板直接使用图谱中已审核关系，输出范围小；LLM 会尝试组织更完整答案，触发更多 quote 和术语校验。历史候选 dev 中 LLM 有 4/8 可回答题被拒绝；Stage 8.3 已修复其中 DEV02 的整题聚合机制，但完整 dev 回归尚未执行。
 
 ### Q14：当前最好的正式结果是什么？
 
@@ -1104,11 +1113,11 @@ Pilot 曾用于发现并修复实现缺口，因此已被消费。后续只允�
 
 ### Q19：目前最大的风险是什么？
 
-过度拒答、LLM 完整链路延迟、样本规模小、单一人工复核、稀疏检索语义能力有限，以及尚无 LLM extension 正式结果。
+尚未完成整体 dev/pilot 回归、LLM 完整链路延迟较高、样本规模小、单一人工复核、稀疏检索语义能力有限，以及尚无 LLM extension 正式结果。
 
 ### Q20：下一步是什么？
 
-v1 revocation、v2 实验合同、Evidence Packer 和原子 Claim Prompt v2 已完成。下一步只实现 Claim-level Verifier、retained/removed Claim 和 `PARTIAL_PASS`，同时保留 strict 模式供消融。完成 dev/pilot 回归和配置冻结后只运行一次 extension。
+v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2 和 Claim-level Partial-pass 已完成。下一步进入阶段 8.4，补齐分阶段 trace、CLI/Streamlit 状态和 partial 样式；随后只用 dev 做调试，再按计划执行一次 pilot 冻结前回归。
 
 ## 32. 关联文档
 

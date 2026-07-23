@@ -2014,3 +2014,176 @@ git diff --check
 ### 当前状态与下一步
 
 阶段 8.2 已完成。LLM 现在受最多 4 条原子 Claim、严格 E/P/R 命名空间和逐字 quote 合同约束，且正式合成探针达到 `20/20`。用户遇到的“随机森林为什么更稳定”仍会被旧整题 Verifier 拒答，因此下一阶段进入 8.3：实现 Claim-level Verifier、保留/删除 Claim 和 `PARTIAL_PASS`，同时保留 strict 模式作为后续消融对照；继续不运行 final/extension。
+
+## 2026-07-23 阶段 8.3：Claim-level Verifier、Partial-pass 与安全 Claim 过滤
+
+### 完成事项
+
+- 扩展统一验证 Schema：
+  - `VerifyDecision` 从 `pass/retry/refuse` 扩展为 `pass/partial_pass/retry/refuse`；
+  - 新增 `VerifierPolicy=strict/partial_pass/disabled`；
+  - `ClaimResult` 增加稳定 `C1...Cn`、1-based index、supported/unsupported status、retained、原始/有效 E ID、原始/有效 P ID、R ID 和 reason codes；
+  - `VerifyResult` 增加 decision policy、逐 Claim 结果、generated/supported/removed 数量、supported/unsupported/retained/removed Claim ID、retained indexes、partial-pass 原因、全局 reason codes 和 `verification_latency_ms`；
+  - Schema validator 拒绝 status/supported 冲突、unsupported 却 retained，以及 Claim 汇总数量和 ID 集合不一致；
+  - 新字段均保留默认值，历史 `VerifyResult` 构造和 v1 冻结产物不需要改写。
+- 将 `EvidenceVerifier` 从全局比例聚合升级为 Claim-level 验证：
+  - 每条 Claim 独立检查缺失/未知 E ID、低相关证据、未知/无效 P ID、无效 R ID；
+  - LLM Claim 独立检查缺失 quote、quote 未绑定 E ID、quote 非对应原文、每个 E ID 缺 quote 和跨语言关键术语覆盖；
+  - quote 子串检查保持大小写，不再通过 casefold 放宽逐字合同；
+  - relation ID 必须位于该 Claim 实际引用的图路径内，不能由其他路径替代支持；
+  - 图路径区分“未返回的未知路径”和“返回但 GraphRepository 校验失败的路径”；
+  - reason codes 包括 `missing_evidence_reference`、`unknown_evidence_id`、`evidence_not_relevant`、`missing_supporting_quote`、`quote_not_bound`、`quote_not_in_source`、`missing_quote_for_evidence_id`、`missing_grounding_term`、`unknown_graph_path`、`invalid_graph_path`、`invalid_relation_id`、`query_alignment_failed` 和 `premise_not_supported`；
+  - 问题限定条件不对齐时将所有 Claim 标为 unsupported；
+  - 错误图谱前提将所有 Claim 标为 unsupported，并直接 `refuse`，不浪费一次重试。
+- 实现默认 partial-pass 四状态决策：
+  - 所有 Claim 支持、引用/路径达到门槛且没有缺口 -> `pass`；
+  - 至少一个 Claim 支持，但存在 removed Claim 或 Generator 明确缺口 -> `partial_pass`；
+  - 零 Claim 支持且问题不是错误前提、缺口仍可能恢复 -> 最多 `retry` 一次；
+  - 无文本证据、无 Claim、错误前提、不可恢复或重试后仍零支持 -> `refuse`；
+  - `partial_pass` 不触发第二次 LLM 生成；
+  - `partial_pass` 只表示安全保留至少一个受支持 Claim，不自动等于人工正确答案。
+- 保留 strict 对照模式：
+  - `EvidenceVerifier(decision_policy="strict")` 使用相同 ClaimResult 与 reason codes；
+  - 混合 Claim 不保留支持子集，先 retry，达到上限后 refuse；
+  - 离线规则生成器在 `build_default_workflow(..., generator_backend="offline_rule")` 下自动保持 strict，避免改变历史规则基线语义；
+  - 默认 LLM 从 `config/settings.yaml` 读取 `decision_policy=partial_pass`；
+  - `build_default_workflow(verifier_policy="strict")` 可显式构造 LLM strict 消融；
+  - `NoVerifier` 的审计 policy 标记为 `disabled`。
+- 接入 LangGraph 与本地状态机：
+  - conditional edge 新增 `partial_pass -> finalize`；
+  - `partial_pass` 不进入 retry 节点；
+  - strict、partial-pass 和本地 fallback 使用相同转移语义。
+- 实现用户可见 Claim 过滤与答案重建：
+  - `FinalResponse.answer_payload` 只保留 `retained_claim_indexes` 对应 Claims；
+  - graph paths 重新计算为 retained Claims 实际使用路径的去重并集；
+  - `partial_pass` 使用固定语义“根据当前知识库，可以确认……；但问题中的其余方面缺少足够证据，因此不作进一步判断”；
+  - 固定限制句不复述 removed Claim 的专业内容；
+  - `refuse` 清空用户可见 Claims 和路径，使用统一受控拒答；
+  - removed Claim 正文只保留在 `VerifyResult.claim_results` 诊断中；
+  - partial payload 的置信度不高于 Claim coverage。
+- 更新开发评测口径：
+  - `scripts/run_evaluation.py` 对 answerable 问题把 `pass` 和 `partial_pass` 都视为自动决策成功；
+  - 无答案题仍必须返回 `refuse`；
+  - final 与 extension 的通用 runner 锁保持不变。
+- 新增 Claim-level 合同验证：
+  - `scripts/validate_claim_level_verifier.py` 使用人工合成证据验证 pass、partial-pass、strict retry、strict refuse、retained/removed IDs 和验证耗时；
+  - validator 读取脱敏 DEV02 smoke 并校验 partial-pass、零重试、单次生成、零 unsupported leakage 和无原文持久化；
+  - `tests/test_claim_level_verifier.py` 覆盖全部支持、混合支持、Generator 主动缺口、零支持 retry/refuse、strict 对照、错误前提、工作流过滤和 strict 工作流；
+  - 扩展 Day 4、Generator、评测 guard 和 No Verifier 测试，锁定规则 strict、LLM partial 默认和 strict override。
+- 新增脱敏真实 smoke 工具与报告：
+  - `scripts/probe_claim_level_partial_pass.py` 只运行已使用过的 DEV02，不读取 final/extension；
+  - 默认拒绝覆盖已有报告；
+  - 报告不保存问题正文、最终答案、Claim、quote、Prompt、messages、content 或 thinking；
+  - 只保存问题哈希、C ID 集合、分数、调用次数、延迟、fallback 和 leakage 计数；
+  - 报告明确 `development_only=true`、`independent_quality_result=false`。
+- 同步配置和文档：
+  - `config/settings.yaml` 新增 `verification.decision_policy=partial_pass`；
+  - `scripts/validate_config.py` 校验并输出 verifier policy；
+  - 更新 `README.md`、全量知识手册、不足与路线图、Partial-pass 计划、随机森林诊断、技术增强决策和评测数据说明；
+  - 更新科研报告草稿与报告事实声明清单；
+  - 报告校验新增 Stage 8.3 source literals、单题开发 smoke 必需披露，以及禁止把 partial-pass 单题写成总体增强有效；
+  - 阶段 8.4 仍负责完整 routing/retrieval/retry trace、CLI/Streamlit 状态和预热，本阶段没有提前实现这些内容。
+
+### 合成状态机验收
+
+- 全部 Claim 支持：`pass`，全部 retained；
+- 支持与不支持混合：`partial_pass`，只 retained supported Claims；
+- Generator 主动披露额外证据缺口：有支持 Claim 时 `partial_pass`；
+- 零 Claim 支持：首次 `retry`，达到重试上限后 `refuse`；
+- strict 混合 Claim：首次 `retry`，达到上限后 `refuse`，支持子集也不进入用户答案；
+- 错误图谱前提：直接 `refuse`，retry=0，全部 Claim 带 `premise_not_supported`；
+- partial 工作流：Retriever 和 Generator 均只调用一次；
+- 用户答案和过滤后的 payload 不包含 removed Claim；
+- `python scripts/validate_claim_level_verifier.py` 输出 pass=1、partial_pass=1、strict_retry=1、strict_refuse=1。
+
+### DEV02 真实 smoke
+
+- 问题：已使用过的 dev 题“随机森林为什么更稳定”；
+- 第一次探索运行：
+  - decision=`partial_pass`；
+  - generated=4、supported=2、retained=2、removed=2；
+  - evidence score=`0.8500`；
+  - Claim coverage=`0.5000`；
+  - citation/path/retrieval sufficiency 均为 `1.0000`；
+  - retry count=`0`；
+  - generation calls=`1`；
+  - generation latency=`29156.6 ms`；
+  - packing latency=`1.854 ms`；
+  - 无 fallback，最终答案不含 removed Claims。
+- 随后使用专用脚本生成脱敏 warm smoke：
+  - decision=`partial_pass`；
+  - generated Claim count=`4`；
+  - supported/retained=`C1,C2`；
+  - unsupported/removed=`C3,C4`；
+  - unsupported Claim leakage count=`0`；
+  - retry count=`0`；
+  - generation call count=`1`；
+  - generation attempts=`1`；
+  - generation latency=`7275.8 ms`；
+  - evidence packing latency=`1.901 ms`；
+  - verification latency=`0.342 ms`；
+  - end-to-end latency=`7288 ms`；
+  - fallback=`false`。
+- 脱敏报告：`reports/claim_level_partial_pass_dev02_smoke.json`；
+- 报告 SHA-256：`f32f763603a5d5984400bd20b9226d56a66b2cadb13b4f98f94ab28a6c4b5fd8`；
+- 问题只保存 SHA-256，不保存正文；报告也不保存答案、Claim、quote 或 thinking。
+
+该 smoke 已解决 DEV02 的具体整题拒答：阶段 8.2 为 2/4 Claim 支持、重试 1 次后 refuse；阶段 8.3 为 2/4 Claim retained、重试 0 次并 partial-pass。第一次探索运行与 warm 脱敏运行的启动条件不同，因此只确认“第二次 LLM 调用已消失”，不把 29.2 秒与 7.3 秒直接解释为算法延迟提升。完整 dev/pilot Over-refusal Rate 仍未重新计算。
+
+### 当前阶段验证
+
+```bash
+pytest -q
+python scripts/validate_config.py
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_chunks.py
+python scripts/validate_evidence_packer.py
+python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_claim_level_verifier.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试：`116 passed`；
+- Claim-level 定向回归：`43 passed`；
+- 配置确认 `ollama/qwen3:4b + rule planner + llm generator + prompt v2 + intent_aware_v2 packer + partial_pass verifier`；
+- 图数据确认 50 个实体、100 条 approved 关系和 100 份有效关系证据；
+- 文档数据确认 164 个 Section、180 个 Chunk；
+- Evidence Packer dev/pilot 50 题合同保持通过，平均 4.38 条证据、最长 7,783 字符；
+- Prompt v2 合同和四场景 `20/20` 探针保持通过，Prompt/Schema 哈希未变；
+- Claim-level validator 的合成四状态和真实 DEV02 脱敏合同全部通过；
+- 五套评测数据、实验配置和用户确认评分保持一致；
+- 历史 LLM 探针保持 Schema 60/60、Generator Go、Planner No-Go；
+- 报告事实校验通过 30 项来源、19 项必需声明和 18 项禁止声明；
+- extension holdout 保持 23 题，v1 有效状态为 `revoked_before_execution`，v2 为 `locked_no_release`；
+- 历史 v1 release SHA-256 保持 `af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c`；
+- 历史 v1 implementation manifest SHA-256 保持 `2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382`；
+- 5 张报告图与 manifest 一致；
+- v1.0 baseline 的 23 个 payload 全部通过，Manifest SHA-256 保持 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `pip check` 无损坏依赖；
+- `git diff --check` 无空白错误，仅有 Windows LF/CRLF 提示；
+- `reports/extension/` 和 `extension_holdout_release_v2.json` 均不存在。
+
+### 本轮边界
+
+- 未运行完整 10 题 dev 调试或 40 题 pilot 回归；当前只有合成测试和已使用 DEV02 的单题 smoke；
+- 未把 `partial_pass` 自动计为人工正确，也未宣称总体 Over-refusal Rate 已改善到目标；
+- 未实现完整 routing/retrieval/retry latency trace、Streamlit partial 样式、模型/fallback 状态区或 Ollama 预热；
+- 未修改 Prompt v2、wire Schema 或正式 20 次探针报告，Prompt/Schema 冻结哈希保持不变；
+- 未运行 final 或 extension QA，未创建 v2 release，未生成任何 extension 答案、receipt 或指标；
+- v1 release、implementation manifest、v1 配置、v1 trace contract、revocation record、题集、图谱、Chunk、索引和冻结结果均未删除或覆盖；
+- 工作区中的两份 DOCX 删除来自外部状态，本阶段不恢复、不修改、不暂存、不提交。
+
+### 当前状态与下一步
+
+阶段 8.3 已完成。用户提出的“部分证据不足导致整题拒答”机制现在已改为逐 Claim 验证、过滤和 `PARTIAL_PASS`，DEV02 已从 refuse 转为安全部分回答，同时 strict 对照和规则基线语义得到保留。下一阶段进入 8.4：补齐 routing/retrieval/verification/retry 分阶段 trace，更新 CLI 与 Streamlit 的真实 model/fallback/latency/Verifier 展示并增加预热；继续不运行 final/extension。

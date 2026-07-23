@@ -35,6 +35,7 @@ def test_no_verifier_accepts_without_retry_and_keeps_unsupported_claims():
     result = NoVerifier().verify("问题", answer, retrieval, retry_count=0)
 
     assert result.decision == "pass"
+    assert result.decision_policy == "disabled"
     assert result.unsupported_claims == ["未支持事实"]
     assert NoVerifier.max_retries == 0
 

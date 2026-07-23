@@ -79,3 +79,36 @@ def test_evaluation_aggregates_all_generation_calls() -> None:
     assert result["generation_latency_ms"] == 30.0
     assert result["generator_fallback_used"] is True
     assert result["structured_output_success"] is False
+
+
+def test_partial_pass_counts_as_success_for_answerable_development_question() -> None:
+    response = FinalResponse(
+        query="synthetic",
+        answer="partial answer",
+        answer_payload=AnswerPayload(answer="partial answer"),
+        retrieval=RetrievalResult(intent="general", mode="vector"),
+        verification=VerifyResult(
+            decision="partial_pass",
+            decision_policy="partial_pass",
+            evidence_score=0.8,
+        ),
+    )
+
+    class StubWorkflow:
+        def invoke(self, query: str) -> FinalResponse:
+            return response
+
+    result = evaluate_question(
+        StubWorkflow(),
+        {
+            "question_id": "SYNTHETIC-PARTIAL",
+            "category": "definition",
+            "question": "synthetic",
+            "expected_behavior": "answer",
+            "expected_keywords": [],
+            "gold_entities": [],
+        },
+    )
+
+    assert result["actual_decision"] == "partial_pass"
+    assert result["decision_correct"] is True

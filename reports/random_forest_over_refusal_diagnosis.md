@@ -8,10 +8,10 @@
 | 分支 | `experiment/llm-agent-v2` |
 | 问题 | `随机森林为什么更稳定？` |
 | 对应开发题 | `DEV02` |
-| 结论 | 知识库和检索证据充足；失败发生在 LLM Claim 引用与严格整题验证阶段 |
+| 结论 | 知识库和检索证据充足；阶段 8.3 已用 Claim-level Partial-pass 修复本题的整题拒答 |
 | extension | 未运行、未读取 |
 
-## LLM 主链路复现
+## 初始 LLM 主链路复现
 
 ```text
 Intent: explanation
@@ -83,7 +83,7 @@ claim 5 引用了不存在的 evidence_id: P3
 
 ## 为什么最终整题拒答
 
-当前 Verifier 虽然逐 Claim 检查，但最终只做整题聚合：
+阶段 8.3 之前的 Verifier 虽然逐 Claim 检查，但最终只做整题聚合：
 
 1. 5 条 Claim 中只有 2 条通过，`claim_coverage=0.4`；
 2. 5 组引用中只有 3 组文本 ID 有效，`citation_validity=0.6`；
@@ -98,7 +98,7 @@ claim 5 引用了不存在的 evidence_id: P3
 证据充分
   -> LLM 生成部分正确、部分引用错误的 Claims
   -> Verifier 拦截错误 Claims
-  -> 当前没有 PARTIAL_PASS
+  -> 当时没有 PARTIAL_PASS
   -> 支持 Claim 也被一起丢弃
   -> 整题拒答
 ```
@@ -138,7 +138,7 @@ Retry count: 0
 1. 阶段 8.0：撤销未执行的 v1 extension release，建立 v2 合同（已完成）；
 2. 阶段 8.1：Evidence Packer 保留完整直接证据（已完成）；
 3. 阶段 8.2：Prompt v2 限制最多 4 个原子 Claim，强化 E/P/R 字段语义和直接 quote（已完成）；
-4. 阶段 8.3：逐 Claim 输出 ClaimResult，删除失败项并实现 `PARTIAL_PASS`；
+4. 阶段 8.3：逐 Claim 输出 ClaimResult，删除失败项并实现 `PARTIAL_PASS`（已完成）；
 5. dev 回归重点复核 `DEV02`，确保支持 Claim 被保留、错误 Claim 不进入用户答案；
 6. 参数冻结后才建立并运行一次 v2 extension。
 
@@ -199,6 +199,36 @@ Claim 5 unsupported
 PARTIAL_PASS，而不是 REFUSE
 ```
 
+## 阶段 8.3 完成后的复核
+
+Claim-level Verifier 已为每条 Claim 生成稳定 C ID、supported/unsupported、retained/removed、有效 E/P ID 和 reason codes。默认 LLM 策略保留 supported Claims；离线规则基线继续使用 strict，LLM 也可显式切换 strict 作为消融。
+
+同一 DEV02 的脱敏 warm smoke 结果：
+
+```text
+Decision: partial_pass
+Evidence score: 0.8500
+Claim coverage: 0.5000
+Citation validity: 1.0000
+Path validity: 1.0000
+Retrieval sufficiency: 1.0000
+Generated Claims: 4
+Retained Claims: C1, C2
+Removed Claims: C3, C4
+Retry count: 0
+Generation calls: 1
+Generation latency: 7275.8 ms
+Evidence packing latency: 1.901 ms
+Verification latency: 0.342 ms
+End-to-end latency: 7288 ms
+Unsupported Claim leakage: 0
+Fallback: false
+```
+
+最终用户答案只包含 C1/C2 和固定证据限制句，不包含 C3/C4 的专业结论。相比阶段 8.2，本题从“2/4 Claim 支持但整题 refuse、重试 1 次”变为“2/4 Claim 保留、partial_pass、重试 0 次”。脱敏报告为 `reports/claim_level_partial_pass_dev02_smoke.json`，SHA-256 为 `f32f763603a5d5984400bd20b9226d56a66b2cadb13b4f98f94ab28a6c4b5fd8`。
+
+该结果只证明本题的过滤和状态机机制成立。它不是完整 dev/pilot 回归，不能证明总体 Over-refusal Rate 已达到目标，也不能证明 LLM 优于规则基线。第一次冷启动式探索调用的单次生成约 29.2 秒，正式脱敏 warm smoke 为 7.3 秒，因此当前只确认“第二次 LLM 调用已消失”，不把两次不同运行条件下的墙钟时间直接比较为性能提升。
+
 ## 当前临时使用方式
 
 需要稳定演示已有 v1.0 能力时，可以使用规则生成器：
@@ -208,4 +238,4 @@ $env:AGENT_GENERATOR_BACKEND="offline_rule"
 python -m streamlit run app/streamlit_app.py
 ```
 
-该方式是明确标注的规则基线，不应伪装成 LLM 结果。默认 LLM 模式保留当前行为，用于展示和修复真实的过度拒答问题。
+该方式是明确标注的规则基线，不应伪装成 LLM 结果。默认 LLM 模式现在使用 Claim-level Partial-pass；正式演示前仍需完成阶段 8.4 的 trace/UI 和阶段 8.5 的完整 dev 回归。

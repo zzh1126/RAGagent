@@ -31,12 +31,13 @@ python scripts/validate_graph_data.py
 python scripts/validate_graph_evidence.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_claim_level_verifier.py
 python scripts/run_agent.py "随机森林为什么更稳定"
 python scripts/run_agent.py "类别不平衡时用什么指标"
 pytest -q
 ```
 
-The workflow routes each query to vector, graph, or hybrid retrieval, generates citation-bearing claims, verifies evidence and graph paths, retries at most once, and refuses unsupported questions. It uses the real `langgraph` runtime when that package is installed; otherwise it uses the included local state-machine runner with the same node transitions so development remains offline-capable.
+The workflow routes each query to vector, graph, or hybrid retrieval, generates citation-bearing claims, verifies each Claim and graph path, retains supported Claims, retries only when no Claim can yet be kept, and refuses unsupported questions. It uses the real `langgraph` runtime when that package is installed; otherwise it uses the included local state-machine runner with the same node transitions so development remains offline-capable.
 
 Set `GRAPH_BACKEND=neo4j` together with `NEO4J_URI`, `NEO4J_USER`, and `NEO4J_PASSWORD` to switch the graph repository. The default remains `networkx`.
 
@@ -48,8 +49,9 @@ The default workflow uses the rule Router with a real `qwen3:4b` Answer Generato
 python scripts/validate_config.py
 python scripts/smoke_llm_client.py --timeout 180
 python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_claim_level_verifier.py
 python scripts/run_agent.py "随机森林为什么更稳定"
-pytest -q tests/test_llm_client.py tests/test_answer_generators.py tests/test_atomic_claim_prompt.py
+pytest -q tests/test_llm_client.py tests/test_answer_generators.py tests/test_atomic_claim_prompt.py tests/test_claim_level_verifier.py
 ```
 
 The Client always sends `think=false` and `stream=false`, reads only `message.content`, retries timeout or schema failure at most once, and emits metadata without prompts, generated content, thinking, or credentials. Every LLM Claim must bind existing E/P/R IDs and an exact source quote; the Verifier also applies a conservative bilingual term-coverage check.
@@ -64,7 +66,9 @@ Stage 8.2 upgrades the generator to atomic Claim Prompt v2. The wire schema perm
 
 The formal synthetic probe passed `20/20` runs across random-forest, AdaBoost, comparison, and partial-evidence scenarios. It persists only aggregate structure, ID, error-code, and latency fields; prompts, generated answers, quotes, and thinking are not stored. This is an engineering gate, not an independent answer-quality result.
 
-Over-refusal is still not fixed. The Prompt v2 dev smoke for “随机森林为什么更稳定” produced four separated Claims and improved strict Claim coverage from `0.3333` to `0.5000`, with citation/path validity both `1.0000`, but the unchanged whole-answer Verifier still refused after one retry. Claim-level verification and partial pass are the next stage.
+Stage 8.3 connects Claim-level verification and adds `partial_pass`. Each generated Claim now receives a stable C ID, supported/unsupported status, reason codes, retained/removed state, valid E/P IDs, and verification latency. LLM mode defaults to partial-pass, while the offline rule baseline remains strict and LLM strict mode is available as an explicit ablation override. Mixed Claims are filtered without a second LLM call; zero supported Claims may retry once, and a false graph premise refuses immediately.
+
+The sanitized DEV02 smoke for “随机森林为什么更稳定” now returns `partial_pass`: 2 of 4 Claims are retained, 2 are removed, citation/path validity remain `1.0000`, retry count falls from 1 to 0, and unsupported-Claim leakage is 0. The warm recorded run used one LLM call with 7,275.8 ms generation and 7,288 ms end-to-end latency. This single development smoke demonstrates the filtering mechanism, not overall quality improvement or a new dev/pilot/extension result.
 
 The historical extension implementation is frozen at commit `bdedf7d`. Its release file still preserves the original `authorized_not_executed` value, while the immutable revocation record makes the effective status `revoked_before_execution`. The old command now fails before model inspection, holdout loading, or QA workflow construction. Versioned v2 scoring and trace contracts predeclare a four-method comparison, but no v2 release exists yet.
 
@@ -89,6 +93,7 @@ Open `http://localhost:8501`. The interface exposes the answer, graph paths, off
 python scripts/validate_evaluation.py
 python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
+python scripts/validate_claim_level_verifier.py
 python scripts/validate_extension_holdout.py
 python scripts/run_evaluation.py --split dev --output reports/evaluation_custom_dev.json
 python scripts/validate_scoring.py

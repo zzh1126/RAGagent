@@ -57,6 +57,7 @@ class NoVerifier:
             ]
         return VerifyResult(
             decision="pass",
+            decision_policy="disabled",
             evidence_score=0.0,
             claim_coverage=0.0,
             citation_validity=0.0,
