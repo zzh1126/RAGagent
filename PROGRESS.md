@@ -1519,3 +1519,94 @@ git diff --check
 ### 当前状态与下一步
 
 评测结论为 **Go**，但不是直接执行 extension。下一步只实施阶段 8.0：建立 v1 撤销记录、执行护栏和 v2 实验合同；该阶段验收完成后再进入 Evidence Packer，继续保持 final 只读和 extension 未执行状态。
+
+## 2026-07-23 阶段 7.6：项目全量知识手册与不足完善路线图
+
+### 完成事项
+
+- 按用户要求新增 `PROJECT_HANDBOOK.md`，作为项目交接、复习和答辩使用的全量知识手册，共 1107 个物理行（797 行非空内容），覆盖：
+  - 项目定位、准确课题表述、目标、研究问题和知识边界；
+  - 六个官方来源、164 个 Section、180 个 Chunk 的处理流程；
+  - 50 个实体、100 条 approved 关系、7 类节点和 9 类关系；
+  - GraphRepository、NetworkX 与可选 Neo4j 的接口和实际运行状态；
+  - Router、实体链接、查询改写、TF-IDF、图检索和混合融合；
+  - Evidence Context、规则 Generator、qwen3:4b Generator、fallback 和 Ollama Client；
+  - Evidence Verifier 公式、阈值、决策条件和当前过度拒答原因；
+  - LangGraph 节点、统一 Schema、配置、环境变量、Streamlit 和脚本索引；
+  - dev/demo/pilot/final/extension 的所有权、防泄漏约束和指标口径；
+  - v1.0 final、pilot 消融、LLM 探针、LLM dev 和 extension release 的准确状态；
+  - 可复验命令、目录职责、测试、安全边界、可声明贡献和 20 个答辩常见问题。
+- 手册明确区分三层成熟度：
+  - v1.0 规则基线已冻结并完成正式 final；
+  - 当前 LLM Generator 主链路可运行，但只有 dev 审计，不能声称增强有效；
+  - Evidence Packer、Prompt v2、Claim-level Verifier 和 Partial-pass 仍是下一阶段计划。
+- 手册澄清三个容易误述的事实：
+  - Chroma 当前存储的是 TF-IDF 产生的向量，在线 Retriever 也直接读取 TF-IDF index，不能称为神经 Dense Retrieval；
+  - Neo4j Repository 和导入脚本存在，但当前 Python 环境没有安装 `neo4j` 驱动，正式实验使用 NetworkX；
+  - v1 extension release 文件仍写 `authorized_not_executed`，但阶段 7.5 已暂停执行，必须先撤销并建立 v2 协议。
+- 新增 `PROJECT_GAPS_AND_ROADMAP.md`，共 778 个物理行（567 行非空内容），系统记录 19 项当前不足，并为每项给出证据、影响、优先级、处理状态和验收条件。
+- 路线图将后续工作分为：
+  - P0：v1 release 治理、Evidence Packer、Prompt v2、Claim-level Verifier、`PARTIAL_PASS`、重试优化和四方法实验；
+  - P1：阶段延迟、Streamlit 状态展示、正式报告与交付；
+  - P2/Conditional：Dense Retrieval、RRF、多跳增强、依赖锁定、实体审核状态和 Neo4j；
+  - No-Go：扩充知识库、自动图谱抽取、LLM Planner、多 Agent、完整 Microsoft GraphRAG、复杂动态图和框架迁移。
+- 路线图固定阶段 8.0～8.8 的执行顺序、dev 工程门槛、pilot 使用边界、v2 冻结项、extension 一次性协议、风险和最终完成定义。
+- 审计并记录额外的当前不足：
+  - 50 个实体的 `review_status` 仍为 pending，而 100 条 runtime 关系均为 approved；
+  - 混合融合是顺序去重，不是 RRF 或学习排序；
+  - Neo4j `find_paths` 的 Cypher 仍硬编码 `[*1..2]`，没有真正使用接口的 `max_hops`；
+  - requirements 列出 `neo4j`，但当前环境未安装该可选驱动；
+  - Streamlit 尚未展示模型、fallback、generation latency 或 partial 状态。
+- 更新 `README.md`：
+  - 增加两份新文档和 `PROGRESS.md` 的入口；
+  - 将旧的“v1 extension 可直接执行”修正为“v1 release 已暂停，当前只允许 validation/preflight”；
+  - 明确下一步是 revocation + v2 release，不存在任何 extension QA 结果。
+
+### 验证结果
+
+```bash
+pytest -q
+python scripts/validate_config.py
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_chunks.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation.py --preflight
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试通过：`67 passed`；
+- 配置确认 `ollama/qwen3:4b + rule planner + llm generator`；
+- 图数据确认 50 个实体、100 条关系，100 条 approved 关系证据全部有效；
+- 文档数据确认 164 个 Section、180 个 Chunk；
+- 五套评测数据确认 dev=10、demo=8、pilot=40、final=40、extension=23；
+- 用户确认评分确认 160 行、4 种方法、9 个错误案例一致；
+- LLM 探针确认 Schema 60/60、Generator Go、Planner No-Go；
+- extension dataset、评分合同、release/runtime/model 哈希全部通过；
+- preflight 返回 `authorized_not_executed`，并确认 extension questions were not sent to the QA workflow；
+- 报告 23 项来源、16 项必需声明、14 项禁止声明全部通过；
+- 5 张报告图仍与 manifest 一致；
+- v1.0 归档 23 个 payload 全部通过，Manifest SHA-256 仍为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `pip check` 无损坏依赖；
+- `git diff --check` 无空白错误，只有 Windows LF/CRLF 提示。
+
+### 本轮边界
+
+- 本轮只新增两份 Markdown 文档，并更新 README 和 `PROGRESS.md`；
+- 未修改 `src/`、`scripts/`、`tests/`、冻结配置、题集、图谱、Chunk、索引、release 或 manifest；
+- 未运行 final 或 extension QA；
+- `reports/extension/` 仍不存在；
+- 用户提供的 DOCX 保持未跟踪、未修改，不纳入提交。
+
+### 当前状态与下一步
+
+项目现已有一份完整事实手册和一份可执行不足路线图。下一步仍严格从阶段 8.0 开始：创建 v1 revocation record、使旧 release ID 无法执行、建立 v2 evaluation/trace contract；验收后才进入 Evidence Packer。
