@@ -13,7 +13,7 @@
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
 | 当前实施范围 | LLM Answer Generator、Verifier 与规则 fallback 已接线；不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
-| extension holdout | 23 题、实现与一次性 release 已冻结，状态 `authorized_not_executed` |
+| extension holdout | 23 题从未运行；v1 release 已在执行前撤销，v2 四方法合同已冻结但尚无 release |
 
 ## 前置条件审计
 
@@ -102,7 +102,7 @@ AnswerPayload 无法从正式答案字段解析
 
 1. 允许进入 LLM Answer Generator 的实现阶段；
 2. 暂不实现 LLM Query Planner，继续使用现有规则 Router；
-3. 独立 23 题 `extension_holdout`、评分合同、完整 trace 口径与实现 bundle 已冻结，一次性 release `extension-qwen3-4b-v1-bdedf7dc` 已授权但尚未执行；
+3. 独立 23 题 `extension_holdout`、评分合同、完整 trace 口径与实现 bundle 已冻结；历史 v1 release `extension-qwen3-4b-v1-bdedf7dc` 后续在任何执行前撤销，v2 四方法合同已单独冻结；
 4. final 继续只读，原 v1.0 结果、配置指纹和归档哈希不变；
 5. 不实施 Dense Retrieval，也不把 Planner 描述为已经可用。
 

@@ -6,11 +6,12 @@
 | --- | --- |
 | 评测日期 | 2026-07-23 |
 | 当前分支 | `experiment/llm-agent-v2` |
-| 当前提交 | `57635f4` |
-| 计划状态 | 建议通过，进入分阶段实现 |
+| 当前治理提交 | `a518404` |
+| 计划状态 | 阶段 8.0 已完成，准备进入阶段 8.1 |
 | 当前 extension release | `extension-qwen3-4b-v1-bdedf7dc` |
-| release 状态 | `authorized_not_executed`，尚未运行 |
-| 本轮边界 | 只做技术评测与计划冻结；不改 runtime，不运行 final/extension |
+| release 有效状态 | `revoked_before_execution`，从未运行 |
+| v2 状态 | 四方法合同已冻结，`locked_no_release` |
+| 当前边界 | 下一阶段只实现 Evidence Packer，不运行 final/extension |
 
 ## 一、总体结论
 
@@ -290,24 +291,24 @@ Verifier: PARTIAL_PASS
 
 ## 七、Extension release 治理
 
-当前 v1 release 已授权但未执行。Evidence Packer、Prompt 或 Verifier 的任何改动都会改变 runtime bundle，因此不能继续拿 v1 release 执行，也不能直接覆盖原文件。
+v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prompt 或 Verifier 的任何改动都会改变 runtime bundle，因此不能使用 v1 release，也不能覆盖原文件。
 
-开始实现前必须先完成：
+阶段 8.0 治理结果：
 
-1. 再次确认 `reports/extension/` 不存在、没有 execution state、receipt 或任何 extension 答案；
-2. 为 `extension-qwen3-4b-v1-bdedf7dc` 创建独立、不可覆盖的 revocation record；
-3. revocation record 固定原 release ID、release 文件哈希、撤销时间、撤销提交、`revoked_before_execution=true` 和原因“在观察任何 extension 输出前升级实验协议”；
-4. 保留并禁止覆盖现有 `extension_holdout_release.json`、implementation manifest 和 v1 trace contract；
-5. 修改专用 runner 和 validator，使被撤销的 release ID 无条件拒绝执行；
-6. 新建 `config/extension_evaluation_v2.yaml` 和 `config/extension_trace_contract_v2.yaml`；
-7. 完成 v2 runtime 后创建新的 implementation manifest、release record 和 release ID；
-8. v2 extension 仍复用未被查看的 23 题冻结题集，且只执行一次。
+1. [x] 确认 `reports/extension/` 不存在、没有 execution state、receipt 或任何 extension 答案；
+2. [x] 为 `extension-qwen3-4b-v1-bdedf7dc` 创建独立、不可覆盖的 revocation record；
+3. [x] 固定原 release ID、文件哈希、撤销时间、依据提交、`revoked_before_execution` 和撤销原因；
+4. [x] 保留现有 `extension_holdout_release.json`、implementation manifest 和 v1 trace contract；
+5. [x] 修改专用 runner 和 validator，使被撤销的 release ID 无条件拒绝执行；
+6. [x] 新建并校验 `config/extension_evaluation_v2.yaml` 和 `config/extension_trace_contract_v2.yaml`；
+7. [ ] 完成 v2 runtime 后创建新的 implementation manifest、release record 和 release ID；
+8. [ ] 使用未被查看的 23 题冻结题集执行唯一一次 v2 extension。
 
 撤销是实验治理动作，不代表 v1 实现错误；它表示在看见保留集结果之前主动采用更完整的协议。所有 v1 文件和哈希继续作为审计记录保留。
 
 ## 八、分阶段执行顺序
 
-### 阶段 8.0：撤销 v1 release 并建立 v2 合同
+### 阶段 8.0：撤销 v1 release 并建立 v2 合同（已完成）
 
 - 创建不可变 revocation record；
 - 为 runner/validator 增加撤销检查；
@@ -445,4 +446,4 @@ PROGRESS.md
 
 **No-Go：** LLM Planner、多 Agent、知识库扩充、自动图谱抽取、完整 Microsoft GraphRAG 和框架迁移。
 
-下一步只执行阶段 8.0：撤销尚未执行的 v1 release、建立 v2 合同和保护测试。完成验收后，再进入 Evidence Packer，不会在同一步运行 extension。
+下一步进入阶段 8.1：实现确定性的 intent-aware Evidence Packer、packing trace 和题型回归测试。本阶段不会改 Prompt/Verifier，也不会运行 extension。

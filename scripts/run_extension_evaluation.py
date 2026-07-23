@@ -16,10 +16,12 @@ from src.evaluation.extension_release import (
     EXECUTION_STATE_PATH,
     FINAL_OUTPUT_PATHS,
     METHOD_ORDER,
+    V2_RELEASE_RECORD_PATH,
     load_release_artifacts,
     sha256_file,
-    validate_execution_artifacts,
+    validate_effective_release_status,
     validate_release_record,
+    validate_v2_protocol_contracts,
     write_new_json,
 )
 from src.evaluation.extension_runner import (
@@ -36,11 +38,44 @@ from src.evaluation.extension_runner import (
 )
 
 
-def validate_preflight(*, require_unexecuted: bool) -> tuple[dict, dict, str]:
+def validate_preflight(
+    *,
+    require_unexecuted: bool,
+    requested_release_id: str | None = None,
+) -> tuple[dict, dict, str]:
     try:
         implementation, release = load_release_artifacts(PROJECT_ROOT)
     except (FileNotFoundError, ValueError) as exc:
         raise SystemExit(str(exc)) from exc
+    if requested_release_id and requested_release_id != release.get("release_id"):
+        if requested_release_id.startswith("extension-qwen3-4b-v2-"):
+            contract_errors = validate_v2_protocol_contracts(PROJECT_ROOT)
+            if contract_errors:
+                for error in contract_errors:
+                    print(f"ERROR: {error}")
+                raise SystemExit(1)
+            if not (PROJECT_ROOT / V2_RELEASE_RECORD_PATH).is_file():
+                raise SystemExit(
+                    "Refusing v2 extension execution: the v2 protocol is locked and "
+                    "no v2 release record has been authorized."
+                )
+        raise SystemExit("--release-id must exactly match an authorized release record.")
+
+    status_errors, execution_status = validate_effective_release_status(
+        PROJECT_ROOT,
+        release,
+    )
+    if execution_status in {"revoked_before_execution", "revocation_invalid"}:
+        for error in status_errors:
+            print(f"ERROR: {error}")
+        print(
+            f"ERROR: release_id={release.get('release_id')} "
+            f"effective_execution_status={execution_status}"
+        )
+        raise SystemExit(
+            "Refusing extension execution: this release was revoked before execution."
+        )
+
     errors = validate_release_record(
         PROJECT_ROOT,
         release,
@@ -55,11 +90,7 @@ def validate_preflight(*, require_unexecuted: bool) -> tuple[dict, dict, str]:
     frozen_model = release["runtime_model"]["model"]
     if model_override and model_override != frozen_model:
         errors.append("OLLAMA_MODEL differs from the released model")
-    execution_errors, execution_status = validate_execution_artifacts(
-        PROJECT_ROOT,
-        release,
-    )
-    errors.extend(execution_errors)
+    errors.extend(status_errors)
     if errors:
         for error in errors:
             print(f"ERROR: {error}")
@@ -211,7 +242,8 @@ def main() -> None:
     args = parser.parse_args()
 
     _, release, execution_status = validate_preflight(
-        require_unexecuted=args.execute_once
+        require_unexecuted=args.execute_once,
+        requested_release_id=args.release_id if args.execute_once else None,
     )
     if args.preflight:
         print(f"OK: release_id={release['release_id']}")

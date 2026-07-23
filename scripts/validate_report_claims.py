@@ -35,13 +35,13 @@ REQUIRED_RULES = (
     TextRule("R12", "1.48 ms must be separated from online LLM latency", r"1\.48 ms[^\n]{0,50}不是在线 LLM 延迟"),
     TextRule(
         "R13",
-        "Generator wiring, Planner No-Go, and the unexecuted release must remain explicit",
-        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go，extension release 已授权但尚未执行",
+        "Generator wiring, Planner No-Go, and extension governance must remain explicit",
+        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销，v2 合同已冻结但尚无可执行 release",
     ),
     TextRule(
         "R14",
-        "the extension holdout must be described as authorized but unexecuted",
-        r"一次性 release `extension-qwen3-4b-v1-bdedf7dc` 当前为 `authorized_not_executed`，没有 extension 输出",
+        "the extension holdout must be described as revoked before execution",
+        r"一次性 release `extension-qwen3-4b-v1-bdedf7dc` 的原文件保留 `authorized_not_executed`，但不可变撤销记录已将有效状态固定为 `revoked_before_execution`；没有 extension 输出",
     ),
     TextRule(
         "R15",
@@ -108,6 +108,13 @@ def expected_literals() -> dict[str, str]:
     extension_release = read_json(
         PROJECT_ROOT / "data" / "evaluation" / "extension_holdout_release.json"
     )
+    extension_revocation = read_json(
+        PROJECT_ROOT
+        / "data"
+        / "evaluation"
+        / "extension_release_revocations"
+        / "extension-qwen3-4b-v1-bdedf7dc.json"
+    )
     llm_dev = read_json(PROJECT_ROOT / "reports" / "evaluation_llm_generator_dev_candidate.json")
 
     kb = stats["knowledge_base"]
@@ -160,6 +167,9 @@ def expected_literals() -> dict[str, str]:
         "S23 extension trace contract hash": implementation_manifest[
             "trace_contract_sha256"
         ],
+        "S24 extension effective status": (
+            f"有效状态固定为 `{extension_revocation['status']}`"
+        ),
     }
 
 

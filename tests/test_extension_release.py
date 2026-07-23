@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -8,12 +10,22 @@ from src.evaluation.extension_release import (
     EXECUTION_RECEIPT_PATH,
     EXECUTION_STATE_PATH,
     FINAL_OUTPUT_PATHS,
+    IMPLEMENTATION_MANIFEST_PATH,
     METHOD_ORDER,
+    RELEASE_RECORD_PATH,
     TRACE_CONTRACT_PATH,
+    V2_METHOD_ORDER,
+    V2_RELEASE_RECORD_PATH,
+    load_release_artifacts,
+    load_release_revocation,
+    revocation_record_path,
     runtime_paths,
     sha256_file,
+    validate_effective_release_status,
     validate_execution_artifacts,
+    validate_release_revocation,
     validate_static_contracts,
+    validate_v2_protocol_contracts,
     write_new_json,
 )
 from src.evaluation.extension_runner import blind_review_rows, summarize_method
@@ -75,6 +87,96 @@ def test_static_trace_contract_is_frozen_and_matches_scoring_methods() -> None:
         "llm_generator",
         "llm_generator_no_verifier",
     ]
+
+
+def test_v2_contract_is_frozen_with_four_separate_methods() -> None:
+    assert validate_v2_protocol_contracts(ROOT) == []
+    assert list(V2_METHOD_ORDER) == [
+        "rule_baseline",
+        "llm_strict_v2",
+        "llm_no_verifier_v2",
+        "llm_partial_pass_v2",
+    ]
+    assert not (ROOT / V2_RELEASE_RECORD_PATH).exists()
+
+
+def test_committed_v1_revocation_preserves_historical_artifacts() -> None:
+    implementation, release = load_release_artifacts(ROOT)
+    revocation = load_release_revocation(ROOT, release["release_id"])
+
+    assert revocation is not None
+    assert validate_release_revocation(ROOT, revocation) == []
+    errors, status = validate_effective_release_status(ROOT, release)
+    assert errors == []
+    assert status == "revoked_before_execution"
+    assert sha256_file(ROOT / RELEASE_RECORD_PATH) == (
+        "af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c"
+    )
+    assert sha256_file(ROOT / IMPLEMENTATION_MANIFEST_PATH) == (
+        "2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382"
+    )
+    assert implementation["implementation_commit"] == (
+        "bdedf7dcb4e82bc918dfd7c92161501151b09742"
+    )
+
+
+def test_malformed_revocation_nested_fields_are_reported(tmp_path: Path) -> None:
+    release_id = "extension-test-v1"
+    revocation = {
+        "artifact": "extension_release_revocation",
+        "status": "revoked_before_execution",
+        "revoked_release_id": release_id,
+        "revoked_release_record": [],
+        "implementation_manifest": [],
+        "execution_observations": [],
+        "revocation_effect": [],
+    }
+    write_new_json(tmp_path / revocation_record_path(release_id), revocation)
+
+    errors = validate_release_revocation(tmp_path, revocation)
+
+    assert any("release reference must be" in error for error in errors)
+    assert any("manifest reference must be" in error for error in errors)
+    assert any("execution observations must be" in error for error in errors)
+    assert any("revocation effect must be" in error for error in errors)
+
+
+@pytest.mark.parametrize(
+    ("release_id", "expected_message"),
+    [
+        (
+            "extension-qwen3-4b-v1-bdedf7dc",
+            "effective_execution_status=revoked_before_execution",
+        ),
+        (
+            "extension-qwen3-4b-v2-pending",
+            "no v2 release record has been authorized",
+        ),
+    ],
+)
+def test_controlled_runner_rejects_v1_and_unreleased_v2(
+    release_id: str,
+    expected_message: str,
+) -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_extension_evaluation.py",
+            "--execute-once",
+            "--release-id",
+            release_id,
+            "--confirm-one-time-run",
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+    assert completed.returncode != 0
+    assert expected_message in completed.stdout + completed.stderr
+    assert not (ROOT / "reports/extension").exists()
 
 
 def test_llm_trace_metrics_use_frozen_denominators() -> None:

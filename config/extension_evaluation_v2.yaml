@@ -1,0 +1,158 @@
+schema_version: "2.0"
+artifact: extension_evaluation_contract
+protocol_version: v2
+status: frozen_locked
+
+freeze:
+  frozen_at: "2026-07-23T13:26:30+08:00"
+  created_before_v2_business_implementation: true
+  extension_outputs_observed: false
+
+dataset:
+  path: data/evaluation/extension_questions.jsonl
+  sha256: 7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5
+  question_count: 23
+  answerable_count: 19
+  category_distribution:
+    single_hop: 4
+    multi_hop: 4
+    definition: 3
+    comparison: 3
+    principle_pros_cons: 3
+    metric_selection: 2
+    no_answer: 4
+
+governance:
+  supersedes_protocol: v1
+  superseded_v1_release: extension-qwen3-4b-v1-bdedf7dc
+  superseded_v1_revocation: data/evaluation/extension_release_revocations/extension-qwen3-4b-v1-bdedf7dc.json
+  holdout_questions_must_not_enter_qa_before_release: true
+  final_v1_results_remain_read_only: true
+
+execution_lock:
+  status: locked
+  release_record: data/evaluation/extension_holdout_release_v2.json
+  generic_evaluation_runner_must_remain_locked: true
+  maximum_released_runs: 1
+  forbidden_before_release:
+    - running any QA workflow on extension questions
+    - tuning prompts, thresholds, routing, or packing with extension questions
+    - producing method answers or comparison metrics
+
+method_order:
+  - rule_baseline
+  - llm_strict_v2
+  - llm_no_verifier_v2
+  - llm_partial_pass_v2
+
+methods:
+  - id: rule_baseline
+    planner: rule
+    generator: offline_rule
+    evidence_packer: not_applicable
+    verifier: strict_v1
+    decision_policy: whole_answer
+  - id: llm_strict_v2
+    planner: rule
+    generator: llm_atomic_claim_prompt_v2
+    evidence_packer: intent_aware_v2
+    verifier: claim_level_v2
+    decision_policy: all_claims_supported_or_refuse
+  - id: llm_no_verifier_v2
+    planner: rule
+    generator: llm_atomic_claim_prompt_v2
+    evidence_packer: intent_aware_v2
+    verifier: disabled
+    shadow_verifier: claim_level_v2
+    decision_policy: generator_payload
+  - id: llm_partial_pass_v2
+    planner: rule
+    generator: llm_atomic_claim_prompt_v2
+    evidence_packer: intent_aware_v2
+    verifier: claim_level_v2
+    decision_policy: retain_supported_claims_partial_pass
+
+final_decisions:
+  allowed:
+    - pass
+    - partial_pass
+    - refuse
+  retry_is_intermediate_only: true
+  partial_pass_requires:
+    - at least one supported claim retained
+    - at least one unsupported requested aspect disclosed
+    - no unsupported claim in the final answer
+  refuse_requires:
+    - no supported claim remains
+
+automatic_metrics:
+  decision_accuracy:
+    expected_answer_success_decisions: [pass, partial_pass]
+    expected_refusal_success_decisions: [refuse]
+    denominator: all_questions
+  refusal_accuracy:
+    numerator: expected_refusal_questions_returning_refuse
+    denominator: expected_refusal_questions
+  over_refusal_rate:
+    numerator: answerable_questions_returning_refuse
+    denominator: answerable_questions
+  partial_pass_rate:
+    numerator: answerable_questions_returning_partial_pass
+    denominator: answerable_questions
+  citation_validity:
+    source: claim_level_shadow_verifier
+    denominator: generated_claims_with_citations
+  supported_claim_retention_rate:
+    numerator: supported_generated_claims_retained_in_final_answer
+    denominator: supported_generated_claims
+  unsupported_claim_leakage_rate:
+    numerator: unsupported_generated_claims_present_in_final_answer
+    denominator: unsupported_generated_claims
+  structured_output_success_rate:
+    denominator: all_questions_for_each_llm_method
+  fallback_rate:
+    denominator: all_questions_for_each_llm_method
+  latency_ms:
+    - retrieval
+    - evidence_packing
+    - llm_generation
+    - verification
+    - retry
+    - end_to_end
+
+human_metrics:
+  answer_correctness:
+    scale: [0, 1, 2]
+    denominator: all_questions
+  evidence_faithfulness:
+    scale: [0, 1, 2]
+    denominator: substantive_answers
+    correct_refusal: not_applicable
+  readability:
+    scale: [1, 2, 3, 4, 5]
+    denominator: correct_or_partially_correct_substantive_answers
+  hallucination:
+    scale: [0, 1]
+    denominator: substantive_answers
+    positive_definition: final answer contains an unsupported professional factual claim
+  over_refusal:
+    scale: [0, 1]
+    denominator: answerable_questions
+
+human_review_protocol:
+  blind_method_labels: true
+  answer_labels: [A, B, C, D]
+  randomize_answer_order_per_question: true
+  show_question_and_retrieved_evidence: true
+  hide_generator_and_verifier_identity: true
+  reviewer_status: user_confirmed_single_review
+  independent_double_annotation: false
+  revise_rubric_after_outputs: false
+
+comparison_policy:
+  primary: llm_partial_pass_v2_vs_rule_baseline
+  strictness_ablation: llm_partial_pass_v2_vs_llm_strict_v2
+  verifier_ablation: llm_partial_pass_v2_vs_llm_no_verifier_v2
+  planner_comparison: not_applicable_rule_router_fixed
+  statistical_claims: descriptive_only_due_to_small_sample
+  configuration_must_freeze_before_extension_release: true

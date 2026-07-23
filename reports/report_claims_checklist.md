@@ -21,7 +21,10 @@
 | `data/evaluation/extension_holdout_manifest.json` | extension 题集、评分合同哈希与执行锁 |
 | `reports/extension_holdout_freeze.md` | extension 冻结范围、方法和人工评分披露 |
 | `data/evaluation/extension_implementation_manifest.json` | 实现、Prompt、Schema、依赖、输入与模型 digest |
-| `data/evaluation/extension_holdout_release.json` | 一次性 extension 授权和固定输出路径 |
+| `data/evaluation/extension_holdout_release.json` | 历史 v1 一次性授权和固定输出路径 |
+| `data/evaluation/extension_release_revocations/extension-qwen3-4b-v1-bdedf7dc.json` | v1 执行前撤销事实与历史文件哈希 |
+| `config/extension_evaluation_v2.yaml` | v2 四方法、评分与盲评合同 |
+| `config/extension_trace_contract_v2.yaml` | v2 Claim 与分阶段 trace 合同 |
 | `src/llm/ollama_client.py` | 统一 Client 的正式 content、一次重试和脱敏调用记录合同 |
 | `reports/llm_generator_dev_audit.md` | 三轮 dev 调试结果、修复轨迹与已知限制 |
 | `reports/evaluation_llm_generator_dev_candidate.json` | 当前 LLM Generator 候选 dev 自动结果 |
@@ -51,10 +54,10 @@
 | C16 | 用户确认样本中的幻觉率为 0 只描述当前小样本观察，不能推出系统不会产生幻觉 | 已核验 |
 | C17 | Manifest SHA-256 为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` | 已核验 |
 | C18 | `qwen3-vl:8b` 仍为 No-Go；`qwen3:4b` 只通过 Generator 前置门槛，Planner 为 No-Go | 已核验 |
-| C19 | 23 题 extension holdout 已在业务实现前冻结；一次性 release 已授权但尚未执行，未生成 extension 或 enhanced 结果 | 已核验 |
+| C19 | 23 题 extension holdout 已在业务实现前冻结；v1 release 已在执行前撤销，v2 尚无 release，未生成 extension 或 enhanced 结果 | 已核验 |
 | C20 | 当前 Agent 使用规则 Router、`qwen3:4b` LLM Generator、确定性 Verifier 与 `GroundedAnswerGenerator` fallback | 已核验 |
 | C21 | 候选 dev 结构化输出 10/10、fallback 0/10、决策 6/10；4 个错误均为过度拒答，不能证明优于规则基线 | 已核验 |
-| C22 | extension 实现提交为 `bdedf7d`，runtime/Prompt/trace 哈希与模型 digest 已冻结，状态为 `authorized_not_executed` | 已核验 |
+| C22 | v1 extension 实现提交为 `bdedf7d`，runtime/Prompt/trace 哈希与模型 digest 已冻结；文件原始状态为 `authorized_not_executed`，有效状态为 `revoked_before_execution` | 已核验 |
 
 ## 禁止出现的结论
 
@@ -71,7 +74,7 @@
 - 将 `qwen3:4b` 的探针成功描述为已经接入 Agent 主链路或完成 enhanced 实验。
 - 将统一 Client 的合成 smoke 成功描述为已经完成 LLM Answer Generator、fallback 或 Agent 主链路接线。
 - 将 dev 调试结果描述为独立保留集结果、统计显著结论或 LLM 已优于规则基线。
-- 在 execution receipt 出现前，将 `authorized_not_executed` 描述为已完成 extension 实验。
+- 将历史文件中的 `authorized_not_executed` 误写为当前有效执行授权，或在 execution receipt 出现前描述为已完成 extension 实验。
 
 ## 发布前检查
 

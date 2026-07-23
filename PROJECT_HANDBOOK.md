@@ -9,7 +9,7 @@
 | 工作区 | `E:\RAGagent` |
 | GitHub | `https://github.com/zzh1126/RAGagent.git` |
 | 当前分支 | `experiment/llm-agent-v2` |
-| 本文审计基线提交 | `6df4388` |
+| 本文审计基线 | 阶段 8.0 完成状态 |
 | 审计日期 | 2026-07-23 |
 | v1.0 标签 | `v1.0-baseline` |
 | 当前工作流引擎 | LangGraph `1.0.10` |
@@ -17,7 +17,7 @@
 | 当前默认生成器 | Ollama `qwen3:4b`，失败时回退规则生成器 |
 | 正式基线状态 | v1.0 规则基线已冻结、可复验 |
 | LLM 增强状态 | 主链路已实现，只有 dev 审计结果，尚无正式 extension 结论 |
-| extension 状态 | 23 题从未运行；v1 release 文件仍为 `authorized_not_executed`，但阶段 7.5 已暂停其执行，下一步先撤销并建立 v2 协议 |
+| extension 状态 | 23 题从未运行；v1 有效状态为 `revoked_before_execution`；v2 四方法合同已冻结但尚无 release |
 
 事实优先级如下：
 
@@ -27,7 +27,7 @@
 4. 其他历史报告；
 5. 未来计划文档。
 
-历史文档可能描述当时状态。例如旧 README 中“v1 extension 可执行”已被阶段 7.5 的暂停决定取代。本文会明确区分“已实现”“已评测”“计划实现”。
+历史文档可能描述当时状态。例如 v1 release 文件保留创建时的 `authorized_not_executed`，但其不可变 revocation record 已取消执行权。本文会明确区分“历史文件值”“当前有效状态”“已实现”“已评测”和“计划实现”。
 
 ## 2. 一句话定义项目
 
@@ -800,7 +800,10 @@ Pilot 使用规则生成器，是历史先导数据，不是最终无泄漏结�
 | 项目 | 值 |
 | --- | --- |
 | Release ID | `extension-qwen3-4b-v1-bdedf7dc` |
-| 文件状态 | `authorized_not_executed` |
+| 文件原始状态 | `authorized_not_executed` |
+| 当前有效状态 | `revoked_before_execution` |
+| Release 文件 SHA-256 | `af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c` |
+| Revocation 文件 | `data/evaluation/extension_release_revocations/extension-qwen3-4b-v1-bdedf7dc.json` |
 | 实现提交 | `bdedf7dcb4e82bc918dfd7c92161501151b09742` |
 | Runtime bundle | `b4676d37dc9f2babde6ade4f1a3d212ed775d590adf202e3cef710cadbbe03f0` |
 | Prompt v1 | `f4af2d9668b8ba53cb8f884ff840e4ce282d55d15e4468039b039ff3a0e5c60e` |
@@ -818,9 +821,9 @@ Pilot 使用规则生成器，是历史先导数据，不是最终无泄漏结�
 - extension 从未进入 QA workflow；
 - 没有观察任何 extension 实验结果。
 
-由于项目决定先实现 Evidence Packer、原子 Claim 和 Partial-pass，原 v1 runtime 将不再代表目标协议。因此 v1 release 虽然原文件仍显示 authorized，但已经被阶段 7.5 暂停，不得执行原授权命令。
+由于项目决定先实现 Evidence Packer、原子 Claim 和 Partial-pass，原 v1 runtime 不再代表目标协议。阶段 8.0 已在独立提交中创建不可覆盖的撤销记录，runner 会在 runtime/model 校验和题集读取前拒绝原授权命令。
 
-下一步先创建不可变 revocation record，再建立 v2 评分合同和四方法 release。不能覆盖或删除 v1 release、manifest 和 trace contract。
+版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。当前没有 `extension_holdout_release_v2.json`，有效状态为 `locked_no_release`。下一步实现 Evidence Packer；不能覆盖或删除 v1 release、manifest、trace contract 或 revocation record。
 
 ## 25. 复现与常用命令
 
@@ -890,15 +893,14 @@ python scripts/bind_graph_evidence.py
 
 ### 25.6 Extension 校验
 
-当前只允许离线/预运行校验：
+当前只允许离线审计校验：
 
 ```bash
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
-python scripts/run_extension_evaluation.py --preflight
 ```
 
-当前禁止执行 v1 extension 正式命令。必须先完成 revocation 和 v2 release。
+当前禁止执行任何 extension 正式命令。v1 已撤销，v2 尚无 release。
 
 ## 26. 目录与文件职责
 
@@ -1090,7 +1092,7 @@ Pilot 曾用于发现并修复实现缺口，因此已被消费。后续只允�
 
 ### Q20：下一步是什么？
 
-先建立 v1 revocation record 和 v2 实验合同，再实现 Evidence Packer、原子 Claim、Claim-level Verifier 与 `PARTIAL_PASS`，完成 dev/pilot 冻结后只运行一次 extension。
+v1 revocation record 和 v2 实验合同已经完成。下一步实现 Evidence Packer，随后依次完成原子 Claim、Claim-level Verifier 与 `PARTIAL_PASS`；完成 dev/pilot 回归和配置冻结后只运行一次 extension。
 
 ## 32. 关联文档
 

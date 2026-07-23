@@ -5,6 +5,7 @@ import importlib.metadata
 import json
 import os
 import platform
+import re
 import secrets
 import subprocess
 from datetime import datetime, timezone
@@ -20,8 +21,12 @@ IMPLEMENTATION_MANIFEST_PATH = Path(
 )
 HOLDOUT_MANIFEST_PATH = Path("data/evaluation/extension_holdout_manifest.json")
 RELEASE_RECORD_PATH = Path("data/evaluation/extension_holdout_release.json")
+RELEASE_REVOCATION_DIR = Path("data/evaluation/extension_release_revocations")
 TRACE_CONTRACT_PATH = Path("config/extension_trace_contract.yaml")
 SCORING_CONTRACT_PATH = Path("config/extension_evaluation.yaml")
+V2_TRACE_CONTRACT_PATH = Path("config/extension_trace_contract_v2.yaml")
+V2_SCORING_CONTRACT_PATH = Path("config/extension_evaluation_v2.yaml")
+V2_RELEASE_RECORD_PATH = Path("data/evaluation/extension_holdout_release_v2.json")
 DATASET_PATH = Path("data/evaluation/extension_questions.jsonl")
 EXECUTION_STATE_PATH = Path("reports/extension/execution_state.json")
 EXECUTION_RECEIPT_PATH = Path("reports/extension/execution_receipt.json")
@@ -29,6 +34,12 @@ METHOD_ORDER = (
     "rule_baseline",
     "llm_generator",
     "llm_generator_no_verifier",
+)
+V2_METHOD_ORDER = (
+    "rule_baseline",
+    "llm_strict_v2",
+    "llm_no_verifier_v2",
+    "llm_partial_pass_v2",
 )
 METHOD_REPORT_PATHS = {
     method_id: Path(f"reports/extension/{method_id}.json")
@@ -335,6 +346,238 @@ def read_json(path: Path) -> dict:
     return value
 
 
+def revocation_record_path(release_id: str) -> Path:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", release_id):
+        raise ValueError("extension release ID is not safe for a revocation path")
+    return RELEASE_REVOCATION_DIR / f"{release_id}.json"
+
+
+def load_release_revocation(root: Path, release_id: str) -> dict | None:
+    path = root / revocation_record_path(release_id)
+    return read_json(path) if path.is_file() else None
+
+
+def _mapping(value: Any, label: str, errors: list[str]) -> dict:
+    if isinstance(value, dict):
+        return value
+    errors.append(f"{label} must be a JSON/YAML mapping")
+    return {}
+
+
+def validate_release_revocation(root: Path, revocation: dict) -> list[str]:
+    errors: list[str] = []
+    release_id = revocation.get("revoked_release_id")
+    if revocation.get("artifact") != "extension_release_revocation":
+        errors.append("invalid extension release revocation artifact")
+    if revocation.get("status") != "revoked_before_execution":
+        errors.append("extension release revocation status is invalid")
+    if not isinstance(release_id, str):
+        errors.append("revocation release ID is missing")
+        return errors
+    try:
+        expected_revocation_path = revocation_record_path(release_id)
+    except ValueError as exc:
+        errors.append(str(exc))
+        return errors
+    if not (root / expected_revocation_path).is_file():
+        errors.append("extension release revocation record is not at its canonical path")
+
+    release_ref = _mapping(
+        revocation.get("revoked_release_record"),
+        "revocation release reference",
+        errors,
+    )
+    if release_ref.get("path") != relative_path(RELEASE_RECORD_PATH):
+        errors.append("revocation release record path mismatch")
+    release_path = root / RELEASE_RECORD_PATH
+    release: dict = {}
+    if not release_path.is_file():
+        errors.append("historical extension release record is missing")
+    else:
+        if release_ref.get("sha256") != sha256_file(release_path):
+            errors.append("historical extension release record hash mismatch")
+        try:
+            release = read_json(release_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"invalid historical extension release record: {exc}")
+        else:
+            if release.get("release_id") != release_id:
+                errors.append("revocation and historical release IDs differ")
+            if release_ref.get("recorded_status") != release.get("status"):
+                errors.append("revocation did not preserve the historical release status")
+
+    manifest_ref = _mapping(
+        revocation.get("implementation_manifest"),
+        "revocation implementation manifest reference",
+        errors,
+    )
+    if manifest_ref.get("path") != relative_path(IMPLEMENTATION_MANIFEST_PATH):
+        errors.append("revocation implementation manifest path mismatch")
+    manifest_path = root / IMPLEMENTATION_MANIFEST_PATH
+    manifest: dict = {}
+    if not manifest_path.is_file():
+        errors.append("historical extension implementation manifest is missing")
+    else:
+        if manifest_ref.get("sha256") != sha256_file(manifest_path):
+            errors.append("historical extension implementation manifest hash mismatch")
+        try:
+            manifest = read_json(manifest_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"invalid historical implementation manifest: {exc}")
+        else:
+            if manifest_ref.get("implementation_commit") != manifest.get(
+                "implementation_commit"
+            ):
+                errors.append("revocation implementation commit mismatch")
+    if release and manifest_ref.get("sha256") != release.get(
+        "implementation_manifest_sha256"
+    ):
+        errors.append("revocation manifest hash differs from the historical release")
+
+    if revocation.get("hash_normalization") != (
+        "text_crlf_and_cr_normalized_to_lf; binary_raw_bytes"
+    ):
+        errors.append("revocation hash normalization contract mismatch")
+    basis_commit = revocation.get("revocation_basis_commit")
+    if not isinstance(basis_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", basis_commit):
+        errors.append("revocation basis commit is invalid")
+    elif (root / ".git").exists() and not is_ancestor(root, basis_commit):
+        errors.append("revocation basis commit is not an ancestor of the current HEAD")
+    if revocation.get("reason_code") != "protocol_upgrade_before_holdout_exposure":
+        errors.append("revocation reason code is invalid")
+
+    observations = _mapping(
+        revocation.get("execution_observations"),
+        "revocation execution observations",
+        errors,
+    )
+    required_false_observations = (
+        "extension_outputs_observed",
+        "reports_extension_existed",
+        "execution_state_existed",
+        "execution_receipt_existed",
+    )
+    for field in required_false_observations:
+        if observations.get(field) is not False:
+            errors.append(f"revocation observation must be false: {field}")
+    protected_outputs = [
+        EXECUTION_STATE_PATH,
+        EXECUTION_RECEIPT_PATH,
+        *FINAL_OUTPUT_PATHS.values(),
+    ]
+    existing_outputs = [
+        relative_path(path) for path in protected_outputs if (root / path).exists()
+    ]
+    if existing_outputs:
+        errors.append(
+            "revoked extension release has execution artifacts: "
+            + ", ".join(existing_outputs)
+        )
+    if (root / "reports/extension").exists():
+        errors.append("reports/extension exists despite the pre-execution revocation")
+
+    effect = _mapping(
+        revocation.get("revocation_effect"),
+        "revocation effect",
+        errors,
+    )
+    if effect.get("execution_authorized") is not False:
+        errors.append("revocation must disable execution authorization")
+    if effect.get("historical_release_record_preserved") is not True:
+        errors.append("revocation must preserve the historical release record")
+    if effect.get("historical_implementation_manifest_preserved") is not True:
+        errors.append("revocation must preserve the historical implementation manifest")
+    if revocation.get("replacement_protocol") != "v2":
+        errors.append("revocation replacement protocol must be v2")
+    if revocation.get("replacement_release_id") is not None:
+        errors.append("replacement release ID must remain null until separately authorized")
+    return errors
+
+
+def validate_v2_protocol_contracts(root: Path) -> list[str]:
+    errors: list[str] = []
+    try:
+        scoring = yaml.safe_load(
+            (root / V2_SCORING_CONTRACT_PATH).read_text(encoding="utf-8")
+        )
+        trace = yaml.safe_load(
+            (root / V2_TRACE_CONTRACT_PATH).read_text(encoding="utf-8")
+        )
+    except (OSError, yaml.YAMLError) as exc:
+        return [f"unable to read v2 extension contracts: {exc}"]
+    if not isinstance(scoring, dict) or not isinstance(trace, dict):
+        return ["v2 extension contracts must contain YAML mappings"]
+
+    for name, contract in (("scoring", scoring), ("trace", trace)):
+        if contract.get("protocol_version") != "v2":
+            errors.append(f"v2 extension {name} protocol version mismatch")
+        if contract.get("status") != "frozen_locked":
+            errors.append(f"v2 extension {name} contract is not frozen_locked")
+    if scoring.get("artifact") != "extension_evaluation_contract":
+        errors.append("invalid v2 extension scoring artifact")
+    if trace.get("artifact") != "extension_trace_metric_contract":
+        errors.append("invalid v2 extension trace artifact")
+
+    method_definitions = scoring.get("methods")
+    if not isinstance(method_definitions, list) or any(
+        not isinstance(item, dict) for item in method_definitions
+    ):
+        errors.append("v2 scoring methods must be a list of mappings")
+        scoring_methods: list[str | None] = []
+    else:
+        scoring_methods = [item.get("id") for item in method_definitions]
+    if scoring.get("method_order") != list(V2_METHOD_ORDER):
+        errors.append("v2 scoring method order mismatch")
+    if scoring_methods != list(V2_METHOD_ORDER):
+        errors.append("v2 scoring method definitions mismatch")
+    if trace.get("method_order") != list(V2_METHOD_ORDER):
+        errors.append("v2 trace method order mismatch")
+
+    dataset = _mapping(scoring.get("dataset"), "v2 scoring dataset", errors)
+    if dataset.get("path") != relative_path(DATASET_PATH):
+        errors.append("v2 scoring dataset path mismatch")
+    if dataset.get("sha256") != sha256_file(root / DATASET_PATH):
+        errors.append("v2 scoring dataset hash mismatch")
+    if dataset.get("question_count") != 23 or dataset.get("answerable_count") != 19:
+        errors.append("v2 scoring dataset counts are invalid")
+    trace_dataset = _mapping(trace.get("dataset"), "v2 trace dataset", errors)
+    if trace_dataset != dataset:
+        errors.append("v2 scoring and trace dataset contracts differ")
+
+    scoring_lock = _mapping(
+        scoring.get("execution_lock"),
+        "v2 scoring execution lock",
+        errors,
+    )
+    trace_execution = _mapping(
+        trace.get("execution"),
+        "v2 trace execution contract",
+        errors,
+    )
+    if scoring_lock.get("status") != "locked":
+        errors.append("v2 scoring execution lock is not active")
+    if scoring_lock.get("release_record") != relative_path(V2_RELEASE_RECORD_PATH):
+        errors.append("v2 scoring release path mismatch")
+    if scoring_lock.get("generic_evaluation_runner_must_remain_locked") is not True:
+        errors.append("v2 generic extension runner lock is missing")
+    if trace_execution.get("maximum_runs") != 1:
+        errors.append("v2 trace contract must permit at most one released run")
+    if trace_execution.get("require_v2_release_record") is not True:
+        errors.append("v2 trace contract does not require a separate release")
+    if trace_execution.get("release_record") != relative_path(V2_RELEASE_RECORD_PATH):
+        errors.append("v2 trace release path mismatch")
+    if trace_execution.get("generic_evaluation_runner_must_remain_locked") is not True:
+        errors.append("v2 trace generic runner lock is missing")
+
+    governance = _mapping(scoring.get("governance"), "v2 scoring governance", errors)
+    expected_revocation = relative_path(
+        revocation_record_path("extension-qwen3-4b-v1-bdedf7dc")
+    )
+    if governance.get("superseded_v1_revocation") != expected_revocation:
+        errors.append("v2 scoring contract does not bind the v1 revocation")
+    return errors
+
+
 def validate_implementation_manifest(root: Path, manifest: dict) -> list[str]:
     errors: list[str] = validate_static_contracts(root)
     if manifest.get("artifact") != "extension_implementation_freeze":
@@ -525,3 +768,26 @@ def validate_execution_artifacts(root: Path, release: dict) -> tuple[list[str], 
         if item.get("sha256") != sha256_file(absolute):
             errors.append(f"execution output hash mismatch: {key}")
     return errors, "completed_once" if not errors else "invalid"
+
+
+def validate_effective_release_status(
+    root: Path,
+    release: dict,
+) -> tuple[list[str], str]:
+    release_id = release.get("release_id")
+    if not isinstance(release_id, str):
+        return ["extension release ID is missing"], "invalid"
+    try:
+        path = root / revocation_record_path(release_id)
+    except ValueError as exc:
+        return [str(exc)], "invalid"
+    if path.exists():
+        if not path.is_file():
+            return ["extension release revocation path is not a file"], "revocation_invalid"
+        try:
+            revocation = read_json(path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            return [f"invalid extension release revocation: {exc}"], "revocation_invalid"
+        errors = validate_release_revocation(root, revocation)
+        return errors, "revoked_before_execution" if not errors else "revocation_invalid"
+    return validate_execution_artifacts(root, release)

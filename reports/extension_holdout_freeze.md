@@ -2,7 +2,7 @@
 
 ## 冻结结论
 
-`extension` 扩展保留集已在 LLM Client、LLM Answer Generator 和业务 Prompt 实现前冻结。实现、Prompt、trace 口径与模型 digest 随后冻结在独立提交上，并已创建一次性 release record。当前有效状态为 `authorized_not_executed`：允许执行 preflight，但尚未运行任何 extension QA 工作流，也没有 extension 答案或指标。
+`extension` 扩展保留集已在 LLM Client、LLM Answer Generator 和业务 Prompt 实现前冻结。v1 实现、Prompt、trace 口径与模型 digest 随后冻结在独立提交上，并创建了一次性 release record。该 release 在任何 extension QA 执行前被不可变撤销，当前有效状态为 `revoked_before_execution`。v2 四方法评分与 trace 合同已经冻结，但尚无 v2 release；因此仍没有 extension 答案或指标。
 
 ## 冻结范围
 
@@ -17,7 +17,10 @@
 | 冻结 manifest | `data/evaluation/extension_holdout_manifest.json` |
 | 实现提交 | `bdedf7dcb4e82bc918dfd7c92161501151b09742` |
 | release ID | `extension-qwen3-4b-v1-bdedf7dc` |
-| release 状态 | `authorized_not_executed` |
+| release 文件原始状态 | `authorized_not_executed`，仅作历史记录 |
+| release 当前有效状态 | `revoked_before_execution` |
+| 撤销提交 | `a518404` |
+| v2 release 状态 | `locked_no_release` |
 
 题型分布：
 
@@ -35,11 +38,20 @@
 
 ## 方法与指标合同
 
-冻结比较方法：
+v1 历史合同冻结了三个比较方法：
 
 1. Rule Baseline：规则 Router + 离线规则 Generator + Verifier；
 2. LLM Generator：规则 Router + LLM Generator + Verifier；
 3. LLM Generator No Verifier：规则 Router + LLM Generator，不使用 Verifier。
+
+v2 合同在任何 extension 输出出现前改为四个方法：
+
+1. `rule_baseline`；
+2. `llm_strict_v2`；
+3. `llm_no_verifier_v2`；
+4. `llm_partial_pass_v2`。
+
+v2 同时预先固定 `PARTIAL_PASS` 语义、逐 Claim 保留/删除 trace、分阶段延迟、四答案盲评标签和描述性比较口径。业务实现尚未完成，这些合同不等于实验已经执行。
 
 LLM Query Planner 未通过前置语义门槛，因此本保留集不报告 Route Accuracy，也不将 Full LLM Agent 纳入当前比较。
 
@@ -65,6 +77,10 @@ LLM Query Planner 未通过前置语义门槛，因此本保留集不报告 Rout
 | LLM wire Schema | `291e0ed4ccc600aed1043e745d64b9479db518a1f458beae00046a0c5ea7c932` |
 | Trace contract | `f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d` |
 | `qwen3:4b` 模型 digest | `359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7` |
+| v1 release record | `af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c` |
+| v1 revocation record | `29b198d5fa9309ce4d81919271df424cb87db29c40370bd0fc6e42bc091aa45b` |
+| v2 scoring contract | `864c960f6f357ce528384408441ca189e571206b5d6a904d44f7992b4b034ac1` |
+| v2 trace contract | `3b447885c08dbad3b6366670c5e7b09fc4f639570c912f994b7020f5b9d94ef5` |
 
 ## 可执行校验
 
@@ -72,7 +88,6 @@ LLM Query Planner 未通过前置语义门槛，因此本保留集不报告 Rout
 python scripts/validate_evaluation.py
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
-python scripts/run_extension_evaluation.py --preflight
 ```
 
-`scripts/run_evaluation.py --split final` 和 `--split extension` 均会主动拒绝执行。extension 只能由 `scripts/run_extension_evaluation.py` 使用精确 release ID 和 `--confirm-one-time-run` 执行一次；任何已有 state、receipt 或输出都会阻止第二次运行。当前只完成 preflight，未执行正式命令。
+`scripts/run_evaluation.py --split final` 和 `--split extension` 均会主动拒绝执行。专用 runner 也会拒绝历史 v1 release ID；任意伪 v2 release ID 会因 `extension_holdout_release_v2.json` 不存在而失败。只有后续业务实现冻结、测试通过并单独创建 v2 release 后，专用 runner 才能被升级为允许一次正式执行。当前没有读取或运行 extension 问题。

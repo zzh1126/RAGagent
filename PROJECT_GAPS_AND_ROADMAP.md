@@ -54,7 +54,7 @@
 
 | ID | 不足 | 证据 | 影响 | 优先级 | 计划状态 |
 | --- | --- | --- | --- | --- | --- |
-| G01 | v1 extension 授权与最新暂停决定并存 | release 文件仍为 authorized，阶段 7.5 已暂停 | 误执行会浪费唯一保留集 | P0 | 马上处理 |
+| G01 | v1 extension 授权与最新暂停决定并存 | v1 已建立不可变撤销记录，runner 先于题集读取拒绝旧 ID | 风险已关闭 | Done | 阶段 8.0 完成 |
 | G02 | Verifier 过度拒答 | LLM dev 4/8 可回答题拒答 | 决策准确率仅 0.60 | P0 | 马上处理 |
 | G03 | ClaimResult 未真正接线 | Schema 存在，VerifyResult 无逐 Claim 结果 | 无法过滤失败 Claim | P0 | 马上处理 |
 | G04 | 没有 `PARTIAL_PASS` | 决策只有 pass/retry/refuse | 部分正确无法安全输出 | P0 | 马上处理 |
@@ -76,7 +76,7 @@
 
 ## 4. P0：Extension release 治理
 
-### 4.1 当前问题
+### 4.1 已解决的问题
 
 原 release `extension-qwen3-4b-v1-bdedf7dc` 已绑定 Prompt v1、三方法矩阵和严格整题 Verifier。当前计划要修改 Evidence Packer、Prompt、Schema、Verifier 和方法矩阵，这些都会改变 runtime bundle。
 
@@ -86,11 +86,17 @@
 status = authorized_not_executed
 ```
 
-项目决策层面它已在阶段 7.5 暂停。若有人直接复制旧授权命令，当前 runner 仍可能接受它，这构成治理风险。
+该文件值作为历史事实永久保留，但阶段 8.0 新增的 revocation record 将有效状态改为：
 
-### 4.2 马上实施
+```text
+effective_execution_status = revoked_before_execution
+```
 
-阶段 8.0 只做治理和合同，不实现业务增强：
+runner、release validator 和 holdout validator 都先检查撤销记录。直接复制旧授权命令会在 runtime/model 校验、题集读取和 QA workflow 构建前失败。
+
+### 4.2 已完成
+
+阶段 8.0 已完成治理和合同，未实现业务增强：
 
 1. 再次确认 `reports/extension/` 不存在；
 2. 计算并记录原 release 文件 SHA-256；
@@ -103,15 +109,15 @@ status = authorized_not_executed
 9. 新建版本化 `extension_evaluation_v2.yaml`；
 10. 新建版本化 `extension_trace_contract_v2.yaml`。
 
-### 4.3 验收标准
+### 4.3 验收结果
 
-- 原 v1 授权命令明确失败，并说明 release 已撤销；
-- revocation 文件使用独占创建，不能覆盖；
-- v1 文件字节和哈希不变；
-- extension 题目没有进入 QA workflow；
-- `reports/extension/` 仍不存在；
-- final 结果未运行、未修改；
-- 新增 release 护栏单元测试通过。
+- [x] 原 v1 授权命令明确失败，并说明 release 已撤销；
+- [x] revocation 文件在独立提交 `a518404` 中创建并推送；
+- [x] v1 release SHA-256 保持 `af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c`；
+- [x] extension 题目没有进入 QA workflow；
+- [x] `reports/extension/` 仍不存在；
+- [x] final 结果未运行、未修改；
+- [x] v2 四方法合同和 release 护栏测试通过。
 
 ## 5. P0：Intent-aware Evidence Packer
 

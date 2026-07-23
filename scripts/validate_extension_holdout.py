@@ -54,9 +54,11 @@ from src.evaluation.extension_release import (
     EXECUTION_STATE_PATH,
     FINAL_OUTPUT_PATHS,
     IMPLEMENTATION_MANIFEST_PATH,
+    V2_RELEASE_RECORD_PATH,
     load_release_artifacts,
-    validate_execution_artifacts,
+    validate_effective_release_status,
     validate_release_record,
+    validate_v2_protocol_contracts,
 )
 
 
@@ -257,20 +259,24 @@ def main() -> None:
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
             errors.append(f"invalid extension release artifacts: {exc}")
         else:
-            errors.extend(
-                validate_release_record(
-                    PROJECT_ROOT,
-                    release,
-                    implementation,
-                    check_runtime_model=False,
-                    require_unexecuted=False,
-                )
-            )
-            execution_errors, execution_status = validate_execution_artifacts(
+            execution_errors, execution_status = validate_effective_release_status(
                 PROJECT_ROOT,
                 release,
             )
             errors.extend(execution_errors)
+            if execution_status not in {
+                "revoked_before_execution",
+                "revocation_invalid",
+            }:
+                errors.extend(
+                    validate_release_record(
+                        PROJECT_ROOT,
+                        release,
+                        implementation,
+                        check_runtime_model=False,
+                        require_unexecuted=False,
+                    )
+                )
     else:
         if (PROJECT_ROOT / IMPLEMENTATION_MANIFEST_PATH).exists():
             errors.append("implementation manifest exists without a release record")
@@ -288,6 +294,13 @@ def main() -> None:
                 + ", ".join(existing_controlled_outputs)
             )
 
+    errors.extend(validate_v2_protocol_contracts(PROJECT_ROOT))
+    v2_execution_status = (
+        "release_present_requires_v2_validation"
+        if (PROJECT_ROOT / V2_RELEASE_RECORD_PATH).exists()
+        else "locked_no_release"
+    )
+
     if errors:
         for error in errors:
             print(f"ERROR: {error}")
@@ -302,6 +315,7 @@ def main() -> None:
         f"closest_pair={extension_id}/{prior_id}"
     )
     print(f"OK: effective_execution_status={execution_status}")
+    print(f"OK: v2_execution_status={v2_execution_status}")
 
 
 if __name__ == "__main__":

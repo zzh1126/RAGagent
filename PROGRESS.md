@@ -1646,3 +1646,107 @@ git diff --check
 - 正式修复仍按阶段 8.0～8.3 顺序进行：release 治理 -> Evidence Packer -> Prompt v2 -> Claim-level `PARTIAL_PASS`；
 - `DEV02` 将作为 v2 dev 回归的必测案例；
 - 当前需要稳定演示时可显式使用 `offline_rule`，但必须标注为规则基线，不能冒充 LLM 输出。
+
+## 2026-07-23 阶段 8.0：v1 Extension 执行前撤销与 v2 评测合同冻结
+
+### 完成事项
+
+- 在修改任何业务 runtime 前重新核验 extension 暴露状态：
+  - `reports/extension/` 不存在；
+  - execution state、execution receipt、三份方法报告、combined metrics、blind review 和 method key 全部不存在；
+  - v1 release 文件 SHA-256 为 `af4f8ac10c247483af20e93f5fdde5220b608fb8c9dfb8c031d777d8b1932d0c`；
+  - v1 implementation manifest SHA-256 为 `2f6e0b06c66d66d6efcc020d8ea7b291ba4ec92e6a1e4b9c575d06f3b2676382`；
+  - 撤销依据提交为 `c21ce9f4e2389765e898b6b670332fcae908262b`。
+- 新建不可覆盖的撤销记录 `data/evaluation/extension_release_revocations/extension-qwen3-4b-v1-bdedf7dc.json`：
+  - artifact=`extension_release_revocation`；
+  - status=`revoked_before_execution`；
+  - reason_code=`protocol_upgrade_before_holdout_exposure`；
+  - 固定历史 release/manifest 路径、哈希、实现提交和四项“未观察到执行产物”事实；
+  - replacement protocol 固定为 v2，replacement release ID 保持 null；
+  - 撤销记录 SHA-256 为 `29b198d5fa9309ce4d81919271df424cb87db29c40370bd0fc6e42bc091aa45b`。
+- 严格按审计顺序将撤销记录单独提交并推送：
+  - commit=`a518404`；
+  - message=`chore: revoke unexecuted extension v1 release`；
+  - 该提交只包含一份 revocation JSON，未包含 runtime、合同或文档修改。
+- 扩展 `src/evaluation/extension_release.py`：
+  - 保留 v1 `METHOD_ORDER`、旧配置、旧 release 和旧输出路径语义；
+  - 新增 canonical revocation 路径、读取、历史哈希审计和有效状态判定；
+  - revocation 文件即使损坏也会产生 `revocation_invalid` 并继续阻止执行；
+  - 历史撤销审计只校验原 release、manifest、撤销事实和无执行产物，不要求当前 runtime 等于已撤销的 v1 bundle；
+  - 新增独立 `V2_METHOD_ORDER` 和 v2 合同一致性校验。
+- 修改专用 runner：
+  - 在 Ollama/model 校验、extension 题集读取和 QA workflow 构建前检查 revocation；
+  - 旧 release ID 无条件返回 `effective_execution_status=revoked_before_execution` 并失败；
+  - 伪 v2 release ID 因尚无 `extension_holdout_release_v2.json` 明确失败；
+  - 未修改 Generator、Verifier、Workflow 或 extension runner 的历史三方法执行逻辑。
+- 修改 release/holdout validator：
+  - `validate_extension_release.py` 改为验证历史文件和 revocation 审计，并明确输出“not executable”；
+  - `validate_extension_holdout.py` 报告 v1 有效状态 `revoked_before_execution` 和 v2 状态 `locked_no_release`；
+  - 避免因后续源码变更而错误要求已撤销 v1 runtime 继续等于历史 bundle。
+- 新建并冻结 v2 合同：
+  - `config/extension_evaluation_v2.yaml`，SHA-256=`864c960f6f357ce528384408441ca189e571206b5d6a904d44f7992b4b034ac1`；
+  - `config/extension_trace_contract_v2.yaml`，SHA-256=`3b447885c08dbad3b6366670c5e7b09fc4f639570c912f994b7020f5b9d94ef5`；
+  - 四方法固定为 `rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`；
+  - 固定 `PASS / PARTIAL_PASS / REFUSE` 最终状态、Claim 保留/删除、unsupported leakage、四标签盲评和分阶段延迟口径；
+  - v2 仍要求独立 release、精确 ID、最多一次执行和不可覆盖输出；当前没有 v2 release。
+- 扩展 `tests/test_extension_release.py`：
+  - 锁定 v1/v2 方法矩阵互不覆盖；
+  - 锁定历史 release/manifest 哈希；
+  - 校验已提交 revocation record；
+  - 校验嵌套字段被篡改为非对象时返回审计错误而不是异常退出；
+  - 通过子进程证明 v1 正式命令和未授权 v2 命令均失败且不创建 `reports/extension/`。
+- 同步 README、全量知识手册、不足路线图、partial-pass 计划、extension 冻结记录、技术决策记录、科研报告草稿、报告声明清单和评测数据说明。
+- 更新报告事实校验，使其要求同时披露“v1 文件原始状态”和“当前有效撤销状态”，不能再把历史 `authorized_not_executed` 写成当前授权。
+
+### 阶段验证
+
+```bash
+pytest -q
+python scripts/validate_config.py
+python scripts/validate_graph_data.py
+python scripts/validate_graph_evidence.py
+python scripts/validate_chunks.py
+python scripts/validate_evaluation.py
+python scripts/validate_experiments.py
+python scripts/validate_scoring.py
+python scripts/validate_llm_probe.py
+python scripts/validate_extension_holdout.py
+python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/run_extension_evaluation.py --execute-once --release-id extension-qwen3-4b-v1-bdedf7dc --confirm-one-time-run
+python scripts/run_extension_evaluation.py --execute-once --release-id extension-qwen3-4b-v2-pending --confirm-one-time-run
+python scripts/validate_report_claims.py
+python scripts/generate_report_figures.py --check
+python scripts/freeze_baseline.py --verify
+python -m pip check
+git diff --check
+```
+
+- 全量测试：`72 passed`，其中 release/合同定向测试为 `13 passed`；
+- 配置确认 `ollama/qwen3:4b + rule planner + llm generator`；
+- 图数据确认 50 个实体、100 条 approved 关系和 100 份有效关系证据；
+- 文档数据确认 164 个 Section、180 个 Chunk；
+- 五套评测数据确认 dev=10、demo=8、pilot=40、final=40、extension=23；
+- 用户确认评分确认 160 行、4 种方法、9 个错误案例一致；
+- LLM 探针确认 Schema 60/60、Generator Go、Planner No-Go；
+- holdout validator：23 题、题型分布、题集哈希和近重复检查全部通过；
+- 历史 release 审计：`effective_execution_status=revoked_before_execution`；
+- v2 执行状态：`locked_no_release`；
+- 旧 v1 授权命令按预期以非零状态失败；
+- 未授权 v2 命令按预期以非零状态失败；
+- 报告事实校验：24 项来源、16 项必需声明、14 项禁止声明全部通过；
+- 5 张报告图与 manifest 一致；
+- v1.0 归档 23 个 payload 全部通过，Manifest SHA-256 保持 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1`；
+- `pip check` 无损坏依赖；
+- `git diff --check` 无空白错误，只有 Windows LF/CRLF 提示。
+
+### 本轮边界
+
+- 未实现 Evidence Packer、Prompt v2、Claim-level Verifier 或 `PARTIAL_PASS` 业务逻辑；
+- 未读取或运行 extension QA，未运行 final；
+- `reports/extension/`、v2 release、execution state、receipt、答案和指标仍不存在；
+- v1 release、implementation manifest、v1 配置、v1 trace、题集、图谱、Chunk、索引和冻结结果均未删除或覆盖；
+- 用户提供的 DOCX 保持未跟踪、未修改，不纳入提交。
+
+### 当前状态与下一步
+
+阶段 8.0 已完成，原 v1 授权的误执行风险已关闭，v2 研究问题和评测口径已在业务增强前冻结。下一阶段进入 8.1：只实现确定性的 intent-aware Evidence Packer、packing trace、字符预算和题型覆盖测试；完成 dev/pilot 回归前仍不运行 extension。

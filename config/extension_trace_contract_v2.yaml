@@ -1,0 +1,123 @@
+schema_version: "2.0"
+artifact: extension_trace_metric_contract
+protocol_version: v2
+status: frozen_locked
+
+dataset:
+  path: data/evaluation/extension_questions.jsonl
+  sha256: 7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5
+  question_count: 23
+  answerable_count: 19
+  category_distribution:
+    single_hop: 4
+    multi_hop: 4
+    definition: 3
+    comparison: 3
+    principle_pros_cons: 3
+    metric_selection: 2
+    no_answer: 4
+
+method_order:
+  - rule_baseline
+  - llm_strict_v2
+  - llm_no_verifier_v2
+  - llm_partial_pass_v2
+
+question_order: dataset_order
+planner_backend: rule
+graph_backend: networkx
+
+retrieval_trace:
+  fields:
+    - route
+    - linked_entity_ids
+    - text_evidence_ids
+    - graph_path_ids
+    - retrieval_latency_ms
+
+evidence_packing_trace:
+  fields:
+    - selected_evidence_ids
+    - selected_graph_path_ids
+    - reason_codes_by_evidence
+    - coverage_gaps
+    - input_character_count
+    - packed_character_count
+    - evidence_packing_latency_ms
+  deterministic_for_identical_input: true
+
+generation_trace:
+  scope: all_answer_node_calls_including_verifier_retry
+  fields:
+    - generation_call_count
+    - generation_attempts
+    - generation_latency_ms
+    - structured_output_success
+    - fallback_used
+    - fallback_reason
+  maximum_claims_per_payload: 4
+  raw_prompt_content_must_not_be_persisted: true
+  raw_model_thinking_must_not_be_persisted: true
+
+claim_verification_trace:
+  fields:
+    - generated_claim_count
+    - supported_claim_ids
+    - unsupported_claim_ids
+    - retained_claim_ids
+    - removed_claim_ids
+    - claim_results
+    - verification_latency_ms
+  claim_result_fields:
+    - claim_id
+    - supported
+    - evidence_ids
+    - valid_evidence_ids
+    - reason_codes
+  final_decisions: [pass, partial_pass, refuse]
+  retry_is_intermediate_only: true
+
+latency_trace:
+  monotonic_clock: true
+  stages:
+    - retrieval_latency_ms
+    - evidence_packing_latency_ms
+    - generation_latency_ms
+    - verification_latency_ms
+    - retry_latency_ms
+    - end_to_end_latency_ms
+  retry_latency_includes:
+    - supplemental_retrieval
+    - retry_generation
+    - retry_verification
+
+automatic_metrics:
+  source_contract: config/extension_evaluation_v2.yaml
+  preserve_per_question_numerators_and_denominators: true
+  rule_only_llm_metrics_status: not_applicable
+  partial_pass_is_not_counted_as_refusal: true
+
+latency_protocol:
+  run_rule_baseline_first: true
+  unload_model_before_first_llm_question: true
+  unload_between_llm_methods: false
+  first_llm_question_is_cold_start: true
+  all_remaining_llm_questions_are_warm: true
+
+execution:
+  maximum_runs: 1
+  overwrite_outputs: false
+  resume_after_interrupted_question: false
+  require_v2_release_record: true
+  release_record: data/evaluation/extension_holdout_release_v2.json
+  require_release_id_confirmation: true
+  generic_evaluation_runner_must_remain_locked: true
+  output_directory_must_be_versioned: true
+
+human_review_output:
+  blind_method_labels: true
+  answer_labels: [A, B, C, D]
+  randomize_answer_order_per_question: true
+  random_seed_source: v2_release_record
+  separate_method_key: true
+  expose_expected_answer_fields: false

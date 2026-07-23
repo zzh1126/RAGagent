@@ -55,12 +55,14 @@ Set `AGENT_GENERATOR_BACKEND=offline_rule` to force the deterministic mode. `OLL
 
 The candidate 10-question dev run reached `10/10` structured outputs with no runtime fallback, but only `6/10` pass/refuse decisions; all four errors were over-refusals. This is development evidence, not an independent result, and does not establish that LLM generation outperforms the rule baseline. See `reports/llm_generator_dev_audit.md`.
 
-The historical extension implementation is frozen at commit `bdedf7d`. Release file `extension-qwen3-4b-v1-bdedf7dc` still records `authorized_not_executed`, but the latest stage decision pauses that release before execution so the protocol can be upgraded with claim-level partial-pass verification. Do not execute the v1 authorized command. The generic evaluation runner remains locked; the following commands are validation/preflight only and do not expose holdout questions to the QA workflow:
+The historical extension implementation is frozen at commit `bdedf7d`. Its release file still preserves the original `authorized_not_executed` value, while the immutable revocation record makes the effective status `revoked_before_execution`. The old command now fails before model inspection, holdout loading, or QA workflow construction. Versioned v2 scoring and trace contracts predeclare a four-method comparison, but no v2 release exists yet.
 
 ```bash
+python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
-python scripts/run_extension_evaluation.py --preflight
 ```
+
+Both the generic evaluation runner and the controlled extension runner remain locked for extension execution.
 
 ## Streamlit Demo
 
@@ -82,6 +84,6 @@ python scripts/generate_report_figures.py --check
 
 Dataset ownership and leakage rules are documented in `data/evaluation/README.md`. Generated reports are written under `reports/`.
 
-The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The 23-question `extension` holdout is frozen separately and has never been run. Before any runtime enhancement, the paused v1 release must receive an immutable revocation record; a new versioned protocol and one-time v2 release will then be created. No extension QA result exists yet.
+The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The separate 23-question `extension` holdout has never been run. Its v1 release is revoked, the v2 protocol is frozen, and runtime enhancement must be completed and independently released before the one permitted v2 execution. No extension QA result exists yet.
 
 The frozen holdout run is stored in `reports/evaluation_final.json`: 39 of 40 routing/refusal decisions were correct (`0.975`), including all four no-answer cases. The single residual error is an overly conservative refusal on an AdaBoost definition question.
