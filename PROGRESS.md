@@ -2788,3 +2788,45 @@ git diff --check
 ### 当前状态与下一步
 
 阶段 8.5 已完成。当前 v2 工作流达到预先声明的 dev 工程门槛，历史 4 个过度拒答案例中 DEV02/03/10 已成为安全 Partial-pass，DEV05 被确认是固定语料边界。下一阶段进入 8.6：参数不再根据 dev 逐题修改，只运行一次 pilot 冻结前回归，然后冻结 runtime、Prompt v2、wire Schema、Packer、Verifier、trace contract、依赖和模型 digest；继续不运行 final/extension。
+
+## 2026-07-23 阶段 8.6：v2 冻结工具与 Pilot 一次性执行闸门
+
+### 本轮完成
+
+- 新增独立的 `config/pilot_freeze_gate_v2.yaml`，在执行 pilot 前冻结 Go/No-Go 规则：
+  - 40 题、36 道可回答题、4 道无答案题；
+  - Decision Accuracy >= 0.80；
+  - Structured Output Success >= 0.95；
+  - Fallback Rate <= 0.05；
+  - No-answer Refusal Accuracy >= 1.00；
+  - Answerable Over-refusal Rate <= 0.25；
+  - Retry Rate <= 0.70；
+  - Unsupported Claim Leakage Count = 0。
+- 新增 `src/evaluation/pilot_gate.py` 和 `scripts/evaluate_pilot_freeze_gate.py`，pilot 结果只能生成一次不可覆盖的 `go/no_go` 决策；决策明确记录 pilot 已消费、禁止重跑、禁止逐题调参。
+- `scripts/run_evaluation.py --split pilot` 现在只接受固定输出路径 `reports/evaluation_llm_agent_v2_pilot_stage8_6.json`，执行前创建一次性 state；中断也记录为 `failed_consumed`，不允许重新运行。
+- 新增独立 v2 release 层：
+  - `src/evaluation/extension_release_v2.py`；
+  - `src/evaluation/extension_runner_v2.py`；
+  - `scripts/create_extension_release_v2.py`；
+  - `scripts/validate_extension_release_v2.py`；
+  - `scripts/run_extension_evaluation_v2.py`。
+- v2 方法矩阵固定为 `rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`；输出全部位于 `reports/extension_v2/`，盲评标签固定为 A/B/C/D，不与 v1 路径重叠。
+- v2 release 校验绑定 runtime 文件哈希、实现 commit、Prompt/wire Schema、Packer、配置、依赖、Ollama 模型 digest、pilot Go 决策，并保留 v1 release/manifest/revocation 的不可变引用。
+- `scripts/validate_extension_holdout.py` 已能区分并校验 v1 撤销状态与 v2 `locked_no_release`/release 状态；v1 两个历史哈希未改变。
+- 新增 v2 单元测试，覆盖四方法映射、Claim 指标分母、A/B/C/D 盲评、pilot 闸门、一次性输出锁和 v1 哈希不变性。
+
+### 本轮验证
+
+- v2 定向测试：`23 passed`；
+- 原有全量测试基线：`121 passed`；
+- `python -m py_compile` 覆盖新增模块和脚本通过；
+- `python scripts/validate_extension_holdout.py` 通过，输出 `v1=revoked_before_execution`、`v2=locked_no_release`；
+- `python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted` 通过，确认历史 v1 release 不可执行；
+- 尚未运行 pilot、final 或 extension QA；尚未生成 v2 manifest/release、extension 答案、receipt、评分表或指标。
+
+### 冻结边界
+
+- Pilot 尚未消费；下一步必须先提交本轮冻结工具，再只运行一次 40 题 pilot；
+- 看到 pilot 结果后只执行预声明的 Go/No-Go 判定，不按逐题结果修改 Prompt、阈值、路由、Packer 或 Verifier；
+- v2 release 只有在 pilot 为 Go、runtime 与实现 commit 完全一致、模型 digest 校验通过后才创建，状态必须为 `authorized_not_executed`；
+- 两份外部删除的 DOCX 继续不恢复、不修改、不暂存、不提交。

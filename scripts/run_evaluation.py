@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -13,6 +14,13 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.agent.workflow import build_default_workflow
 from src.agent.generators.llm_generator import ANSWER_PROMPT_VERSION
+from src.evaluation.extension_release import current_commit, prompt_contract, sha256_file
+from src.evaluation.pilot_gate import (
+    PILOT_GATE_DECISION_PATH,
+    PILOT_REPORT_PATH,
+    PILOT_STATE_PATH,
+    validate_gate_contract,
+)
 from src.schemas import FinalResponse
 
 
@@ -31,6 +39,22 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def write_json_new(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", encoding="utf-8", newline="\n") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+
+
+def write_json_atomic(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    with temporary.open("x", encoding="utf-8", newline="\n") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+    temporary.replace(path)
 
 
 def ratio(numerator: int | float, denominator: int | float) -> float:
@@ -454,23 +478,97 @@ def main() -> None:
 
     input_path = PROJECT_ROOT / "data" / "evaluation" / f"{args.split}_questions.jsonl"
     output_path = args.output or PROJECT_ROOT / "reports" / f"evaluation_{args.split}.json"
-    workflow = build_default_workflow(PROJECT_ROOT)
-    questions = read_jsonl(input_path)
-    results = []
-    for index, item in enumerate(questions, start=1):
-        result = evaluate_question(workflow, item)
-        results.append(result)
-        print(
-            f"[{index:02d}/{len(questions):02d}] {item['question_id']} "
-            f"expected={result['expected_decision']} actual={result['actual_decision']}"
-        )
+    pilot_state: dict | None = None
+    if args.split == "pilot":
+        canonical_output = PROJECT_ROOT / PILOT_REPORT_PATH
+        if output_path.resolve() != canonical_output.resolve():
+            raise SystemExit(
+                "Stage 8.6 pilot is locked to the canonical output path: "
+                f"{PILOT_REPORT_PATH.as_posix()}"
+            )
+        gate_errors = validate_gate_contract(PROJECT_ROOT)
+        if gate_errors:
+            raise SystemExit("Pilot freeze gate is invalid: " + "; ".join(gate_errors))
+        protected = [PILOT_REPORT_PATH, PILOT_STATE_PATH, PILOT_GATE_DECISION_PATH]
+        existing = [path.as_posix() for path in protected if (PROJECT_ROOT / path).exists()]
+        if existing:
+            raise SystemExit(
+                "Refusing to rerun or overwrite the consumed Stage 8.6 pilot: "
+                + ", ".join(existing)
+            )
+        pilot_state = {
+            "schema_version": "1.0",
+            "artifact": "llm_agent_v2_pilot_execution_state",
+            "status": "in_progress",
+            "started_at": datetime.now(timezone.utc).isoformat(),
+            "implementation_commit": current_commit(PROJECT_ROOT),
+            "dataset_path": input_path.relative_to(PROJECT_ROOT).as_posix(),
+            "dataset_sha256": sha256_file(input_path),
+            "output_path": PILOT_REPORT_PATH.as_posix(),
+            "maximum_runs": 1,
+            "run_number": 1,
+            "completed_question_count": 0,
+            "current_question_id": None,
+            "rerun_authorized": False,
+        }
+        write_json_new(PROJECT_ROOT / PILOT_STATE_PATH, pilot_state)
 
-    report = summarize(results, workflow.engine_name)
-    report["dataset_sha256"] = sha256(input_path)
-    report["settings_sha256"] = sha256(PROJECT_ROOT / "config" / "settings.yaml")
-    report["generator"] = generator_metadata(workflow)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    try:
+        workflow = build_default_workflow(PROJECT_ROOT)
+        questions = read_jsonl(input_path)
+        results = []
+        for index, item in enumerate(questions, start=1):
+            if pilot_state is not None:
+                pilot_state["current_question_id"] = item["question_id"]
+                write_json_atomic(PROJECT_ROOT / PILOT_STATE_PATH, pilot_state)
+            result = evaluate_question(workflow, item)
+            results.append(result)
+            if pilot_state is not None:
+                pilot_state["completed_question_count"] = index
+                pilot_state["current_question_id"] = None
+                write_json_atomic(PROJECT_ROOT / PILOT_STATE_PATH, pilot_state)
+            print(
+                f"[{index:02d}/{len(questions):02d}] {item['question_id']} "
+                f"expected={result['expected_decision']} actual={result['actual_decision']}"
+            )
+
+        report = summarize(results, workflow.engine_name)
+        report["dataset_sha256"] = sha256(input_path)
+        report["settings_sha256"] = sha256(PROJECT_ROOT / "config" / "settings.yaml")
+        report["implementation_commit"] = current_commit(PROJECT_ROOT)
+        report["prompt_contract"] = prompt_contract()
+        report["generator"] = generator_metadata(workflow)
+        if pilot_state is None:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        else:
+            write_json_new(output_path, report)
+            pilot_state.update(
+                {
+                    "status": "completed_once",
+                    "completed_at": datetime.now(timezone.utc).isoformat(),
+                    "completed_question_count": len(questions),
+                    "current_question_id": None,
+                    "report_sha256": sha256_file(output_path),
+                }
+            )
+            write_json_atomic(PROJECT_ROOT / PILOT_STATE_PATH, pilot_state)
+    except BaseException as exc:
+        if pilot_state is not None:
+            pilot_state.update(
+                {
+                    "status": "failed_consumed",
+                    "failed_at": datetime.now(timezone.utc).isoformat(),
+                    "error_type": type(exc).__name__,
+                    "rerun_authorized": False,
+                }
+            )
+            write_json_atomic(PROJECT_ROOT / PILOT_STATE_PATH, pilot_state)
+        raise
+
     print(f"OK: report={output_path}")
     print(f"OK: decision_accuracy={report['decision_accuracy']:.4f}")
     print(f"OK: mean_keyword_coverage={report['mean_keyword_coverage']:.4f}")

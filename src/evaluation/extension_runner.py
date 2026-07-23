@@ -255,19 +255,38 @@ def blind_review_rows(
     *,
     seed: int,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    return blind_review_rows_for_methods(
+        reports,
+        method_order=METHOD_ORDER,
+        answer_labels=("A", "B", "C"),
+        seed=seed,
+    )
+
+
+def blind_review_rows_for_methods(
+    reports: dict[str, dict],
+    *,
+    method_order: tuple[str, ...],
+    answer_labels: tuple[str, ...],
+    seed: int,
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    if len(method_order) != len(answer_labels):
+        raise ValueError("blind-review methods and answer labels must have equal length")
     by_method = {method_id: report["results"] for method_id, report in reports.items()}
+    if set(by_method) != set(method_order):
+        raise ValueError("blind-review reports do not match the requested method order")
     question_count = len(next(iter(by_method.values())))
     review_rows: list[dict[str, Any]] = []
     method_key: list[dict[str, str]] = []
     for index in range(question_count):
-        question_id = by_method[METHOD_ORDER[0]][index]["question_id"]
+        question_id = by_method[method_order[0]][index]["question_id"]
         question_seed = int.from_bytes(
             hashlib.sha256(f"{seed}:{question_id}".encode("utf-8")).digest()[:8],
             "big",
         )
-        shuffled_methods = list(METHOD_ORDER)
+        shuffled_methods = list(method_order)
         random.Random(question_seed).shuffle(shuffled_methods)
-        for label, method_id in zip(("A", "B", "C"), shuffled_methods, strict=True):
+        for label, method_id in zip(answer_labels, shuffled_methods, strict=True):
             result = by_method[method_id][index]
             if result["question_id"] != question_id:
                 raise ValueError("method reports do not use identical question order")

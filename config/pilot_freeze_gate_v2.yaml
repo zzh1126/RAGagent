@@ -1,0 +1,45 @@
+schema_version: "1.0"
+artifact: llm_agent_v2_pilot_freeze_gate
+status: frozen_before_stage8_6_pilot
+
+dataset:
+  split: pilot
+  path: data/evaluation/pilot_questions.jsonl
+  sha256: fa48ddcb3e7f4ec794b9b95c0415b5f1ddbc937d6f2918987a29dd9abb7a19b0
+  question_count: 40
+  answerable_count: 36
+  no_answer_count: 4
+
+candidate:
+  graph_backend: networkx
+  planner_backend: rule
+  generator_backend: llm
+  provider: ollama
+  model: qwen3:4b
+  prompt_version: v2
+  system_prompt_sha256: e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad
+  wire_schema_sha256: b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb
+  evidence_packer_version: intent_aware_v2
+  verifier_policy: partial_pass
+  settings_sha256: 715d2a50414f84b39c6b3475ec9e138c16212b9d6bdce97b760fccabfe7ea651
+
+thresholds:
+  minimum_decision_accuracy: 0.80
+  minimum_structured_output_success_rate: 0.95
+  maximum_fallback_rate: 0.05
+  minimum_refusal_accuracy: 1.00
+  maximum_over_refusal_rate: 0.25
+  maximum_retry_rate: 0.70
+  maximum_unsupported_claim_leakage_count: 0
+
+governance:
+  canonical_output: reports/evaluation_llm_agent_v2_pilot_stage8_6.json
+  execution_state: reports/evaluation_llm_agent_v2_pilot_stage8_6_state.json
+  decision_output: reports/evaluation_llm_agent_v2_pilot_stage8_6_gate.json
+  maximum_runs: 1
+  overwrite_outputs: false
+  rerun_after_failure: false
+  go_requires_all_checks: true
+  per_question_tuning_after_result: forbidden
+  final_or_extension_execution_during_stage8_6: forbidden
+  interpretation: engineering_freeze_gate_not_independent_quality_evidence

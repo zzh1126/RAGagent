@@ -60,6 +60,15 @@ from src.evaluation.extension_release import (
     validate_release_record,
     validate_v2_protocol_contracts,
 )
+from src.evaluation.extension_release_v2 import (
+    V2_EXECUTION_RECEIPT_PATH,
+    V2_EXECUTION_STATE_PATH,
+    V2_FINAL_OUTPUT_PATHS,
+    V2_IMPLEMENTATION_MANIFEST_PATH,
+    load_v2_release_artifacts,
+    validate_v2_effective_release_status,
+    validate_v2_release_record,
+)
 
 
 def sha256(path: Path) -> str:
@@ -295,11 +304,45 @@ def main() -> None:
             )
 
     errors.extend(validate_v2_protocol_contracts(PROJECT_ROOT))
-    v2_execution_status = (
-        "release_present_requires_v2_validation"
-        if (PROJECT_ROOT / V2_RELEASE_RECORD_PATH).exists()
-        else "locked_no_release"
-    )
+    if (PROJECT_ROOT / V2_RELEASE_RECORD_PATH).exists():
+        try:
+            v2_implementation, v2_release = load_v2_release_artifacts(PROJECT_ROOT)
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"invalid v2 extension release artifacts: {exc}")
+            v2_execution_status = "invalid"
+        else:
+            errors.extend(
+                validate_v2_release_record(
+                    PROJECT_ROOT,
+                    v2_release,
+                    v2_implementation,
+                    check_runtime_model=False,
+                    require_unexecuted=False,
+                )
+            )
+            v2_status_errors, v2_execution_status = (
+                validate_v2_effective_release_status(PROJECT_ROOT, v2_release)
+            )
+            errors.extend(v2_status_errors)
+    else:
+        v2_execution_status = "locked_no_release"
+        if (PROJECT_ROOT / V2_IMPLEMENTATION_MANIFEST_PATH).exists():
+            errors.append("v2 implementation manifest exists without a release record")
+        v2_controlled_outputs = [
+            V2_EXECUTION_STATE_PATH,
+            V2_EXECUTION_RECEIPT_PATH,
+            *V2_FINAL_OUTPUT_PATHS.values(),
+        ]
+        existing_v2_outputs = [
+            path.as_posix()
+            for path in v2_controlled_outputs
+            if (PROJECT_ROOT / path).exists()
+        ]
+        if existing_v2_outputs:
+            errors.append(
+                "v2 extension outputs exist before release: "
+                + ", ".join(existing_v2_outputs)
+            )
 
     if errors:
         for error in errors:
