@@ -99,7 +99,7 @@ def test_static_trace_contract_is_frozen_and_matches_scoring_methods() -> None:
     ]
 
 
-def test_v2_contract_is_frozen_with_four_separate_methods() -> None:
+def test_v2_contract_is_frozen_and_completed_extension_is_valid() -> None:
     assert validate_v2_protocol_contracts(ROOT) == []
     assert list(V2_METHOD_ORDER) == [
         "rule_baseline",
@@ -113,11 +113,11 @@ def test_v2_contract_is_frozen_with_four_separate_methods() -> None:
         release,
         implementation,
         check_runtime_model=False,
-        require_unexecuted=True,
+        require_unexecuted=False,
     ) == []
     errors, status = validate_v2_effective_release_status(ROOT, release)
     assert errors == []
-    assert status == "authorized_not_executed"
+    assert status == "completed_once"
     assert (ROOT / V2_IMPLEMENTATION_MANIFEST_PATH).is_file()
     assert (ROOT / V2_RELEASE_RECORD_PATH).is_file()
 

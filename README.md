@@ -80,16 +80,19 @@ Stage 8.5 reran all 10 dev questions with the current v2 workflow. The developme
 
 The historical extension implementation is frozen at commit `bdedf7d`. Its release file still preserves the original `authorized_not_executed` value, while the immutable revocation record makes the effective status `revoked_before_execution`. The old command now fails before model inspection, holdout loading, or QA workflow construction.
 
-Stage 8.6 consumed the one permitted 40-question pilot freeze run on implementation commit `e207cb9`. The candidate reached `0.8250` decision accuracy, `0.9750` structured-output success, `4/4` no-answer refusal accuracy, `7/36` answerable over-refusals, `13/40` retry usage, and zero unsupported-Claim leakage. The predeclared gate returned `go`; the result is an engineering freeze check, not independent quality evidence. Mean end-to-end latency was `34,180.72 ms`, which remains a material limitation. The v2 runtime is now frozen and release `extension-qwen3-4b-v2-e207cb91` is `authorized_not_executed`; no extension output exists.
+Stage 8.6 consumed the one permitted 40-question pilot freeze run on implementation commit `e207cb9`. The candidate reached `0.8250` decision accuracy, `0.9750` structured-output success, `4/4` no-answer refusal accuracy, `7/36` answerable over-refusals, `13/40` retry usage, and zero unsupported-Claim leakage. The predeclared gate returned `go`; the result is an engineering freeze check, not independent quality evidence. Mean end-to-end latency was `34,180.72 ms`, which remains a material limitation.
+
+Stage 8.7 then completed the only permitted v2 extension execution for release `extension-qwen3-4b-v2-e207cb91`: 23 questions x 4 frozen methods, for 92 QA invocations. The release record intentionally remains `authorized_not_executed`, while the immutable state and receipt make the effective execution status `completed_once`. Automatic decision accuracy was `21/23` for Rule Baseline, `7/23` for LLM Strict v2, `19/23` for LLM No Verifier v2, and `16/23` for LLM Partial-pass v2. Partial-pass reduced answerable over-refusal from Strict's `16/19` to `5/19` and leaked `0/27` unsupported Claims, but it falsely accepted two of four no-answer questions and did not beat the rule baseline on this automatic decision metric. These automatic labels do not replace human correctness, faithfulness, hallucination, or readability scoring.
+
+The anonymous A/B/C/D blind-review CSV contains 92 rows and does not expose method IDs or expected-answer fields; the method key is stored separately. Human scoring is pending, so no human answer-quality conclusion has been reported and no frozen runtime behavior will be tuned from these holdout results.
 
 ```bash
 python scripts/validate_extension_holdout.py
-python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
-python scripts/validate_extension_release_v2.py --check-runtime-model --require-unexecuted
-python scripts/run_extension_evaluation_v2.py --preflight
+python scripts/validate_extension_release_v2.py --check-runtime-model
+python scripts/validate_extension_results_v2.py
 ```
 
-The generic evaluation runner and revoked v1 runner remain locked. The separate v2 runner only passes preflight against the immutable release and has not executed the extension holdout.
+The generic evaluation runner and revoked v1 runner remain locked. The v2 runner now rejects another execution because the one-run receipt already exists. Do not rerun or overwrite any extension artifact.
 
 ## Streamlit Demo
 
@@ -121,6 +124,6 @@ python scripts/generate_report_figures.py --check
 
 Dataset ownership and leakage rules are documented in `data/evaluation/README.md`. Generated reports are written under `reports/`.
 
-The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The separate 23-question `extension` holdout has never been run. Its v1 release is revoked; its v2 release is `authorized_not_executed` and permits at most one controlled four-method execution. No extension QA result exists yet.
+The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The separate 23-question `extension` holdout has now been consumed exactly once by the controlled v2 four-method runner. Reuse the immutable files under `reports/extension_v2/`; do not rerun the holdout or tune the frozen runtime from its results. Human blind-review scoring remains pending.
 
 The frozen holdout run is stored in `reports/evaluation_final.json`: 39 of 40 routing/refusal decisions were correct (`0.975`), including all four no-answer cases. The single residual error is an overly conservative refusal on an AdaBoost definition question.

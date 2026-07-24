@@ -36,12 +36,12 @@ REQUIRED_RULES = (
     TextRule(
         "R13",
         "Generator wiring, Planner No-Go, and extension governance must remain explicit",
-        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销，v2 release 已冻结为 `authorized_not_executed`，尚未执行 extension",
+        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销；v2 release 文件状态仍为 `authorized_not_executed`，有效执行状态为 `completed_once`；Stage 8\.7 已完成 4 方法 × 23 题自动实验，人工盲评仍待完成",
     ),
     TextRule(
         "R14",
         "the extension holdout must be described as revoked before execution",
-        r"一次性 release `extension-qwen3-4b-v1-bdedf7dc` 的原文件保留 `authorized_not_executed`，但不可变撤销记录已将有效状态固定为 `revoked_before_execution`；没有 extension 输出",
+        r"一次性 release `extension-qwen3-4b-v1-bdedf7dc` 的原文件保留 `authorized_not_executed`，但不可变撤销记录已将有效状态固定为 `revoked_before_execution`；v1 没有 extension 输出",
     ),
     TextRule(
         "R15",
@@ -85,8 +85,13 @@ REQUIRED_RULES = (
     ),
     TextRule(
         "R23",
-        "the v2 release must remain authorized but unexecuted",
-        r"release `extension-qwen3-4b-v2-e207cb91`[^。\n]{0,80}`authorized_not_executed`[\s\S]{0,240}没有 extension 输出",
+        "the v2 extension must disclose its one-time completed status and pending human review",
+        r"Stage 8\.7[\s\S]{0,1600}92 次 QA 调用[\s\S]{0,1600}`completed_once`[\s\S]{0,1600}人工盲评(?:仍)?待完成",
+    ),
+    TextRule(
+        "R24",
+        "automatic extension decisions must be separated from human answer-quality claims",
+        r"自动决策指标[\s\S]{0,1000}(?:不能替代|不等于)人工(?:回答正确性|正确性)、证据忠实度和可读性评分",
     ),
 )
 
@@ -157,6 +162,11 @@ FORBIDDEN_RULES = (
         "Stage 8.6 pilot Go incorrectly presented as LLM superiority",
         r"Stage 8\.6[^。\n]{0,180}(?:go|Go)[^。\n]{0,80}(?:证明|表明)[^。\n]{0,40}(?:LLM 增强有效|LLM[^。\n]{0,12}优于规则|extension 结论)",
     ),
+    TextRule(
+        "F22",
+        "stale claim that the v2 extension has not executed",
+        r"v2 release 已冻结为 `authorized_not_executed`，尚未执行 extension",
+    ),
 )
 
 
@@ -219,6 +229,12 @@ def expected_literals() -> dict[str, str]:
         / "evaluation"
         / "extension_holdout_release_v2.json"
     )
+    extension_receipt = read_json(
+        PROJECT_ROOT / "reports" / "extension_v2" / "execution_receipt.json"
+    )
+    extension_metrics = read_json(
+        PROJECT_ROOT / "reports" / "extension_v2" / "combined_metrics.json"
+    )
 
     kb = stats["knowledge_base"]
     graph = stats["graph"]
@@ -226,6 +242,7 @@ def expected_literals() -> dict[str, str]:
     proposed_auto = next(row for row in comparison["methods"] if row["method"] == "proposed")
     proposed_semantic = semantic["methods"]["proposed"]
     llm_summary = llm_probe["summary"]
+    partial_metrics = extension_metrics["metrics"]["llm_partial_pass_v2"]
 
     return {
         "S01 knowledge-base scale": (
@@ -332,11 +349,31 @@ def expected_literals() -> dict[str, str]:
         "S39 Stage 8.6 gate": f"预声明 gate 的全部检查通过并返回 `{stage8_6_gate['status']}`",
         "S40 v2 release ID": f"release `{v2_extension_release['release_id']}`",
         "S41 v2 release status": (
-            f"当前状态为 `{v2_extension_release['status']}`"
+            f"v2 release 文件状态仍为 `{v2_extension_release['status']}`"
         ),
         "S42 v2 runtime bundle": v2_implementation_manifest[
             "runtime_bundle_sha256"
         ],
+        "S43 Stage 8.7 invocation count": (
+            f"Stage 8.7 自动实验完成 {extension_receipt['qa_invocation_count']} 次 QA 调用"
+        ),
+        "S44 Stage 8.7 execution status": (
+            f"有效执行状态为 `{extension_receipt['status']}`"
+        ),
+        "S45 Stage 8.7 partial decision accuracy": (
+            "LLM Partial-pass v2 自动决策准确率为 "
+            f"{partial_metrics['decision_accuracy']['value']:.4f}"
+        ),
+        "S46 Stage 8.7 partial over-refusal": (
+            "LLM Partial-pass v2 可回答题 over-refusal 为 "
+            f"{partial_metrics['over_refusal_rate']['numerator']}/"
+            f"{partial_metrics['over_refusal_rate']['denominator']}"
+        ),
+        "S47 Stage 8.7 partial leakage": (
+            "LLM Partial-pass v2 unsupported Claim leakage 为 "
+            f"{partial_metrics['unsupported_claim_leakage_rate']['numerator']}/"
+            f"{partial_metrics['unsupported_claim_leakage_rate']['denominator']}"
+        ),
     }
 
 

@@ -16,8 +16,8 @@
 | 当前默认图后端 | NetworkX `3.3` |
 | 当前默认生成器 | Ollama `qwen3:4b`，失败时回退规则生成器 |
 | 正式基线状态 | v1.0 规则基线已冻结、可复验 |
-| LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；仍只有合成/dev 工程审计，尚无正式 extension 结论 |
-| extension 状态 | 23 题从未运行；v1 有效状态为 `revoked_before_execution`；v2 release 为 `authorized_not_executed` |
+| LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；Stage 8.7 四方法自动实验已完成，人工盲评待完成 |
+| extension 状态 | 23 题已按 v2 合同执行且只执行一次；v1 有效状态为 `revoked_before_execution`；v2 有效执行状态为 `completed_once` |
 
 事实优先级如下：
 
@@ -78,8 +78,8 @@
 | 图结构是否改善结构化问题的证据覆盖和回答质量？ | Vector RAG、Graph Only、Proposed 对比 |
 | Verifier 是否改善拒答、问题对齐和证据忠实度？ | Proposed 与 No Verifier 消融 |
 | 系统是否可以本地、可追溯、可复现地运行？ | NetworkX、TF-IDF、LangGraph、归档和自动校验 |
-| LLM 是否改善可读性和完整性，同时保持证据忠实度？ | 尚待 v2 extension 四方法实验回答 |
-| Partial-pass 是否降低过度拒答？ | Stage 8.5 dev 工程门槛已从 4/8 降到 1/8；正式效果仍待 v2 extension |
+| LLM 是否改善可读性和完整性，同时保持证据忠实度？ | Stage 8.7 自动结果已完成，但必须等盲评 Correctness/Faithfulness/Readability 后回答 |
+| Partial-pass 是否降低过度拒答？ | v2 extension 自动 over-refusal 相对 Strict 从 16/19 降到 5/19；仍不能替代人工答案质量结论 |
 
 ## 5. 项目边界
 
@@ -694,7 +694,7 @@ Stage 8.4 浏览器 smoke：
 | demo | 8 | Streamlit 演示 | 可与 dev 重合 |
 | pilot | 40 | 历史先导实验和消融 | 已用于发现缺口，不能称为无泄漏测试集，也不再用于自由调参 |
 | final | 40 | v1.0 冻结正式测试 | 已运行一次，只读，禁止重跑 |
-| extension | 23 | LLM 增强保留集 | 从未运行，禁止调参，只能在新 v2 release 冻结后运行一次 |
+| extension | 23 | LLM 增强保留集 | Stage 8.7 已运行一次并消费，禁止重跑、调参或覆盖结果 |
 
 final 与 pilot 的题型分布：8 单跳、9 多跳、7 定义、5 对比、5 原理优缺点、2 指标选择、4 无答案。
 
@@ -896,18 +896,27 @@ Stage 8.5 结果达到进入 pilot 冻结前回归的工程门槛，但 dev 已�
 
 ### 24.3 最新治理决定
 
-截至本文：
+以下边界只针对历史 v1 release：
 
 - `reports/extension/` 不存在；
-- 没有 execution state、receipt、答案、方法报告或盲评表；
-- extension 从未进入 QA workflow；
-- 没有观察任何 extension 实验结果。
+- v1 没有 execution state、receipt、答案、方法报告或盲评表；
+- v1 extension 从未进入 QA workflow；
+- v1 release 在任何 extension 输出出现前被撤销。
 
 由于项目决定先实现 Evidence Packer、原子 Claim 和 Partial-pass，原 v1 runtime 不再代表目标协议。阶段 8.0 已在独立提交中创建不可覆盖的撤销记录，runner 会在 runtime/model 校验和题集读取前拒绝原授权命令。
 
 版本化的 `extension_evaluation_v2.yaml` 与 `extension_trace_contract_v2.yaml` 已冻结四方法矩阵：`rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`。Stage 8.6 已在实现提交 `e207cb9` 上消费唯一一次 40 题 pilot：Decision Accuracy 0.8250、Structured Output 0.9750、4/4 无答案正确拒答、7/36 可回答题 over-refusal、13/40 retry、unsupported Claim leakage 为 0，平均端到端延迟 34180.72 ms。预声明 gate 为 `go`，但该结果只是工程冻结门槛，不是独立效果证据，也不能证明 LLM 优于规则基线。
 
-v2 runtime bundle SHA-256 为 `ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b`，release `extension-qwen3-4b-v2-e207cb91` 当前状态为 `authorized_not_executed`。受控 preflight 已通过，`reports/extension_v2` 不存在，extension 题目尚未进入 QA。v1 release、manifest、trace contract 和 revocation record 继续保留且不可覆盖。
+Stage 8.7 已使用 release `extension-qwen3-4b-v2-e207cb91` 执行唯一一次 4 方法 x 23 题 extension，共 92 次 QA 调用。release 文件状态仍按不可变合同保留 `authorized_not_executed`，state/receipt 给出的有效执行状态为 `completed_once`。自动结果如下：
+
+| 方法 | Decision Accuracy | Refusal Accuracy | Over-refusal | Unsupported Leakage | Mean E2E |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Rule Baseline | 21/23 | 2/4 | 0/19 | 0/1 | 5.46 ms |
+| LLM Strict v2 | 7/23 | 4/4 | 16/19 | 0/24 | 11891.29 ms |
+| LLM No Verifier v2 | 19/23 | 0/4 | 0/19 | 25/25 | 5207.65 ms |
+| LLM Partial-pass v2 | 16/23 | 2/4 | 5/19 | 0/27 | 7607.35 ms |
+
+Partial-pass 自动减少了相对 Strict 的过度拒答并保持零 unsupported Claim 泄漏，但没有超过 Rule Baseline，且误接受 `X-NA-03`、`X-NA-04`。92 行 A/B/C/D 匿名盲评表和独立 method key 已生成，人工评分尚未完成，因此以上自动决策指标不等于 Answer Correctness、Evidence Faithfulness 或 Readability。v1/v2 release、manifest、state、receipt 和结果继续保留且不可覆盖。
 
 ## 25. 复现与常用命令
 
@@ -990,14 +999,15 @@ python scripts/bind_graph_evidence.py
 
 ### 25.7 Extension 校验
 
-当前只允许离线审计校验：
+Stage 8.7 后只允许只读审计校验：
 
 ```bash
 python scripts/validate_extension_holdout.py
-python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/validate_extension_release_v2.py --check-runtime-model
+python scripts/validate_extension_results_v2.py
 ```
 
-当前 v1 正式命令仍被撤销。v2 已有独立的 `authorized_not_executed` release，只能在下一阶段通过 release 中记录的受控命令执行一次；通用 runner、覆盖输出和自动重跑仍被禁止。
+当前 v1 正式命令仍被撤销；v2 的唯一执行已经完成，runner 会因 `completed_once` 拒绝再次运行。通用 runner、覆盖输出、自动重跑和基于 holdout 结果调参仍被禁止。
 
 ## 26. 目录与文件职责
 
@@ -1051,8 +1061,9 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 | Trace | `validate_runtime_trace.py` | 验证路由、逐次检索/验证、retry 和聚合耗时合同 |
 | UI | `smoke_streamlit_runtime.py` | 验证 pass/partial/refuse/fallback 状态与桌面/移动布局 |
 | 冻结 | `freeze_baseline.py` | 创建/验证 v1.0 归档 |
-| Extension | `create_extension_release.py` | 创建一次性 release |
-| Extension | `run_extension_evaluation.py` | 专用一次性 runner 和 preflight |
+| Extension | `create_extension_release_v2.py` | 创建 v2 一次性 release，当前不得再次创建 |
+| Extension | `run_extension_evaluation_v2.py` | 已消费的一次性 runner，当前只允许验证拒绝重跑 |
+| Extension | `validate_extension_results_v2.py` | 重算指标并校验 state、receipt、哈希与盲评匿名性 |
 | 校验 | `validate_*.py` | 配置、图、Chunk、评测、实验、评分、报告和 release 护栏 |
 
 ## 28. 测试与质量保障
@@ -1072,7 +1083,7 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 - 数据集泄漏和 split 护栏；
 - extension release、不可覆盖输出、哈希和一次性执行保护。
 
-Stage 8.5 实现后的全量测试结果为 `121 passed`；Claim-level 与评测指标定向测试均已通过，`python scripts/validate_runtime_trace.py` 继续通过。浏览器 smoke 仍覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
+Stage 8.7 收尾后的全量测试结果为 `133 passed`；Claim-level、extension 结果、release、holdout 与报告声明校验均已通过，`python scripts/validate_runtime_trace.py` 继续通过。浏览器 smoke 仍覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
 
 ## 29. 可复现性与安全设计
 
@@ -1115,7 +1126,7 @@ Stage 8.5 实现后的全量测试结果为 `121 passed`；Claim-level 与评测
 11. 提供带真实 model/backend/fallback/预热/延迟状态的响应式 Streamlit 演示界面；
 12. 建立了冻结题集、哈希、消融、人工评分和一次性 release 护栏。
 
-尚不能算已完成贡献：v2 四方法 extension 结论、Dense Retrieval、Neo4j 正式部署基准。
+尚不能算已完成贡献：v2 四方法的人工答案质量结论、Dense Retrieval、Neo4j 正式部署基准。Stage 8.7 自动结果可以描述，但不能代替尚未完成的盲评。
 
 ## 31. 常见答辩问答
 
@@ -1173,7 +1184,7 @@ Prompt 禁止使用模型记忆；每条 Claim 必须绑定真实 E ID 和逐字
 
 ### Q14：当前最好的正式结果是什么？
 
-v1.0 规则基线 final 的 Decision Accuracy 为 39/40，4/4 无答案题正确拒答。LLM 分支还没有正式保留集结果。
+v1.0 规则基线 final 的 Decision Accuracy 为 39/40，4/4 无答案题正确拒答。新 v2 extension 自动决策中 Rule Baseline 为 21/23，LLM Partial-pass v2 为 16/23；两套题集不能直接横向替代。LLM extension 的人工 Correctness、Faithfulness 和 Readability 尚未评分，因此当前不能宣称 LLM 答案质量优于规则基线。
 
 ### Q15：为什么不能重跑 final？
 
@@ -1183,9 +1194,9 @@ final 已经运行并查看结果，再根据它修改参数会造成测试泄�
 
 Pilot 曾用于发现并修复实现缺口，因此已被消费。后续只允许做预先声明门槛的冻结前回归，不能把它重新包装成独立测试集。
 
-### Q17：Extension 为什么还没跑？
+### Q17：Extension 运行到什么状态？
 
-团队在任何 extension 输出出现前发现 Partial-pass 协议更有研究价值。为了不浪费唯一一次保留集运行，决定先撤销 v1 release、完成 v2 冻结，再一次性比较四种方法。
+Stage 8.7 已按冻结 v2 release 执行且只执行一次：23 题、4 方法、92 次 QA 调用，receipt 状态为 `completed_once`。自动指标、逐题结果和 A/B/C/D 盲评表都已落盘；下一步是人工盲评，不能再重跑 extension 或根据结果调参。
 
 ### Q18：项目的创新点是什么？
 
@@ -1193,11 +1204,11 @@ Pilot 曾用于发现并修复实现缺口，因此已被消费。后续只允�
 
 ### Q19：目前最大的风险是什么？
 
-尚未完成整体 dev/pilot 回归、LLM 完整链路延迟仍在约数秒级、样本规模小、单一人工复核、稀疏检索语义能力有限，以及尚无 LLM extension 正式结果。Stage 8.4 已能定位延迟来源，但“可观测”不等于“延迟已经优化完成”。
+当前主要风险是 extension 人工盲评尚未完成、LLM 方法平均延迟约 5.21 至 11.89 秒、Partial-pass 仍有 5/19 过度拒答和 2/4 无答案误接受、样本规模小、单一人工复核以及稀疏检索语义能力有限。Stage 8.4 已能定位延迟来源，但“可观测”不等于“延迟已经优化完成”。
 
 ### Q20：下一步是什么？
 
-v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计和 Stage 8.6 一次性 pilot/runtime/release 冻结均已完成。下一步进入阶段 8.7：只有在用户明确继续后，才通过受控 v2 runner 执行一次 4 方法 x 23 题 extension；仍禁止重跑 final、通用 runner 绕过和结果覆盖。
+v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结和 Stage 8.7 一次性 extension 自动实验均已完成。下一步进入 Stage 8.8：填写 92 行匿名盲评、在评分完成后解盲汇总、生成图表并定稿报告；仍禁止重跑 final/extension、通用 runner 绕过、结果覆盖和 holdout 后调参。
 
 ## 32. 关联文档
 
@@ -1208,7 +1219,8 @@ v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Cla
 - `reports/technical_enhancement_decision.md`：LLM/Dense 前置审计；
 - `reports/llm_generator_dev_audit.md`：LLM dev 三轮结果；
 - `reports/extension_holdout_freeze.md`：extension 冻结与哈希；
+- `reports/llm_agent_v2_extension_stage8_7_audit.md`：一次性执行、自动指标、错误边界、产物哈希和盲评状态；
 - `reports/report_claims_checklist.md`：可声明和禁止声明；
 - `reports/releases/v1.0-baseline/release_notes.md`：v1.0 归档说明。
 
-本手册描述的是 2026-07-23 的项目状态。后续每完成一个阶段，应同步更新本文的状态表、实验结果和常见问答，同时继续在 `PROGRESS.md` 追加不可回写的阶段记录。
+本手册描述的是 2026-07-24 Stage 8.7 完成后的项目状态。后续每完成一个阶段，应同步更新本文的状态表、实验结果和常见问答，同时继续在 `PROGRESS.md` 追加不可回写的阶段记录。

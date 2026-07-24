@@ -1,0 +1,49 @@
+{
+  "schema_version": "2.0",
+  "artifact": "extension_execution_receipt",
+  "protocol_version": "v2",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "status": "completed_once",
+  "started_at": "2026-07-24T03:20:44.032420+00:00",
+  "completed_at": "2026-07-24T03:30:28.346020+00:00",
+  "method_order": [
+    "rule_baseline",
+    "llm_strict_v2",
+    "llm_no_verifier_v2",
+    "llm_partial_pass_v2"
+  ],
+  "question_count_per_method": 23,
+  "qa_invocation_count": 92,
+  "execution_state_sha256": "f433dfc6b6fa8d1eb52f15c40621bc2a3c506694eafc5e5a617b4ad0aad9707c",
+  "output_hashes": {
+    "rule_baseline": {
+      "path": "reports/extension_v2/rule_baseline.json",
+      "sha256": "9d8943c0ba7f10b9ee0af8efc4c3481bb45e728980264214ba6d0e7010377af5"
+    },
+    "llm_strict_v2": {
+      "path": "reports/extension_v2/llm_strict_v2.json",
+      "sha256": "88606acde5785aa4760d9b6074c37de653a5d2a03fa34a9ada0d602eff3c820f"
+    },
+    "llm_no_verifier_v2": {
+      "path": "reports/extension_v2/llm_no_verifier_v2.json",
+      "sha256": "89e75a6531c86708add51dfdaf32f6839d7bf3d2c92b4b5034f89f7aeb2f10f6"
+    },
+    "llm_partial_pass_v2": {
+      "path": "reports/extension_v2/llm_partial_pass_v2.json",
+      "sha256": "7c9c2c701382762dc5c645e3da7b5109cdf64d3978cfad89baaca0b7abeb6469"
+    },
+    "combined_metrics": {
+      "path": "reports/extension_v2/combined_metrics.json",
+      "sha256": "543b923f23886df9485d7f0c6ec07aece196d8e3d7ca783c974583789b6e5fc2"
+    },
+    "blind_review": {
+      "path": "reports/extension_v2/blind_review.csv",
+      "sha256": "5e8ce394a76dd0ca4e2fd91decf80191f625c7024ea1dc3073301c0ab70a189e"
+    },
+    "blind_method_key": {
+      "path": "reports/extension_v2/blind_method_key.json",
+      "sha256": "fdbf33cd26bdd21f22981cdbb7be2c4c0fc3efd9945f88d60a10672e7e1bc0ec"
+    }
+  },
+  "final_result_policy": "v2_final_read_only_after_execution"
+}

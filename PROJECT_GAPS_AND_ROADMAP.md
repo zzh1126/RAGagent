@@ -61,7 +61,7 @@
 | G05 | 证据上下文未按题型平衡 | `intent_aware_v2` 已完成 50 题只读合同回归 | 风险已关闭 | Done | 阶段 8.1 完成 |
 | G06 | Prompt 未限制原子 Claim | Prompt v2 与 1～4 Claim wire Schema 已通过 20/20 合成探针 | 风险已关闭 | Done | 阶段 8.2 完成 |
 | G07 | 重试过多 | Stage 8.5 dev retry rate 为 3/10，历史值 7/10 | 工程门槛通过；真实延迟仍主要来自 LLM | Done | 阶段 8.5 完成 |
-| G08 | 没有 LLM 正式 extension 结果 | extension 从未运行 | 无法回答 LLM 是否真正提升 | P0 | 完成 v2 后一次性运行 |
+| G08 | 缺少 LLM extension 的人工答案质量结论 | Stage 8.7 已完成 92 次自动调用和匿名盲评表；人工评分未填 | 不能回答可读性、人工正确性和忠实度是否改善 | P0 | 阶段 8.8 先完成盲评，再解盲汇总 |
 | G09 | 延迟 trace 不完整 | Stage 8.4 已保存完整 trace；Stage 8.5 dev 平均端到端 9420.28 ms，其中生成 9408.91 ms | trace 风险关闭，生成延迟保留为限制 | Done | 阶段 8.5 已分析 |
 | G10 | Streamlit 不展示 LLM 参与细节 | model/backend/fallback/prewarm/结构状态/阶段延迟与 partial 样式已完成 | 风险已关闭 | Done | 阶段 8.4 完成 |
 | G11 | 稀疏检索语义能力有限 | TF-IDF + 人工词表 | 同义改写和跨语言召回受限 | P2 | 条件触发 |
@@ -739,13 +739,13 @@ Pilot 已观察到：
 
 已在 commit `e207cb9` 上消费唯一一次 40 题 pilot，预声明 gate 为 `go`。结果为 Decision Accuracy 0.8250、Structured Output 0.9750、4/4 无答案拒答、7/36 answerable over-refusal、13/40 retry、unsupported leakage 0；平均端到端延迟 34180.72 ms。v2 runtime、Prompt、Schema、配置、依赖和模型 digest 已冻结，release `extension-qwen3-4b-v2-e207cb91` 为 `authorized_not_executed`。
 
-### 阶段 8.7：Extension 一次性实验
+### 阶段 8.7：Extension 一次性实验（自动部分已完成）
 
-4 方法 × 23 题；完整 receipt 和哈希；A/B/C/D 盲评表；不自动重跑。
+已使用 `extension-qwen3-4b-v2-e207cb91` 完成唯一一次 4 方法 x 23 题运行，共 92 次 QA 调用。state 为 `completed`，receipt 的有效执行状态为 `completed_once`，全部输出哈希、匿名 A/B/C/D 盲评表和独立 method key 均已校验。自动 Decision Accuracy 为 Rule 21/23、LLM Strict 7/23、LLM No Verifier 19/23、LLM Partial-pass 16/23；Partial-pass 将 Strict 的 answerable over-refusal 从 16/19 降到 5/19，unsupported Claim leakage 为 0/27，但仍误接受 2/4 无答案题，且未超过 Rule Baseline。不得重跑、覆盖或根据 holdout 结果修改冻结 runtime。
 
 ### 阶段 8.8：评分、报告与答辩
 
-完成自动/人工指标、图表、误差分析、DOCX、PPT 和演示材料。
+人工盲评尚未完成。下一步填写 92 行匿名评分表，完成后才解盲汇总 Correctness、Faithfulness、Hallucination、Over-refusal 和 Readability；随后生成图表、误差分析、DOCX、PPT 和演示材料。自动指标不能替代人工答案质量结论。
 
 每个阶段单独实现、验证、写入 `PROGRESS.md`、提交 Git，再进入下一阶段。不会一次性跨过全部阶段。
 
@@ -812,18 +812,18 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-阶段 8.0～8.6 已验收。下一步只进入阶段 8.7：
+阶段 8.0～8.7 自动部分已验收。下一步只进入阶段 8.8：
 
 ```text
-核对 v2 release preflight
+填写 92 行 A/B/C/D 匿名盲评表
     ↓
-用户明确授权下一阶段
+保留 method key，完成前不解盲
     ↓
-受控执行 4 方法 × 23 题 extension 一次
+汇总人工指标并与自动指标并列
     ↓
-生成 receipt、版本化结果和 A/B/C/D 盲评表
+更新图表、报告、答辩材料和事实清单
     ↓
-禁止自动重跑或覆盖
+禁止重跑 extension、覆盖输出或 holdout 后调参
 ```
 
-Stage 8.6 pilot 已消费，不能重跑或继续逐题调参。当前 release 只是 `authorized_not_executed`，本阶段没有运行 extension。Stage 8.7 只能使用 `scripts/run_extension_evaluation_v2.py` 和 release 中的精确 ID 执行一次；任何中断都进入人工审计，不能自动重试整轮。
+Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。当前只允许只读 validator 和盲评填写；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。

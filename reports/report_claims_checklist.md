@@ -2,7 +2,7 @@
 
 ## 使用范围
 
-本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整 trace、Stage 8.5 dev 工程回归和 Stage 8.6 一次性 pilot/runtime/release 冻结均已完成。v2 release 当前为 `authorized_not_executed`，extension 独立实验尚未运行。
+本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整 trace、Stage 8.5 dev 工程回归、Stage 8.6 一次性 pilot/runtime/release 冻结和 Stage 8.7 一次性 extension 自动实验均已完成。v2 release 文件保留 `authorized_not_executed`，有效执行状态为 `completed_once`；92 行匿名盲评尚未评分。
 
 ## 权威证据源
 
@@ -49,6 +49,11 @@
 | `reports/llm_agent_v2_pilot_stage8_6_audit.md` | Stage 8.6 结果、限制、冻结身份与不可变产物哈希 |
 | `data/evaluation/extension_implementation_manifest_v2.json` | v2 runtime、Prompt、Schema、依赖、模型和 pilot gate 冻结 |
 | `data/evaluation/extension_holdout_release_v2.json` | v2 `authorized_not_executed` release 与一次性受控命令 |
+| `reports/extension_v2/execution_state.json` | 唯一一次 execution state 与四方法逐题执行记录 |
+| `reports/extension_v2/execution_receipt.json` | `completed_once`、92 次 QA 调用和全部输出哈希 |
+| `reports/extension_v2/combined_metrics.json` | 四方法自动决策、Claim 和延迟指标 |
+| `reports/extension_v2/blind_review.csv` | 92 行匿名 A/B/C/D 人工评分输入，不含方法或期望标签 |
+| `reports/llm_agent_v2_extension_stage8_7_audit.md` | Stage 8.7 边界、自动结果、错误、哈希与人工评分限制 |
 | `config/settings.yaml` | 当前 rule Router、LLM Generator 与 offline_rule fallback 配置 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
@@ -75,7 +80,7 @@
 | C16 | 用户确认样本中的幻觉率为 0 只描述当前小样本观察，不能推出系统不会产生幻觉 | 已核验 |
 | C17 | Manifest SHA-256 为 `2e9c08ff379c2a953d4356b307e20adca62ee2b3bf19ffe602be2832c4c44ba1` | 已核验 |
 | C18 | `qwen3-vl:8b` 仍为 No-Go；`qwen3:4b` 只通过 Generator 前置门槛，Planner 为 No-Go | 已核验 |
-| C19 | 23 题 extension holdout 已在业务实现前冻结；v1 release 已在执行前撤销，v2 release 为 `authorized_not_executed`，未生成 extension 结果 | 已核验 |
+| C19 | 23 题 extension holdout 已在业务实现前冻结；v1 release 已在执行前撤销；v2 release 文件保留 `authorized_not_executed`，有效执行状态为 `completed_once` | 已核验 |
 | C20 | 当前 Agent 使用规则 Router、`qwen3:4b` LLM Generator、确定性 Verifier 与 `GroundedAnswerGenerator` fallback | 已核验 |
 | C21 | 候选 dev 结构化输出 10/10、fallback 0/10、决策 6/10；4 个错误均为过度拒答，不能证明优于规则基线 | 已核验 |
 | C22 | v1 extension 实现提交为 `bdedf7d`，runtime/Prompt/trace 哈希与模型 digest 已冻结；文件原始状态为 `authorized_not_executed`，有效状态为 `revoked_before_execution` | 已核验 |
@@ -92,7 +97,10 @@
 | C33 | Stage 8.5 只是开发集工程门槛，`partial_pass` 未经独立人工正确性评估，不能证明 LLM 增强有效或优于规则基线 | 已核验 |
 | C34 | Stage 8.6 pilot 只运行一次并绑定 `e207cb9`；结果为 0.8250 决策准确率、0.9750 结构成功、4/4 拒答、7/36 over-refusal、13/40 retry、0 leakage | 已核验 |
 | C35 | Stage 8.6 gate 为 `go` 只表示通过工程冻结门槛；pilot 已消费、禁止重跑和逐题调参，平均端到端延迟 34180.72 ms 必须披露 | 已核验 |
-| C36 | v2 runtime bundle 为 `ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b`，release `extension-qwen3-4b-v2-e207cb91` 为 `authorized_not_executed`，没有 extension 输出 | 已核验 |
+| C36 | v2 runtime bundle 为 `ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b`，release `extension-qwen3-4b-v2-e207cb91` 的有效执行状态为 `completed_once`，receipt 记录 92 次 QA 调用 | 已核验 |
+| C37 | Stage 8.7 自动 Decision Accuracy 为 Rule 21/23、LLM Strict 7/23、LLM No Verifier 19/23、LLM Partial-pass 16/23；这不是人工回答正确性 | 已核验 |
+| C38 | Partial-pass 的 answerable over-refusal 为 5/19、unsupported Claim leakage 为 0/27；Strict 为 16/19，No Verifier 为 25/25 leakage | 已核验 |
+| C39 | `blind_review.csv` 有 92 行且不暴露 method/expected 字段；人工 Correctness、Faithfulness、Hallucination、Over-refusal、Readability 仍待评分 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -121,7 +129,10 @@
 - 将 4 个 `partial_pass` 自动视为 4 道人工正确答案，或声称 DEV05 已经被修复。
 - 将 Stage 8.6 pilot 的 `go` 描述为独立增强效果、LLM 优于规则基线或 extension 结论。
 - 隐瞒 Stage 8.6 pilot 已消费、7/36 over-refusal、0.9750 structured success 或 34180.72 ms 平均延迟。
-- 在 v2 execution receipt 出现前把 `authorized_not_executed` 写成已完成 extension。
+- 将 v2 release 文件的 `authorized_not_executed` 状态误写为尚未执行，或将它误写为可再次运行。
+- 将 Stage 8.7 自动 Decision Accuracy、citation validity、Claim retention 或 `partial_pass` 直接写成已人工确认的 Correctness、Faithfulness、Hallucination 或 Readability。
+- 隐瞒 Partial-pass 的 5/19 answerable over-refusal、2/4 no-answer refusal accuracy、0/27 unsupported leakage，或隐瞒 No Verifier 的 25/25 unsupported leakage。
+- 在匿名盲评完成前解盲 method key、填造评分或声称 LLM 已改善人工答案质量。
 
 ## 发布前检查
 
@@ -132,7 +143,8 @@ python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_claim_level_verifier.py
 python scripts/validate_scoring.py
 python scripts/validate_extension_holdout.py
-python scripts/validate_extension_release_v2.py --check-runtime-model --require-unexecuted
+python scripts/validate_extension_release_v2.py --check-runtime-model
+python scripts/validate_extension_results_v2.py
 python scripts/freeze_baseline.py --verify
 ```
 

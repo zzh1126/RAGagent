@@ -2943,3 +2943,70 @@ python scripts/validate_extension_holdout.py
 ### 当前状态与下一步
 
 Stage 8.6 已完成。当前候选已经具备可审计的 Pilot Go 记录、冻结 runtime、独立 v2 implementation manifest、`authorized_not_executed` release、一次性 runner、版本化输出和 A/B/C/D 盲评协议。下一阶段为 Stage 8.7；只有在用户明确继续后，才执行 release 中记录的 4 方法 x 23 题 extension 命令一次。任何中断都进入人工审计，不自动重跑或覆盖。
+
+## 2026-07-24 阶段 8.7：一次性 Extension 自动实验
+
+### 执行前边界
+
+- 用户已明确授权进入 Stage 8.7；
+- 使用唯一授权 release：`extension-qwen3-4b-v2-e207cb91`；
+- release 状态：`authorized_not_executed`；
+- 实现 commit：`e207cb9142ff0066bae58501185b157998abe68f`；
+- 方法顺序固定为 `rule_baseline`、`llm_strict_v2`、`llm_no_verifier_v2`、`llm_partial_pass_v2`；
+- 每个方法固定 23 题，总计 92 次 QA invocation；
+- 运行前 `validate_extension_release_v2.py --check-runtime-model --require-unexecuted` 和受控 `--preflight` 均通过；
+- v2 runtime bundle、Prompt v2、wire Schema、Packer、Verifier、依赖、Ollama `0.32.1` 与 `qwen3:4b` digest 均与 release 一致；
+- `reports/extension_v2` 不存在；extension 未运行；
+- 本阶段不修改 runtime、Prompt、阈值、路由、Packer、Verifier、语料、图谱或题集；
+- 若运行中断，执行状态将保留为人工审计状态，不自动重跑；
+- 两份外部删除的 DOCX 继续不恢复、不修改、不暂存、不提交。
+
+### 执行结果
+
+- 使用唯一受控命令完成运行：`python scripts/run_extension_evaluation_v2.py --execute-once --release-id extension-qwen3-4b-v2-e207cb91 --confirm-one-time-run`；
+- execution state 为 `completed`，receipt 的有效执行状态为 `completed_once`；开始时间 `2026-07-24T03:20:44.032420+00:00`，完成时间 `2026-07-24T03:30:28.346020+00:00`；
+- 23 题 x 4 方法，合计 92 次 QA invocation；未自动重跑、未覆盖输出；
+- v1 release 的有效状态继续为 `revoked_before_execution`，没有执行 v1；
+- v2 runtime、Prompt、Schema、Packer、Verifier、配置、依赖、模型 identity、语料、图谱和题集均未因 holdout 结果修改。
+
+### 自动指标
+
+| 方法 | Decision Accuracy | Refusal Accuracy | Answerable Over-refusal | Unsupported Claim Leakage | Mean E2E |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Rule Baseline | 21/23 (0.9130) | 2/4 (0.5000) | 0/19 (0.0000) | 0/1 (0.0000) | 5.46 ms |
+| LLM Strict v2 | 7/23 (0.3043) | 4/4 (1.0000) | 16/19 (0.8421) | 0/24 (0.0000) | 11891.29 ms |
+| LLM No Verifier v2 | 19/23 (0.8261) | 0/4 (0.0000) | 0/19 (0.0000) | 25/25 (1.0000) | 5207.65 ms |
+| LLM Partial-pass v2 | 16/23 (0.6957) | 2/4 (0.5000) | 5/19 (0.2632) | 0/27 (0.0000) | 7607.35 ms |
+
+- 三个 LLM 方法的结构化输出均为 22/23，fallback 均为 0/23；
+- Partial-pass 保留 23/23 supported Claims，并将 Strict 的 answerable over-refusal 从 16/19 降到 5/19；
+- Partial-pass 仍对 `X-NA-03`、`X-NA-04` 作出 false accept（`partial_pass`），因此未超过 Rule Baseline 的自动 Decision Accuracy；
+- No Verifier 接受全部四道无答案题并泄漏 25/25 unsupported Claims；
+- 自动 Decision Accuracy、citation validity、Claim retention 和 `partial_pass` 均不能替代人工 Answer Correctness、Evidence Faithfulness、Hallucination、Over-refusal 或 Readability 评分。
+
+### 不可变产物与审计
+
+- 新增 `reports/extension_v2/execution_state.json`、`execution_receipt.json`、四个方法报告、`combined_metrics.json`、`blind_review.csv` 与独立 `blind_method_key.json`；
+- receipt 绑定 execution state SHA-256：`f433dfc6b6fa8d1eb52f15c40621bc2a3c506694eafc5e5a617b4ad0aad9707c`；
+- receipt 绑定输出 SHA-256：Rule `9d8943c0ba7f10b9ee0af8efc4c3481bb45e728980264214ba6d0e7010377af5`、Strict `88606acde5785aa4760d9b6074c37de653a5d2a03fa34a9ada0d602eff3c820f`、No Verifier `89e75a6531c86708add51dfdaf32f6839d7bf3d2c92b4b5034f89f7aeb2f10f6`、Partial-pass `7c9c2c701382762dc5c645e3da7b5109cdf64d3978cfad89baaca0b7abeb6469`、combined metrics `543b923f23886df9485d7f0c6ec07aece196d8e3d7ca783c974583789b6e5fc2`、blind review `5e8ce394a76dd0ca4e2fd91decf80191f625c7024ea1dc3073301c0ab70a189e`、blind key `fdbf33cd26bdd21f22981cdbb7be2c4c0fc3efd9945f88d60a10672e7e1bc0ec`；
+- 新增 `scripts/validate_extension_results_v2.py` 与 `tests/test_extension_results_v2.py`：重算四方法指标，核验 state/receipt/哈希/题序/盲评匿名性，并拒绝持久化 raw prompt 或 thinking；
+- 新增审计文档 `reports/llm_agent_v2_extension_stage8_7_audit.md`，记录边界、自动指标、错误、哈希、可声明范围与人工盲评状态；
+- `blind_review.csv` 有 92 行，每题 A/B/C/D 各一条，不包含 `method_id` 或 expected 字段；人工评分状态为 `pending_user_confirmed_single_review`，禁止在评分完成前解盲或填造结果；
+- `README.md`、`PROJECT_HANDBOOK.md`、`PROJECT_GAPS_AND_ROADMAP.md`、`data/evaluation/README.md`、报告草稿、事实清单、技术决策和 Partial-pass 计划均已同步为 Stage 8.7 已完成、Stage 8.8 待盲评的状态。
+
+### 最终验证
+
+以下只读校验均在运行后通过：
+
+```text
+pytest -q                                      -> 133 passed
+python scripts/validate_extension_results_v2.py -> completed_once, 23 x 4, 92 invocations
+python scripts/validate_extension_release_v2.py --check-runtime-model -> runtime/model/release valid
+python scripts/validate_extension_holdout.py    -> v1 revoked, v2 completed_once, holdout valid
+python scripts/validate_report_claims.py        -> 47 source checks, 24 required rules, 22 forbidden rules
+git diff --check                                -> pass
+```
+
+### 当前状态与下一步
+
+Stage 8.7 已完成并提交前待审计。Stage 8.8 的唯一工作是完成 92 行匿名盲评，评分完成后再解盲并汇总人工指标、图表和报告。extension、pilot 和 final 均不得重跑；不得根据 Stage 8.7 逐题结果修改冻结 runtime。两份外部删除的 DOCX 继续保持未暂存状态。

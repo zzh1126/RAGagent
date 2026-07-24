@@ -1,0 +1,477 @@
+{
+  "schema_version": "2.0",
+  "artifact": "extension_combined_metrics",
+  "protocol_version": "v2",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "dataset_sha256": "7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5",
+  "method_order": [
+    "rule_baseline",
+    "llm_strict_v2",
+    "llm_no_verifier_v2",
+    "llm_partial_pass_v2"
+  ],
+  "metrics": {
+    "rule_baseline": {
+      "decision_accuracy": {
+        "status": "computed",
+        "value": 0.913,
+        "numerator": 21,
+        "denominator": 23,
+        "note": ""
+      },
+      "refusal_accuracy": {
+        "status": "computed",
+        "value": 0.5,
+        "numerator": 2,
+        "denominator": 4,
+        "note": ""
+      },
+      "over_refusal_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 19,
+        "note": ""
+      },
+      "partial_pass_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 19,
+        "note": ""
+      },
+      "citation_validity": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 45,
+        "denominator": 45,
+        "note": "claim-level validity over generated claims with citations"
+      },
+      "supported_claim_retention_rate": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 44,
+        "denominator": 44,
+        "note": ""
+      },
+      "unsupported_claim_leakage_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 1,
+        "note": ""
+      },
+      "structured_output_success_rate": {
+        "status": "not_applicable",
+        "value": null,
+        "note": "offline rule generator"
+      },
+      "fallback_rate": {
+        "status": "not_applicable",
+        "value": null,
+        "note": "offline rule generator"
+      },
+      "cold_start_latency_ms": {
+        "status": "not_applicable",
+        "value": null,
+        "note": "first v2 LLM question after explicit model unload"
+      },
+      "warm_end_to_end_latency_ms": {
+        "status": "not_applicable",
+        "value": null,
+        "note": "mean question latency excluding the one cold-start question"
+      },
+      "mean_end_to_end_latency_ms": {
+        "status": "computed",
+        "value": 5.46,
+        "note": ""
+      },
+      "mean_retrieval_latency_ms": {
+        "status": "computed",
+        "value": 1.29,
+        "note": ""
+      },
+      "mean_generation_latency_ms": {
+        "status": "computed",
+        "value": 0.0,
+        "note": ""
+      },
+      "mean_evidence_packing_latency_ms": {
+        "status": "not_applicable",
+        "value": null,
+        "note": "LLM evidence packing only"
+      },
+      "mean_verification_latency_ms": {
+        "status": "computed",
+        "value": 0.49,
+        "note": ""
+      },
+      "mean_retry_latency_ms": {
+        "status": "computed",
+        "value": 0.07,
+        "note": ""
+      },
+      "generation_attempts_total": 0,
+      "generated_claim_count": 45,
+      "supported_claim_count": 44,
+      "unsupported_claim_count": 1,
+      "supported_claim_retained_count": 44,
+      "unsupported_claim_leakage_count": 0,
+      "decision_distribution": {
+        "pass": 21,
+        "refuse": 2
+      },
+      "question_count": 23
+    },
+    "llm_strict_v2": {
+      "decision_accuracy": {
+        "status": "computed",
+        "value": 0.3043,
+        "numerator": 7,
+        "denominator": 23,
+        "note": ""
+      },
+      "refusal_accuracy": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 4,
+        "denominator": 4,
+        "note": ""
+      },
+      "over_refusal_rate": {
+        "status": "computed",
+        "value": 0.8421,
+        "numerator": 16,
+        "denominator": 19,
+        "note": ""
+      },
+      "partial_pass_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 19,
+        "note": ""
+      },
+      "citation_validity": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 50,
+        "denominator": 50,
+        "note": "claim-level validity over generated claims with citations"
+      },
+      "supported_claim_retention_rate": {
+        "status": "computed",
+        "value": 0.1154,
+        "numerator": 3,
+        "denominator": 26,
+        "note": ""
+      },
+      "unsupported_claim_leakage_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 24,
+        "note": ""
+      },
+      "structured_output_success_rate": {
+        "status": "computed",
+        "value": 0.9565,
+        "numerator": 22,
+        "denominator": 23,
+        "note": ""
+      },
+      "fallback_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 23,
+        "note": ""
+      },
+      "cold_start_latency_ms": {
+        "status": "computed",
+        "value": 25951.24,
+        "note": "first v2 LLM question after explicit model unload"
+      },
+      "warm_end_to_end_latency_ms": {
+        "status": "computed",
+        "value": 11252.2,
+        "note": "mean question latency excluding the one cold-start question"
+      },
+      "mean_end_to_end_latency_ms": {
+        "status": "computed",
+        "value": 11891.29,
+        "note": ""
+      },
+      "mean_retrieval_latency_ms": {
+        "status": "computed",
+        "value": 8.53,
+        "note": ""
+      },
+      "mean_generation_latency_ms": {
+        "status": "computed",
+        "value": 11867.82,
+        "note": ""
+      },
+      "mean_evidence_packing_latency_ms": {
+        "status": "computed",
+        "value": 5.39,
+        "note": "LLM evidence packing only"
+      },
+      "mean_verification_latency_ms": {
+        "status": "computed",
+        "value": 4.62,
+        "note": ""
+      },
+      "mean_retry_latency_ms": {
+        "status": "computed",
+        "value": 5318.8,
+        "note": ""
+      },
+      "generation_attempts_total": 41,
+      "generated_claim_count": 50,
+      "supported_claim_count": 26,
+      "unsupported_claim_count": 24,
+      "supported_claim_retained_count": 3,
+      "unsupported_claim_leakage_count": 0,
+      "decision_distribution": {
+        "pass": 3,
+        "refuse": 20
+      },
+      "question_count": 23
+    },
+    "llm_no_verifier_v2": {
+      "decision_accuracy": {
+        "status": "computed",
+        "value": 0.8261,
+        "numerator": 19,
+        "denominator": 23,
+        "note": ""
+      },
+      "refusal_accuracy": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 4,
+        "note": ""
+      },
+      "over_refusal_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 19,
+        "note": ""
+      },
+      "partial_pass_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 19,
+        "note": ""
+      },
+      "citation_validity": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 47,
+        "denominator": 47,
+        "note": "claim-level validity over generated claims with citations"
+      },
+      "supported_claim_retention_rate": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 22,
+        "denominator": 22,
+        "note": ""
+      },
+      "unsupported_claim_leakage_rate": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 25,
+        "denominator": 25,
+        "note": ""
+      },
+      "structured_output_success_rate": {
+        "status": "computed",
+        "value": 0.9565,
+        "numerator": 22,
+        "denominator": 23,
+        "note": ""
+      },
+      "fallback_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 23,
+        "note": ""
+      },
+      "cold_start_latency_ms": {
+        "status": "not_applicable",
+        "value": null,
+        "note": "first v2 LLM question after explicit model unload"
+      },
+      "warm_end_to_end_latency_ms": {
+        "status": "computed",
+        "value": 5207.65,
+        "note": "mean question latency excluding the one cold-start question"
+      },
+      "mean_end_to_end_latency_ms": {
+        "status": "computed",
+        "value": 5207.65,
+        "note": ""
+      },
+      "mean_retrieval_latency_ms": {
+        "status": "computed",
+        "value": 6.08,
+        "note": ""
+      },
+      "mean_generation_latency_ms": {
+        "status": "computed",
+        "value": 5193.86,
+        "note": ""
+      },
+      "mean_evidence_packing_latency_ms": {
+        "status": "computed",
+        "value": 2.35,
+        "note": "LLM evidence packing only"
+      },
+      "mean_verification_latency_ms": {
+        "status": "computed",
+        "value": 0.0,
+        "note": ""
+      },
+      "mean_retry_latency_ms": {
+        "status": "computed",
+        "value": 0.0,
+        "note": ""
+      },
+      "generation_attempts_total": 22,
+      "generated_claim_count": 47,
+      "supported_claim_count": 22,
+      "unsupported_claim_count": 25,
+      "supported_claim_retained_count": 22,
+      "unsupported_claim_leakage_count": 25,
+      "decision_distribution": {
+        "pass": 23
+      },
+      "question_count": 23
+    },
+    "llm_partial_pass_v2": {
+      "decision_accuracy": {
+        "status": "computed",
+        "value": 0.6957,
+        "numerator": 16,
+        "denominator": 23,
+        "note": ""
+      },
+      "refusal_accuracy": {
+        "status": "computed",
+        "value": 0.5,
+        "numerator": 2,
+        "denominator": 4,
+        "note": ""
+      },
+      "over_refusal_rate": {
+        "status": "computed",
+        "value": 0.2632,
+        "numerator": 5,
+        "denominator": 19,
+        "note": ""
+      },
+      "partial_pass_rate": {
+        "status": "computed",
+        "value": 0.6316,
+        "numerator": 12,
+        "denominator": 19,
+        "note": ""
+      },
+      "citation_validity": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 50,
+        "denominator": 50,
+        "note": "claim-level validity over generated claims with citations"
+      },
+      "supported_claim_retention_rate": {
+        "status": "computed",
+        "value": 1.0,
+        "numerator": 23,
+        "denominator": 23,
+        "note": ""
+      },
+      "unsupported_claim_leakage_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 27,
+        "note": ""
+      },
+      "structured_output_success_rate": {
+        "status": "computed",
+        "value": 0.9565,
+        "numerator": 22,
+        "denominator": 23,
+        "note": ""
+      },
+      "fallback_rate": {
+        "status": "computed",
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 23,
+        "note": ""
+      },
+      "cold_start_latency_ms": {
+        "status": "not_applicable",
+        "value": null,
+        "note": "first v2 LLM question after explicit model unload"
+      },
+      "warm_end_to_end_latency_ms": {
+        "status": "computed",
+        "value": 7607.35,
+        "note": "mean question latency excluding the one cold-start question"
+      },
+      "mean_end_to_end_latency_ms": {
+        "status": "computed",
+        "value": 7607.35,
+        "note": ""
+      },
+      "mean_retrieval_latency_ms": {
+        "status": "computed",
+        "value": 4.51,
+        "note": ""
+      },
+      "mean_generation_latency_ms": {
+        "status": "computed",
+        "value": 7587.55,
+        "note": ""
+      },
+      "mean_evidence_packing_latency_ms": {
+        "status": "computed",
+        "value": 6.38,
+        "note": "LLM evidence packing only"
+      },
+      "mean_verification_latency_ms": {
+        "status": "computed",
+        "value": 2.69,
+        "note": ""
+      },
+      "mean_retry_latency_ms": {
+        "status": "computed",
+        "value": 2323.88,
+        "note": ""
+      },
+      "generation_attempts_total": 30,
+      "generated_claim_count": 50,
+      "supported_claim_count": 23,
+      "unsupported_claim_count": 27,
+      "supported_claim_retained_count": 23,
+      "unsupported_claim_leakage_count": 0,
+      "decision_distribution": {
+        "partial_pass": 14,
+        "pass": 2,
+        "refuse": 7
+      },
+      "question_count": 23
+    }
+  },
+  "human_metrics_status": "pending_user_confirmed_single_review",
+  "claim_scope": "descriptive_only_due_to_small_sample"
+}

@@ -8,7 +8,7 @@
 - `demo_questions.jsonl`：8 题，可与开发集重合，用于 Streamlit 演示。
 - `pilot_questions.jsonl`：40 题，曾用于发现并修复两处实现缺口，不能再视为无泄漏最终结果。
 - `final_questions.jsonl`：重新创建的 40 题保留测试集，与开发集和先导集题面不重合；冻结后只运行一次。
-- `extension_questions.jsonl`：在 LLM Client 与 Generator 业务实现前冻结的 23 题扩展保留集；从未运行，v1 release 已在执行前撤销，v2 release 为 `authorized_not_executed`，仍禁止读取题面用于调参或通过非受控 runner 执行 QA。
+- `extension_questions.jsonl`：在 LLM Client 与 Generator 业务实现前冻结的 23 题扩展保留集；Stage 8.7 已通过受控 v2 runner 执行且只执行一次，4 方法共 92 次 QA 调用。v1 release 在执行前撤销；v2 release 文件保留 `authorized_not_executed`，state/receipt 给出的有效执行状态为 `completed_once`。题面与逐题结果仍禁止用于调参。
 
 最终 40 题固定分布：
 
@@ -62,6 +62,10 @@
 - `config/atomic_claim_prompt_v2.yaml`：Prompt v2、wire Schema 哈希和合成探针门槛，不是 extension release。
 - `reports/claim_level_partial_pass_dev02_smoke.json`：脱敏 DEV02 Partial-pass 工程 smoke，不包含问题、答案、Claim 或 quote 正文。
 - `reports/evaluation_llm_agent_v2_dev_stage8_5_candidate.json`：10 题 dev 工程候选，包含 over-refusal、refusal accuracy、retry、Claim 保留/移除、错误阶段和分阶段延迟；不是独立保留集。
+- `reports/extension_v2/execution_state.json` 与 `execution_receipt.json`：v2 唯一一次执行的状态、92 次调用计数和全部输出哈希。
+- `reports/extension_v2/combined_metrics.json`：四方法自动决策、Claim 和延迟指标；不能替代人工答案正确性与证据忠实度评分。
+- `reports/extension_v2/blind_review.csv`：92 行 A/B/C/D 匿名评分表，不包含方法 ID 或 expected 字段；人工评分仍待完成。
+- `reports/extension_v2/blind_method_key.json`：与可见盲评表分离的方法映射，评分完成前不应提供给评分者。
 
 运行校验和评测：
 
@@ -72,10 +76,11 @@ python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_claim_level_verifier.py
 python scripts/validate_runtime_trace.py
 python scripts/validate_extension_holdout.py
-python scripts/validate_extension_release.py --check-runtime-model --require-unexecuted
+python scripts/validate_extension_release_v2.py --check-runtime-model
+python scripts/validate_extension_results_v2.py
 python scripts/run_evaluation.py --split dev
 ```
 
 `run_evaluation.py` 始终拒绝 `final` 和 `extension`，并把 answerable 问题的 `pass/partial_pass` 都视为自动决策成功；final 复用冻结结果。Stage 8.5 后，普通评测逐题保存 route、逐次 retrieval/generation/verification、packing、retry branch、end-to-end、provider/model、requested/actual backend、cache status、structured `success/failed/not_called`、over-refusal、Claim 支持/保留/移除、unsupported leakage、reason codes 和阶段审计标记。`validate_runtime_trace.py` 只运行两个已知开发机制案例，验证非重试 1/1/1 与重试 2/2/2 调用链，不读取 final/extension。
 
-`validate_evidence_packer.py` 只在 dev/pilot 上执行 Router、Retriever 与确定性打包合同检查；Prompt v2 的 20 次探针只使用脚本内人工合成证据，不读取任何评测题面，且不保存模型正文。Claim-level validator 使用合成数据和已使用的 DEV02 脱敏 smoke，不保存问题、答案、Claim、quote 或 thinking。Streamlit browser smoke 只允许 demo/dev 或人工合成问题，截图不是评测结果。v1 release 文件保留历史值 `authorized_not_executed`，但不可变 revocation record 将其有效状态改为 `revoked_before_execution`；旧授权命令在读取题集前失败。Stage 8.6 pilot 已消费且禁止重跑，v2 release `extension-qwen3-4b-v2-e207cb91` 当前为 `authorized_not_executed`。只有 `scripts/run_extension_evaluation_v2.py` 在精确 release ID 和一次性确认参数下可进入下一阶段；当前尚无 extension 输出或 receipt。
+`validate_evidence_packer.py` 只在 dev/pilot 上执行 Router、Retriever 与确定性打包合同检查；Prompt v2 的 20 次探针只使用脚本内人工合成证据，不读取任何评测题面，且不保存模型正文。Claim-level validator 使用合成数据和已使用的 DEV02 脱敏 smoke，不保存问题、答案、Claim、quote 或 thinking。Streamlit browser smoke 只允许 demo/dev 或人工合成问题，截图不是评测结果。v1 release 文件保留历史值 `authorized_not_executed`，但不可变 revocation record 将其有效状态改为 `revoked_before_execution`；旧授权命令在读取题集前失败。Stage 8.6 pilot 与 Stage 8.7 extension 均已消费且禁止重跑。v2 release `extension-qwen3-4b-v2-e207cb91` 的文件状态仍为 `authorized_not_executed`，有效执行状态为 `completed_once`；后续只允许校验只读结果和填写盲评评分，不得再次调用 runner。

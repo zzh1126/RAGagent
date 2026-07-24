@@ -1,0 +1,560 @@
+{
+  "schema_version": "2.0",
+  "artifact": "extension_blind_method_key",
+  "protocol_version": "v2",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "rows": [
+    {
+      "review_item_id": "X-SH-01-A",
+      "question_id": "X-SH-01",
+      "answer_label": "A",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-SH-01-B",
+      "question_id": "X-SH-01",
+      "answer_label": "B",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-SH-01-C",
+      "question_id": "X-SH-01",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-SH-01-D",
+      "question_id": "X-SH-01",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-SH-02-A",
+      "question_id": "X-SH-02",
+      "answer_label": "A",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-SH-02-B",
+      "question_id": "X-SH-02",
+      "answer_label": "B",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-SH-02-C",
+      "question_id": "X-SH-02",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-SH-02-D",
+      "question_id": "X-SH-02",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-SH-03-A",
+      "question_id": "X-SH-03",
+      "answer_label": "A",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-SH-03-B",
+      "question_id": "X-SH-03",
+      "answer_label": "B",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-SH-03-C",
+      "question_id": "X-SH-03",
+      "answer_label": "C",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-SH-03-D",
+      "question_id": "X-SH-03",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-SH-04-A",
+      "question_id": "X-SH-04",
+      "answer_label": "A",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-SH-04-B",
+      "question_id": "X-SH-04",
+      "answer_label": "B",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-SH-04-C",
+      "question_id": "X-SH-04",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-SH-04-D",
+      "question_id": "X-SH-04",
+      "answer_label": "D",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-MH-01-A",
+      "question_id": "X-MH-01",
+      "answer_label": "A",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-MH-01-B",
+      "question_id": "X-MH-01",
+      "answer_label": "B",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-MH-01-C",
+      "question_id": "X-MH-01",
+      "answer_label": "C",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-MH-01-D",
+      "question_id": "X-MH-01",
+      "answer_label": "D",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-MH-02-A",
+      "question_id": "X-MH-02",
+      "answer_label": "A",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-MH-02-B",
+      "question_id": "X-MH-02",
+      "answer_label": "B",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-MH-02-C",
+      "question_id": "X-MH-02",
+      "answer_label": "C",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-MH-02-D",
+      "question_id": "X-MH-02",
+      "answer_label": "D",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-MH-03-A",
+      "question_id": "X-MH-03",
+      "answer_label": "A",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-MH-03-B",
+      "question_id": "X-MH-03",
+      "answer_label": "B",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-MH-03-C",
+      "question_id": "X-MH-03",
+      "answer_label": "C",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-MH-03-D",
+      "question_id": "X-MH-03",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-MH-04-A",
+      "question_id": "X-MH-04",
+      "answer_label": "A",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-MH-04-B",
+      "question_id": "X-MH-04",
+      "answer_label": "B",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-MH-04-C",
+      "question_id": "X-MH-04",
+      "answer_label": "C",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-MH-04-D",
+      "question_id": "X-MH-04",
+      "answer_label": "D",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-DF-01-A",
+      "question_id": "X-DF-01",
+      "answer_label": "A",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-DF-01-B",
+      "question_id": "X-DF-01",
+      "answer_label": "B",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-DF-01-C",
+      "question_id": "X-DF-01",
+      "answer_label": "C",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-DF-01-D",
+      "question_id": "X-DF-01",
+      "answer_label": "D",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-DF-02-A",
+      "question_id": "X-DF-02",
+      "answer_label": "A",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-DF-02-B",
+      "question_id": "X-DF-02",
+      "answer_label": "B",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-DF-02-C",
+      "question_id": "X-DF-02",
+      "answer_label": "C",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-DF-02-D",
+      "question_id": "X-DF-02",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-DF-03-A",
+      "question_id": "X-DF-03",
+      "answer_label": "A",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-DF-03-B",
+      "question_id": "X-DF-03",
+      "answer_label": "B",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-DF-03-C",
+      "question_id": "X-DF-03",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-DF-03-D",
+      "question_id": "X-DF-03",
+      "answer_label": "D",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-CM-01-A",
+      "question_id": "X-CM-01",
+      "answer_label": "A",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-CM-01-B",
+      "question_id": "X-CM-01",
+      "answer_label": "B",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-CM-01-C",
+      "question_id": "X-CM-01",
+      "answer_label": "C",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-CM-01-D",
+      "question_id": "X-CM-01",
+      "answer_label": "D",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-CM-02-A",
+      "question_id": "X-CM-02",
+      "answer_label": "A",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-CM-02-B",
+      "question_id": "X-CM-02",
+      "answer_label": "B",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-CM-02-C",
+      "question_id": "X-CM-02",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-CM-02-D",
+      "question_id": "X-CM-02",
+      "answer_label": "D",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-CM-03-A",
+      "question_id": "X-CM-03",
+      "answer_label": "A",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-CM-03-B",
+      "question_id": "X-CM-03",
+      "answer_label": "B",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-CM-03-C",
+      "question_id": "X-CM-03",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-CM-03-D",
+      "question_id": "X-CM-03",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-PC-01-A",
+      "question_id": "X-PC-01",
+      "answer_label": "A",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-PC-01-B",
+      "question_id": "X-PC-01",
+      "answer_label": "B",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-PC-01-C",
+      "question_id": "X-PC-01",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-PC-01-D",
+      "question_id": "X-PC-01",
+      "answer_label": "D",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-PC-02-A",
+      "question_id": "X-PC-02",
+      "answer_label": "A",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-PC-02-B",
+      "question_id": "X-PC-02",
+      "answer_label": "B",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-PC-02-C",
+      "question_id": "X-PC-02",
+      "answer_label": "C",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-PC-02-D",
+      "question_id": "X-PC-02",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-PC-03-A",
+      "question_id": "X-PC-03",
+      "answer_label": "A",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-PC-03-B",
+      "question_id": "X-PC-03",
+      "answer_label": "B",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-PC-03-C",
+      "question_id": "X-PC-03",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-PC-03-D",
+      "question_id": "X-PC-03",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-MS-01-A",
+      "question_id": "X-MS-01",
+      "answer_label": "A",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-MS-01-B",
+      "question_id": "X-MS-01",
+      "answer_label": "B",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-MS-01-C",
+      "question_id": "X-MS-01",
+      "answer_label": "C",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-MS-01-D",
+      "question_id": "X-MS-01",
+      "answer_label": "D",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-MS-02-A",
+      "question_id": "X-MS-02",
+      "answer_label": "A",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-MS-02-B",
+      "question_id": "X-MS-02",
+      "answer_label": "B",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-MS-02-C",
+      "question_id": "X-MS-02",
+      "answer_label": "C",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-MS-02-D",
+      "question_id": "X-MS-02",
+      "answer_label": "D",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-NA-01-A",
+      "question_id": "X-NA-01",
+      "answer_label": "A",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-NA-01-B",
+      "question_id": "X-NA-01",
+      "answer_label": "B",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-NA-01-C",
+      "question_id": "X-NA-01",
+      "answer_label": "C",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-NA-01-D",
+      "question_id": "X-NA-01",
+      "answer_label": "D",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-NA-02-A",
+      "question_id": "X-NA-02",
+      "answer_label": "A",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-NA-02-B",
+      "question_id": "X-NA-02",
+      "answer_label": "B",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-NA-02-C",
+      "question_id": "X-NA-02",
+      "answer_label": "C",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-NA-02-D",
+      "question_id": "X-NA-02",
+      "answer_label": "D",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-NA-03-A",
+      "question_id": "X-NA-03",
+      "answer_label": "A",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-NA-03-B",
+      "question_id": "X-NA-03",
+      "answer_label": "B",
+      "method_id": "llm_no_verifier_v2"
+    },
+    {
+      "review_item_id": "X-NA-03-C",
+      "question_id": "X-NA-03",
+      "answer_label": "C",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-NA-03-D",
+      "question_id": "X-NA-03",
+      "answer_label": "D",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-NA-04-A",
+      "question_id": "X-NA-04",
+      "answer_label": "A",
+      "method_id": "llm_strict_v2"
+    },
+    {
+      "review_item_id": "X-NA-04-B",
+      "question_id": "X-NA-04",
+      "answer_label": "B",
+      "method_id": "llm_partial_pass_v2"
+    },
+    {
+      "review_item_id": "X-NA-04-C",
+      "question_id": "X-NA-04",
+      "answer_label": "C",
+      "method_id": "rule_baseline"
+    },
+    {
+      "review_item_id": "X-NA-04-D",
+      "question_id": "X-NA-04",
+      "answer_label": "D",
+      "method_id": "llm_no_verifier_v2"
+    }
+  ]
+}

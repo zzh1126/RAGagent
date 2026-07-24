@@ -13,7 +13,7 @@
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
 | 当前实施范围 | LLM Answer Generator、intent-aware Evidence Packer、Verifier 与规则 fallback 已接线；不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
-| extension holdout | 23 题从未运行；v1 release 已在执行前撤销，v2 release 为 `authorized_not_executed` |
+| extension holdout | v1 release 已在执行前撤销；v2 已完成唯一一次 4 方法 x 23 题运行，effective status 为 `completed_once`，人工盲评待完成 |
 
 ## 前置条件审计
 
@@ -141,3 +141,5 @@ python scripts/smoke_llm_client.py --timeout 180
 阶段 8.4 已完成运行时 trace 与演示可观测性：`FinalResponse` 保存 routing、逐次 retrieval/generation/packing/verification、retry branch 和 end-to-end；GenerationCall 增加 provider/model 与 requested/actual backend。Streamlit 只在 cached workflow 启动时发送固定合成预热，不读取评测题面，问题缓存保持 disabled。pass、partial-pass、refuse 和 Ollama unavailable fallback 均完成桌面/移动 browser smoke。该阶段没有执行完整 dev/pilot/final/extension，也不能据此声称延迟或回答质量已经总体改善。
 
 阶段 8.5 已完成 10 道 dev 的完整工程回归。候选为 10/10 结构成功、0 fallback、9/10 自动决策、2/2 无答案正确拒答、1/8 answerable over-refusal、3/10 retry 和 0 unsupported Claim leakage。DEV02/03/10 返回过滤后的 `partial_pass`；DEV05 因固定六页语料没有 AdaBoost 样本权重机制原文继续拒答。Verifier 只增加大小写、ASCII/Unicode 连字符、弯引号和 `overfit`/`do not generalize` 直接变体的保守规范化，实质改写 quote 的负向测试仍拒绝。Dense Retrieval 不触发，因为唯一剩余错误不是正确 Chunk 未召回。该 dev 已用于调试，不能证明增强优于规则基线；下一步只进入一次 pilot 冻结前回归。
+
+阶段 8.6 的一次性 pilot 已完成并冻结 runtime。Stage 8.7 随后以冻结身份完成唯一一次 extension：23 题 x 4 方法，共 92 次 QA 调用。自动 Decision Accuracy 为 Rule 21/23、LLM Strict 7/23、LLM No Verifier 19/23、LLM Partial-pass 16/23；Partial-pass 的 answerable over-refusal 为 5/19，Strict 为 16/19，Partial-pass 的 unsupported Claim leakage 为 0/27。No Verifier 误接受全部 4 道无答案题并泄漏 25/25 unsupported Claims，说明 Verifier 的证据边界仍有必要。该结果不表示 LLM 优于 Rule Baseline，也不表示答案已经经人工确认；92 行匿名 A/B/C/D 盲评表尚待评分，冻结实现不得因这些 holdout 观察改变。
