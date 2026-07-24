@@ -264,6 +264,9 @@ def expected_literals() -> dict[str, str]:
         / "extension_v2"
         / "blind_review_user_confirmation_manifest.json"
     )
+    extension_figures = read_json(
+        PROJECT_ROOT / "reports" / "figures" / "extension_v2" / "figure_manifest.json"
+    )
 
     kb = stats["knowledge_base"]
     graph = stats["graph"]
@@ -273,6 +276,7 @@ def expected_literals() -> dict[str, str]:
     llm_summary = llm_probe["summary"]
     partial_metrics = extension_metrics["metrics"]["llm_partial_pass_v2"]
     extension_human = extension_human_metrics["methods"]
+    extension_categories = extension_figures["category_correctness"]
 
     return {
         "S01 knowledge-base scale": (
@@ -421,6 +425,19 @@ def expected_literals() -> dict[str, str]:
         "S52 extension Strict readability denominator": (
             "Strict 的 Faithfulness 和 Readability 只基于 "
             f"{extension_human['llm_strict_v2']['readability']['denominator']} 条实质答案"
+        ),
+        "S53 extension quality figure": "(figures/extension_v2/extension_answer_quality.png)",
+        "S54 extension safety figure": "(figures/extension_v2/extension_safety_tradeoff.png)",
+        "S55 extension category figure": "(figures/extension_v2/extension_category_correctness.png)",
+        "S56 extension latency figure": "(figures/extension_v2/extension_latency_log.png)",
+        "S57 extension metric-selection category values": (
+            "指标选择是 Rule 和 Partial-pass 的共同短板，二者分别为 "
+            f"{extension_categories['rule_baseline']['metric_selection']:.4f} 和 "
+            f"{extension_categories['llm_partial_pass_v2']['metric_selection']:.0f}"
+        ),
+        "S58 extension category sample-size disclosure": "每类只有 2 至 4 题",
+        "S59 extension figure validator command": (
+            "python scripts/generate_extension_figures.py --check"
         ),
     }
 

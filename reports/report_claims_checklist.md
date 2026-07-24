@@ -111,6 +111,10 @@
 | C43 | No Verifier hallucination 为 6/22；Rule、Strict、Partial-pass 分别为 0/21、0/3、0/16，零观察不能推广为不会幻觉 | 已核验 |
 | C44 | Partial-pass 用户确认 over-refusal 为 5/19，相对 Strict 的 16/19 改善，但 Correctness 未超过 Rule | 已核验 |
 | C45 | Readability 为 Rule 3.56 (n=18)、Strict 5.00 (n=3)、No Verifier 4.32 (n=19)、Partial-pass 3.73 (n=15)，必须披露分母 | 已核验 |
+| C46 | Extension 四张图只读取两份 `user_confirmed` 结果，manifest 绑定输入、生成器和图片 SHA-256 | 已核验 |
+| C47 | 分题型 Correctness 是 0/1/2 用户确认分数的归一化均值；每类仅 2～4 题，只用于描述性定位 | 已核验 |
+| C48 | 指标选择题中 Rule/Partial-pass 为 0.2500/0；无答案题中 Strict/Rule/Partial-pass/No Verifier 为 1.0000/0.7500/0.7500/0.3750 | 已核验 |
+| C49 | 对数延迟图必须说明单机本地运行和对数坐标，不能推广为跨硬件基准 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -159,6 +163,7 @@ python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release_v2.py --check-runtime-model
 python scripts/validate_extension_results_v2.py
 python scripts/validate_extension_blind_confirmation.py
+python scripts/generate_extension_figures.py --check
 python scripts/freeze_baseline.py --verify
 ```
 

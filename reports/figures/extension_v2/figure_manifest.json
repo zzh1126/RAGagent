@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "artifact": "extension_user_confirmed_figures",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "review_status": "user_confirmed",
+  "question_count": 23,
+  "review_row_count": 92,
+  "method_order": [
+    "rule_baseline",
+    "llm_strict_v2",
+    "llm_no_verifier_v2",
+    "llm_partial_pass_v2"
+  ],
+  "category_question_counts": {
+    "single_hop": 4,
+    "multi_hop": 4,
+    "definition": 3,
+    "comparison": 3,
+    "principle_pros_cons": 3,
+    "metric_selection": 2,
+    "no_answer": 4
+  },
+  "category_correctness": {
+    "rule_baseline": {
+      "single_hop": 0.75,
+      "multi_hop": 0.5,
+      "definition": 0.8333333333333334,
+      "comparison": 0.3333333333333333,
+      "principle_pros_cons": 0.5,
+      "metric_selection": 0.25,
+      "no_answer": 0.75
+    },
+    "llm_strict_v2": {
+      "single_hop": 0.5,
+      "multi_hop": 0.0,
+      "definition": 0.3333333333333333,
+      "comparison": 0.0,
+      "principle_pros_cons": 0.0,
+      "metric_selection": 0.0,
+      "no_answer": 1.0
+    },
+    "llm_no_verifier_v2": {
+      "single_hop": 1.0,
+      "multi_hop": 0.875,
+      "definition": 1.0,
+      "comparison": 1.0,
+      "principle_pros_cons": 0.6666666666666666,
+      "metric_selection": 0.5,
+      "no_answer": 0.375
+    },
+    "llm_partial_pass_v2": {
+      "single_hop": 0.625,
+      "multi_hop": 0.5,
+      "definition": 0.8333333333333334,
+      "comparison": 0.5,
+      "principle_pros_cons": 0.16666666666666666,
+      "metric_selection": 0.0,
+      "no_answer": 0.75
+    }
+  },
+  "sources": {
+    "reports/extension_v2/combined_metrics_user_confirmed.json": "78b6f2c08af0d837359f6f4af2d9297de86f94bfabd4e2cac60aec1e14503ce7",
+    "reports/extension_v2/blind_review_unblinded_user_confirmed.csv": "910e8e7c05d4aa60488407ccf2632562a04b68608fd2435f735a386f80fc47e0"
+  },
+  "generator": {
+    "path": "scripts/generate_extension_figures.py",
+    "sha256": "6a90fc03d2af226b91bb5430226267f93746a740c5d70b92c76d9db4f2678099"
+  },
+  "figures": {
+    "extension_answer_quality.png": {
+      "sha256": "495f7d95de8d9c7af8d565a40d69622931e6afe618102c6d3eef55fcb1ef9790",
+      "dimensions_px": [
+        1605,
+        1108
+      ],
+      "purpose": "User-confirmed answer correctness and evidence faithfulness with effective sample sizes."
+    },
+    "extension_safety_tradeoff.png": {
+      "sha256": "bea7c342eb45ad6787b0446bee8d286cca91c69ed9c5970bc6c391cdcbc9ddd6",
+      "dimensions_px": [
+        1440,
+        1010
+      ],
+      "purpose": "Observed hallucination versus over-refusal, with method-specific denominators."
+    },
+    "extension_latency_log.png": {
+      "sha256": "dbe330536b2070c1cb099451c7387bb4bd7f5b734bbf9b667b58d37875ac5e61",
+      "dimensions_px": [
+        1470,
+        948
+      ],
+      "purpose": "Mean end-to-end latency on a log scale for the rule and three LLM methods."
+    },
+    "extension_category_correctness.png": {
+      "sha256": "184a993f38807f4266d80b08b1bdb2483ceb19a671a9c8df101e323ffd5792ff",
+      "dimensions_px": [
+        2080,
+        907
+      ],
+      "purpose": "User-confirmed normalized correctness by method and question category."
+    }
+  },
+  "limitations": [
+    "The extension contains 23 questions, including four no-answer questions.",
+    "Scores are Codex-assisted and user-confirmed, not independent double annotation.",
+    "Faithfulness and hallucination exclude refusals, so method denominators differ.",
+    "Comparisons are descriptive and do not establish statistical significance."
+  ]
+}

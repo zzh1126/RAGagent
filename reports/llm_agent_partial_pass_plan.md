@@ -7,11 +7,11 @@
 | 评测日期 | 2026-07-23 |
 | 当前分支 | `experiment/llm-agent-v2` |
 | 阶段 8.0 完成提交 | `7fbf566` |
-| 计划状态 | 阶段 8.0～8.8 用户确认盲评已完成，进入图表、误差分析与报告定稿 |
+| 计划状态 | 阶段 8.0～8.8c 已完成用户确认盲评、图表、类别误差分析与报告同步 |
 | 历史 v1 release | `extension-qwen3-4b-v1-bdedf7dc`，有效状态为 `revoked_before_execution`，从未运行 |
 | 当前 v2 release | `extension-qwen3-4b-v2-e207cb91`；文件状态 `authorized_not_executed`，有效执行状态 `completed_once` |
 | Stage 8.7 结果 | 4 方法 x 23 题，92 次 QA 调用，receipt/哈希/匿名盲评表已生成 |
-| 当前边界 | 不运行 final/extension，不改冻结 runtime；只填写盲评并进行只读汇总 |
+| 当前边界 | 不运行 final/extension，不改冻结 runtime；只整理最终 DOCX、PPT 与演示材料 |
 
 ## 一、总体结论
 
@@ -415,7 +415,7 @@ v1 release 已在任何 extension 输出出现前撤销。Evidence Packer、Prom
 - 更新科研报告、事实声明清单和答辩材料；
 - 只陈述数据支持的结论。
 
-当前完成结果：92 行 Codex 辅助初评已经用户审核确认，确认后才解盲。Partial-pass 的 Correctness 0.5217、Faithfulness 0.9375、Hallucination 0.0000、Over-refusal 0.2632、Readability 3.73；Strict 为 0.3043/1.0000/0.0000/0.8421/5.00，但 Readability 只基于 3 条实质答案；No Verifier 为 0.7826/0.8182/0.2727/0.0000/4.32。结果支持“Partial-pass 缓解 Strict 过度拒答并保持证据边界”，不支持“Partial-pass 全面提高正确性”。图表和最终材料仍待完成。
+当前完成结果：92 行 Codex 辅助初评已经用户审核确认，确认后才解盲。Partial-pass 的 Correctness 0.5217、Faithfulness 0.9375、Hallucination 0.0000、Over-refusal 0.2632、Readability 3.73；Strict 为 0.3043/1.0000/0.0000/0.8421/5.00，但 Readability 只基于 3 条实质答案；No Verifier 为 0.7826/0.8182/0.2727/0.0000/4.32。结果支持“Partial-pass 缓解 Strict 过度拒答并保持证据边界”，不支持“Partial-pass 全面提高正确性”。4 张 extension 图、哈希 manifest、类别/典型错误分析和科研报告同步已经完成，最终 DOCX、PPT 与演示材料仍待完成。
 
 ## 九、Dense Retrieval 触发条件
 
@@ -463,4 +463,4 @@ PROGRESS.md
 
 **No-Go：** LLM Planner、多 Agent、知识库扩充、自动图谱抽取、完整 Microsoft GraphRAG 和框架迁移。
 
-阶段 8.6 已在 `e207cb9` 上完成唯一一次 40 题 pilot，预声明 gate 为 `go`；v2 runtime、依赖、模型 digest、implementation manifest 和 release 已冻结。Stage 8.7 随后完成唯一一次 4 方法 x 23 题 extension，release 文件保留 `authorized_not_executed`，有效执行状态为 `completed_once`。Stage 8.8 用户确认盲评与解盲汇总也已完成。pilot 和 extension 均已消费，不能重跑或继续调参。下一步只做图表、误差分析和最终材料。
+阶段 8.6 已在 `e207cb9` 上完成唯一一次 40 题 pilot，预声明 gate 为 `go`；v2 runtime、依赖、模型 digest、implementation manifest 和 release 已冻结。Stage 8.7 随后完成唯一一次 4 方法 x 23 题 extension，release 文件保留 `authorized_not_executed`，有效执行状态为 `completed_once`。Stage 8.8 用户确认盲评、解盲汇总、图表和类别误差分析均已完成。pilot 和 extension 均已消费，不能重跑或继续调参。下一步只做最终 DOCX、PPT 与演示材料。

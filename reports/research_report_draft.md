@@ -6,7 +6,7 @@
 > - 项目路径：`E:\RAGagent`
 > - 基线版本：`v1.0-baseline`
 > - 当前实验分支：`experiment/llm-agent-v2`
-> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、intent-aware Evidence Packer、原子 Claim Prompt v2、Verifier 与规则 fallback；v1 extension release 已在执行前撤销，v2 四方法 extension 与用户确认盲评均已完成。
+> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、intent-aware Evidence Packer、原子 Claim Prompt v2、Verifier 与规则 fallback；v1 extension release 已在执行前撤销，v2 四方法 extension、用户确认盲评、结果图表和类别误差分析均已完成。
 
 ## 摘要
 
@@ -354,7 +354,7 @@ Stage 8.7 自动实验完成 92 次 QA 调用：冻结的 23 道 extension 题�
 
 ## 6.5 工程测试
 
-当前全量测试为 `116 passed`，覆盖 GraphRepository、Vector/Graph Retriever、Evidence Packer、Prompt v2/wire Schema、LLM Generator/fallback、Claim-level Verifier、strict/partial-pass 状态机、LangGraph 工作流、评测集隔离、extension 治理、实验配置和实验运行器。定向测试覆盖第 5 条 Claim、缺 E ID、缺 quote、E/P/R 混填、非逐字 quote、多事实 Claim、逐 Claim reason codes、retained/removed 过滤、Schema 汇总一致性、错误前提、零支持重试和 partial 无泄漏；`pip check` 无依赖冲突，100 条 approved 图关系的证据回指校验通过。
+当前全量测试为 `140 passed`，覆盖 GraphRepository、Vector/Graph Retriever、Evidence Packer、Prompt v2/wire Schema、LLM Generator/fallback、Claim-level Verifier、strict/partial-pass 状态机、LangGraph 工作流、评测集隔离、extension 治理、实验配置、实验运行器和用户确认图表重算。定向测试覆盖第 5 条 Claim、缺 E ID、缺 quote、E/P/R 混填、非逐字 quote、多事实 Claim、逐 Claim reason codes、retained/removed 过滤、Schema 汇总一致性、错误前提、零支持重试、partial 无泄漏及 92 行类别指标重算；`pip check` 无依赖冲突，100 条 approved 图关系的证据回指校验通过。
 
 ## 6.6 运行命令
 
@@ -497,6 +497,8 @@ $$
 
 ## 7.10 v2 Extension 用户确认结果
 
+### 7.10.1 总体质量与安全权衡
+
 | 方法 | 自动决策准确率 | Correctness | Faithfulness | Hallucination | Over-refusal | Readability | 平均端到端延迟 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Rule Baseline | 0.9130 | 0.5870 | 0.8810 | 0/21 | 0/19 | 3.56 (n=18) | 5.46 ms |
@@ -506,7 +508,27 @@ $$
 
 92 行匿名评分先由 Codex 辅助生成，再由用户审核确认；method key 只在确认后读取。该流程不是独立双人标注，也没有标注者一致性统计。Correctness 和 Faithfulness 归一化到 0-1，Readability 为 1-5 原始均值。拒答不进入 Faithfulness、Hallucination 和 Readability 分母，因此不能忽略括号中的有效样本数。
 
-本轮没有出现单一方法在所有维度领先。Strict 具有最高 Faithfulness，但以 16/19 over-refusal 和最低 Correctness 为代价。No Verifier 具有最高 Correctness 和较高 Readability，同时出现 6/22 hallucination 且 4 道无答案题全部未拒答。Partial-pass 位于两者之间：相较 Strict 大幅降低过度拒答并保持零观察 hallucination，但 Correctness 仍低于 Rule Baseline。该结果回答了研究问题中的机制权衡，不支持“LLM 或 Partial-pass 全面优于规则基线”的结论。
+![图 7-5 Extension 用户确认 Correctness 与 Faithfulness](figures/extension_v2/extension_answer_quality.png)
+
+本轮没有出现单一方法在所有维度领先。Strict 具有最高 Faithfulness，但以 16/19 over-refusal 和最低 Correctness 为代价。No Verifier 具有最高 Correctness 和较高 Readability，同时出现 6/22 hallucination 且 4 道无答案题全部未拒答。Partial-pass 位于两者之间：相较 Strict 大幅降低过度拒答并保持零观察 hallucination，但 Correctness 0.5217 低于 Rule Baseline 的 0.5870，因此结果不支持“LLM 或 Partial-pass 全面优于规则基线”的结论。
+
+![图 7-6 Extension Hallucination 与 Over-refusal 权衡](figures/extension_v2/extension_safety_tradeoff.png)
+
+图 7-6 的左下角代表较低的过度拒答与较低的观察幻觉率。Rule 位于左下角，但总体 Correctness 只有 0.5870；Strict 的观察 hallucination 为 0/3，却位于高过度拒答区域；No Verifier 没有过度拒答，却有 6/22 hallucination；Partial-pass 的位置表明它改善了 Strict 的覆盖率并维持零观察 hallucination，但仍未达到 Rule 的 Correctness。由于各方法 hallucination 分母不同，该图只能用于展示描述性权衡。
+
+### 7.10.2 分题型与典型错误
+
+![图 7-7 Extension 各题型用户确认 Correctness](figures/extension_v2/extension_category_correctness.png)
+
+类别重算显示，定义题对 Rule、No Verifier 和 Partial-pass 相对稳定；多跳题的主要错误是只覆盖路径或双重要求的一部分；指标选择是 Rule 和 Partial-pass 的共同短板，二者分别为 0.2500 和 0；无答案题则直接体现验证强度差异，Strict、Rule、Partial-pass 和 No Verifier 分别为 1.0000、0.7500、0.7500 和 0.3750。每类只有 2 至 4 题，这些数值用于定位错误，不用于主张稳定的类别排名。
+
+逐题复核进一步定位出四类典型错误：Rule 常返回正确但不响应问题动作的相关事实；Strict 在 16 道可回答题上整题拒答；No Verifier 在 `X-MH-03`、`X-MH-04`、`X-PC-01`、`X-PC-02`、`X-MS-01` 和 `X-NA-02` 六条实质答案中出现不受直接证据支持的专业事实；Partial-pass 能删除这些不支持 Claim，但在多跳、原理与指标选择题上常只留下不完整答案，并对 5 道可回答题过度拒答。完整逐题依据与未来改进优先级见 `reports/extension_v2/category_error_analysis_user_confirmed.md`。
+
+### 7.10.3 延迟
+
+![图 7-8 Extension 四方法平均端到端延迟（对数坐标）](figures/extension_v2/extension_latency_log.png)
+
+Rule 的平均端到端延迟为 5.46 ms，三个 LLM 方法为 5.21 至 11.89 s。Strict 最慢，原因之一是其 41 次 generation attempts 和重试路径；Partial-pass 的 30 次 generation attempts 也使平均延迟高于 No Verifier。图 7-8 使用对数坐标以同时显示毫秒级规则路径和秒级 LLM 路径；这些数字来自同一台本地机器的一次受控运行，不代表跨硬件性能。
 
 ## 7.11 有效性威胁
 
@@ -515,6 +537,7 @@ $$
 - 语义评分由 Codex 辅助生成并经用户确认，但未进行独立双人标注或一致性统计；
 - gold Chunk 由图关系保守推导，仅覆盖部分题；
 - extension 人工指标来自 Codex 辅助初评后的用户单一确认，不是独立双人标注；各方法 Faithfulness、Hallucination 和 Readability 分母因拒答数量不同；
+- extension 每个题型只有 2 至 4 题，类别热图仅用于描述性定位，不能建立稳定的题型优劣排序；
 - 延迟为单机本地服务结果；Stage 8.4 已拆分预热与问题阶段，但尚无完整 dev 的 cold/warm 统计图或跨硬件基准；
 - 知识库仅包含六页文档，结论不应泛化到完整 scikit-learn。
 
@@ -539,7 +562,7 @@ $$
 ## 8.3 后续工作
 
 - 保持 Stage 8.6 冻结的配置，不重跑 pilot 或依据逐题结果调参；
-- 生成 extension 用户确认指标图表、类别误差分析和答辩摘要；
+- 将已确认的 extension 图表、类别误差分析和答辩摘要转入最终 DOCX 与答辩 PPT；
 - 完善属性级问题对齐和错误前提验证；
 - 改进多目标实体和多跳路径覆盖；
 - 汇总完整 dev/pilot 的冷启动、热启动和分阶段延迟统计图；
@@ -595,6 +618,7 @@ python scripts/validate_extension_blind_confirmation.py
 python scripts/validate_experiments.py
 python scripts/validate_report_claims.py
 python scripts/generate_report_figures.py --check
+python scripts/generate_extension_figures.py --check
 python scripts/freeze_baseline.py --verify
 python scripts/smoke_llm_client.py --timeout 180
 pytest -q
@@ -618,5 +642,6 @@ python scripts/validate_scoring.py
 - [x] 实现完整运行时 trace、CLI/评测接线、合成预热和 Streamlit 四路径桌面/移动 smoke；
 - [x] 使用专用 runner 执行一次 extension，并完成 92 行用户确认盲评、确认后解盲和四方法指标汇总；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
+- [x] 已生成 4 张 extension 用户确认结果图、哈希 manifest 和类别/典型错误分析；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；
 - [ ] 制作答辩 PPT、演示脚本和录屏。

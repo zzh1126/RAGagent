@@ -9,14 +9,14 @@
 | 工作区 | `E:\RAGagent` |
 | GitHub | `https://github.com/zzh1126/RAGagent.git` |
 | 当前分支 | `experiment/llm-agent-v2` |
-| 本文审计基线 | 阶段 8.3 完成状态 |
-| 审计日期 | 2026-07-23 |
+| 本文审计基线 | 阶段 8.8c 完成状态 |
+| 审计日期 | 2026-07-24 |
 | v1.0 标签 | `v1.0-baseline` |
 | 当前工作流引擎 | LangGraph `1.0.10` |
 | 当前默认图后端 | NetworkX `3.3` |
 | 当前默认生成器 | Ollama `qwen3:4b`，失败时回退规则生成器 |
 | 正式基线状态 | v1.0 规则基线已冻结、可复验 |
-| LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；Stage 8.7 四方法实验和 Stage 8.8 用户确认盲评均已完成 |
+| LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；Stage 8.7 四方法实验、Stage 8.8 用户确认盲评及 8.8c 图表误差分析均已完成 |
 | extension 状态 | 23 题已按 v2 合同执行且只执行一次；v1 有效状态为 `revoked_before_execution`；v2 有效执行状态为 `completed_once` |
 
 事实优先级如下：
@@ -1042,7 +1042,7 @@ reports/                     结果、图、评分、报告、截图和 release 
 PROGRESS.md                  按阶段追加的唯一进度日志
 ```
 
-当前代码规模约为：`src` 42 个 Python 文件/5211 行，`scripts` 41 个/6301 行，`tests` 17 个/2538 行，Streamlit 1 个/307 行。
+当前代码规模约为：`src` 45 个 Python 文件/6418 行，`scripts` 51 个/8782 行，`tests` 23 个/3184 行，Streamlit 1 个/307 行。
 
 ## 27. 主要脚本索引
 
@@ -1067,6 +1067,7 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 | 评分 | `validate_extension_blind_confirmation.py` | 重算用户确认指标、分数签名和输出哈希 |
 | 评分 | `summarize_scored_experiments.py` | 汇总人工指标 |
 | 图表 | `generate_report_figures.py` | 生成并校验 5 张报告图 |
+| 图表 | `generate_extension_figures.py` | 从用户确认结果生成并校验 4 张 extension 图与类别指标 |
 | LLM | `check_enhancement_readiness.py` | 检查 Ollama 和 Dense 模型条件 |
 | LLM | `probe_llm_structured.py` | 批量结构化 Schema/语义探针 |
 | LLM | `smoke_llm_client.py` | 统一 Client 合成 smoke |
@@ -1095,7 +1096,7 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 - 数据集泄漏和 split 护栏；
 - extension release、不可覆盖输出、哈希和一次性执行保护。
 
-Stage 8.8 用户确认汇总后的全量测试结果为 `138 passed`；Claim-level、extension 结果、release、holdout、盲评确认与报告声明校验均已通过，`python scripts/validate_runtime_trace.py` 继续通过。浏览器 smoke 仍覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
+Stage 8.8c 图表与类别误差分析后的全量测试结果为 `140 passed`；Claim-level、extension 结果、release、holdout、盲评确认、图表哈希与报告声明校验均已通过，`python scripts/validate_runtime_trace.py` 继续通过。浏览器 smoke 仍覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
 
 ## 29. 可复现性与安全设计
 
@@ -1220,12 +1221,13 @@ Stage 8.7 已按冻结 v2 release 执行且只执行一次：23 题、4 方法�
 
 ### Q20：下一步是什么？
 
-v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结、Stage 8.7 extension 和 Stage 8.8 用户确认盲评均已完成。下一步生成 extension 图表、类别/错误分析并定稿报告与答辩材料；仍禁止重跑 final/extension、结果覆盖和 holdout 后调参。
+v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结、Stage 8.7 extension、Stage 8.8 用户确认盲评及 8.8c 图表误差分析均已完成。下一步只整理最终 DOCX、PPT 与演示材料；仍禁止重跑 final/extension、结果覆盖和 holdout 后调参。
 
 ## 32. 关联文档
 
 - `PROJECT_GAPS_AND_ROADMAP.md`：不足、修复办法、优先级和暂缓项；
 - `reports/llm_agent_partial_pass_plan.md`：Partial-pass v2 的详细执行合同；
+- `reports/extension_v2/category_error_analysis_user_confirmed.md`：用户确认的类别指标、典型错误和答辩结论；
 - `PROGRESS.md`：每个阶段的实际完成记录；
 - `reports/research_report_draft.md`：科研报告初稿；
 - `reports/technical_enhancement_decision.md`：LLM/Dense 前置审计；

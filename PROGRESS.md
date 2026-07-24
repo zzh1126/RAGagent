@@ -3124,3 +3124,81 @@ git diff --check                                    -> pass
 ```
 
 下一阶段只生成 extension 图表、类别/典型错误分析并继续定稿报告和答辩材料；不重跑 extension，不根据用户确认结果修改冻结 runtime。两份外部删除的 DOCX 继续保持未暂存状态。
+
+## 2026-07-24 阶段 8.8c：Extension 图表、类别误差分析与报告同步
+
+### 执行边界
+
+- 用户明确同意继续 Stage 8.8c；
+- 本阶段只读取 `combined_metrics_user_confirmed.json` 与 `blind_review_unblinded_user_confirmed.csv` 两份用户确认产物；
+- 未读取或调用 QA runtime，不运行 `run_extension_evaluation_v2.py`，没有重跑 extension、pilot 或 final；
+- 未修改 `src/**`、`config/settings.yaml`、Prompt、Packer、Verifier、路由、知识库、图谱、题集、release、receipt 或 Stage 8.7 不可变输出；
+- 当前本机仍未安装 `qwen3:4b`，图表与报告工作不需要恢复模型；release 校验未使用 `--check-runtime-model`；
+- 两份用户删除的 DOCX 继续保持未暂存、未修改、未提交。
+
+### 图表生成与可审计性
+
+- 新增 `scripts/generate_extension_figures.py`，独立于历史 `generate_report_figures.py`；
+- 生成前校验 artifact、`user_confirmed` 状态、固定四方法顺序、23 题、92 个唯一 review item、每题四方法覆盖、题型/expected behavior 一致性；
+- 从 CSV 重新计算 Correctness、Faithfulness、Hallucination、Over-refusal 和 Readability，并与确认后的聚合 JSON 对账；
+- 新增 `reports/figures/extension_v2/figure_manifest.json`，绑定 release、输入 SHA-256、生成器 SHA-256、类别聚合、图片尺寸和图片 SHA-256；
+- `--check` 模式只读验证输入哈希、生成器哈希、图集、尺寸和输出哈希；
+- 新增 `tests/test_extension_figures.py`，覆盖 manifest 当前性、23/92 合同和关键类别数值重算。
+
+新增 4 张静态 PNG：
+
+| 图 | 内容 | SHA-256 |
+| --- | --- | --- |
+| `extension_answer_quality.png` | Correctness/Faithfulness 与有效样本数 | `495f7d95de8d9c7af8d565a40d69622931e6afe618102c6d3eef55fcb1ef9790` |
+| `extension_safety_tradeoff.png` | Hallucination 与 Over-refusal 权衡 | `bea7c342eb45ad6787b0446bee8d286cca91c69ed9c5970bc6c391cdcbc9ddd6` |
+| `extension_latency_log.png` | 四方法平均端到端延迟，对数坐标 | `dbe330536b2070c1cb099451c7387bb4bd7f5b734bbf9b667b58d37875ac5e61` |
+| `extension_category_correctness.png` | 四方法分题型用户确认 Correctness | `184a993f38807f4266d80b08b1bdb2483ceb19a671a9c8df101e323ffd5792ff` |
+
+四张图已逐张进行原始分辨率视觉检查，未发现标签裁切、文字重叠或坐标含义不清；质量图明确显示 Faithfulness 有效样本数，安全图显示各方法分母，延迟图明确使用对数坐标，类别图标出每类题数。
+
+### 类别与典型错误分析
+
+- 新增 `reports/extension_v2/category_error_analysis_user_confirmed.md`；
+- 分题型 Correctness 由确认后的 0/1/2 分数归一化重算：
+
+| 方法 | 单跳 | 多跳 | 定义 | 对比 | 原理/优缺点 | 指标选择 | 无答案 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Rule Baseline | 0.7500 | 0.5000 | 0.8333 | 0.3333 | 0.5000 | 0.2500 | 0.7500 |
+| LLM Strict v2 | 0.5000 | 0.0000 | 0.3333 | 0.0000 | 0.0000 | 0.0000 | 1.0000 |
+| LLM No Verifier v2 | 1.0000 | 0.8750 | 1.0000 | 1.0000 | 0.6667 | 0.5000 | 0.3750 |
+| LLM Partial-pass v2 | 0.6250 | 0.5000 | 0.8333 | 0.5000 | 0.1667 | 0.0000 | 0.7500 |
+
+- 每类只有 2～4 题，以上结果只用于描述性定位，不主张统计显著性或稳定类别排名；
+- Rule 的主要错误是返回相关但未响应问题动作的事实，以及多跳/双要求覆盖不完整；
+- Strict 的主要错误是 16/19 可回答题过度拒答，其 Faithfulness 1.0000 只来自 3 条实质答案；
+- No Verifier 在 6/22 实质答案中出现不受直接证据支持的专业事实，涉及 `X-MH-03`、`X-MH-04`、`X-PC-01`、`X-PC-02`、`X-MS-01`、`X-NA-02`；
+- Partial-pass 保持 0/16 观察 hallucination，但仍有 5/19 过度拒答，且常在过滤后留下不完整的多跳、原理或指标答案；
+- 未来优先项为 required-aspect 覆盖、属性存在性/错误前提验证、指标选择证据配额和独立双人评分；这些不回写本次 extension。
+
+### 报告与交接文档同步
+
+- `reports/research_report_draft.md` 新增 7.10.1～7.10.3，将四张图、类别结果、典型错误和延迟解释纳入正文；
+- 报告明确 Partial-pass Correctness `0.5217` 低于 Rule `0.5870`，不支持全面优于结论；
+- 报告新增类别样本量、不同有效分母、单机延迟和描述性分析限制；
+- `scripts/validate_report_claims.py` 增至 59 项来源检查，校验四张图路径、类别数值、样本量披露和复现命令；
+- 同步 `reports/report_claims_checklist.md`、`reports/llm_agent_partial_pass_plan.md`、`PROJECT_GAPS_AND_ROADMAP.md` 与 `PROJECT_HANDBOOK.md`；
+- 已从待办中移除“生成 extension 图表与类别分析”，后续只剩最终 DOCX、PPT 和演示材料。
+
+### 最终验证
+
+```text
+pytest -q                                               -> 140 passed
+python scripts/generate_extension_figures.py --check    -> 4 figures + manifest current
+python scripts/generate_report_figures.py --check       -> 5 historical figures current
+python scripts/validate_extension_results_v2.py         -> completed_once; 23 x 4; 92 invocations
+python scripts/validate_extension_blind_preliminary.py  -> 92 rows; identity hidden
+python scripts/validate_extension_blind_confirmation.py -> 92 rows; user_confirmed; signature unchanged
+python scripts/validate_extension_release_v2.py         -> frozen release/runtime identity valid
+python scripts/validate_extension_holdout.py            -> v1 revoked; v2 completed_once; holdout valid
+python scripts/validate_report_claims.py                 -> 59 source; 26 required; 24 forbidden
+git diff --check                                         -> pass
+```
+
+### 当前状态与下一步
+
+Stage 8.8c 已完成。Extension 图表、类别/典型错误分析、科研报告正文、事实清单、项目手册和路线图现在使用同一组用户确认指标，并由输入/输出哈希和自动校验保护。下一阶段应在不修改实验结果的前提下，将 Markdown 报告排版为最终 DOCX，再制作口径一致的答辩 PPT 与演示脚本。

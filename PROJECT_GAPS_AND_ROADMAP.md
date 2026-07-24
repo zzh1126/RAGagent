@@ -743,9 +743,9 @@ Pilot 已观察到：
 
 已使用 `extension-qwen3-4b-v2-e207cb91` 完成唯一一次 4 方法 x 23 题运行，共 92 次 QA 调用。state 为 `completed`，receipt 的有效执行状态为 `completed_once`，全部输出哈希、匿名 A/B/C/D 盲评表和独立 method key 均已校验。自动 Decision Accuracy 为 Rule 21/23、LLM Strict 7/23、LLM No Verifier 19/23、LLM Partial-pass 16/23；Partial-pass 将 Strict 的 answerable over-refusal 从 16/19 降到 5/19，unsupported Claim leakage 为 0/27，但仍误接受 2/4 无答案题，且未超过 Rule Baseline。不得重跑、覆盖或根据 holdout 结果修改冻结 runtime。
 
-### 阶段 8.8：评分、报告与答辩
+### 阶段 8.8：评分、报告与答辩（图表与分析已完成）
 
-92 行 Codex 辅助盲评分数已由用户审核确认，评分锁定后才读取 method key 解盲。Partial-pass 的 Correctness/Faithfulness/Hallucination/Over-refusal/Readability 为 `0.5217/0.9375/0.0000/0.2632/3.73`；它相对 Strict 缓解过度拒答并保持零观察幻觉，但正确性未超过 Rule Baseline。No Verifier 的 Correctness 最高 (`0.7826`)，同时有 `6/22` hallucination，不能作为安全方案。下一步生成图表、类别与错误分析、DOCX、PPT 和演示材料。
+92 行 Codex 辅助盲评分数已由用户审核确认，评分锁定后才读取 method key 解盲。Partial-pass 的 Correctness/Faithfulness/Hallucination/Over-refusal/Readability 为 `0.5217/0.9375/0.0000/0.2632/3.73`；它相对 Strict 缓解过度拒答并保持零观察幻觉，但正确性未超过 Rule Baseline。No Verifier 的 Correctness 最高 (`0.7826`)，同时有 `6/22` hallucination，不能作为安全方案。4 张用户确认结果图、哈希 manifest、类别/典型错误分析和科研报告同步已经完成；下一步只整理 DOCX、PPT 和演示材料。
 
 每个阶段单独实现、验证、写入 `PROGRESS.md`、提交 Git，再进入下一阶段。不会一次性跨过全部阶段。
 
@@ -812,16 +812,12 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-阶段 8.0～8.8 用户确认指标汇总已验收。下一步只做结果表达与交付材料：
+阶段 8.0～8.8c 用户确认指标、图表和类别误差分析已验收。下一步只做最终交付材料：
 
 ```text
-生成 extension 自动/人工指标图表
+将当前 Markdown 报告转换并排版为最终 DOCX
     ↓
-完成类别和典型错误分析
-    ↓
-更新报告、答辩材料和事实清单
-    ↓
-最终 DOCX、PPT 和演示脚本保持同一指标口径
+制作 PPT 和演示脚本，并保持同一指标口径
 ```
 
-Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。当前只允许读取用户确认结果生成图表和材料；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。
+Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。当前只允许读取用户确认结果整理最终材料；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。
