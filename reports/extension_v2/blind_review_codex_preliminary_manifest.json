@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "artifact": "extension_blind_preliminary_review",
+  "protocol_version": "v2",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "reviewer": "Codex-assisted preliminary review",
+  "review_status": "preliminary_pending_user_confirmation",
+  "source_blind_review_sha256": "5e8ce394a76dd0ca4e2fd91decf80191f625c7024ea1dc3073301c0ab70a189e",
+  "score_map_sha256": "548a034ba8e787ea3267848e41629e3156af9cd5e83ff7c4f9696d9f30064c6a",
+  "output_sha256": "b53267c456c7d52d6bd25dbd97d72e0bd3a9a8a62314fd9dd11017be224a994f",
+  "question_count": 23,
+  "row_count": 92,
+  "method_identity_read": false,
+  "expected_answer_fields_read": false,
+  "notes": [
+    "Scores are Codex-assisted preliminary judgments.",
+    "A user must confirm or revise every row before unblinding.",
+    "The immutable blind source and method key are not modified."
+  ]
+}

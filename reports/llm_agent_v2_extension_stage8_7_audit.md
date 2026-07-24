@@ -83,6 +83,18 @@ LLM Partial-pass v2 的自动错误：
 
 人工评分状态为 `pending_user_confirmed_single_review`。Answer Correctness、Evidence Faithfulness、Hallucination、Over-refusal 和 Readability 尚无人工结果，不得填造或提前汇总。Stage 8.8 必须先完成可见盲评表，再使用 method key 解盲。
 
+用户随后明确授权 Codex 进行辅助初评。初评严格只读取匿名 `blind_review.csv` 和其中展示的题目/证据，没有读取 method key 或 expected-answer 字段。92 行初评分数、理由、哈希和审核量表保存在：
+
+```text
+reports/extension_v2/blind_review_codex_preliminary_scores.csv
+reports/extension_v2/blind_review_codex_preliminary.csv
+reports/extension_v2/blind_review_codex_preliminary.md
+reports/extension_v2/blind_review_codex_preliminary_manifest.json
+reports/extension_v2/blind_review_rubric.md
+```
+
+初评分数状态为 `preliminary_pending_user_confirmation`，不能视为用户确认的人工结果。用户可修改紧凑 score map 后重新生成和校验匿名输出；确认前不解盲、不按方法汇总、不更新正式报告指标。
+
 ## 7. 不可变产物
 
 | 产物 | SHA-256 |

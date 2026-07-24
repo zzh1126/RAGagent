@@ -3010,3 +3010,49 @@ git diff --check                                -> pass
 ### 当前状态与下一步
 
 Stage 8.7 已完成并提交前待审计。Stage 8.8 的唯一工作是完成 92 行匿名盲评，评分完成后再解盲并汇总人工指标、图表和报告。extension、pilot 和 final 均不得重跑；不得根据 Stage 8.7 逐题结果修改冻结 runtime。两份外部删除的 DOCX 继续保持未暂存状态。
+
+## 2026-07-24 阶段 8.8a：匿名盲评 Codex 辅助初评
+
+### 授权与盲评边界
+
+- 用户明确要求由 Codex 先完成 92 行匿名盲评，之后由用户审核；
+- 初评只读取 `reports/extension_v2/blind_review.csv` 的题目、匿名答案和展示证据；没有读取 `blind_method_key.json`，没有读取 `expected_behavior`、`required_aspects` 或 `forbidden_claims`；
+- 原始 extension 结果、receipt、匿名 CSV 和 method key 均未修改；初评单独写入后缀为 `_codex_preliminary` 的文件；
+- 初评状态固定为 `preliminary_pending_user_confirmation`，不能直接写入正式人工指标或科研结论。
+
+### 初评结果
+
+- 92/92 行完成初评；
+- Correctness 分布：`0=28`、`1=27`、`2=37`；
+- Faithfulness 有效评分 62 行，拒答按合同留空；Hallucination=1 有 6 行；Readability 有效评分 55 行；
+- Over-refusal 初评标记 21 行，但该总数未按方法解盲，也不是最终方法指标；
+- 每行均附有简短初评理由，重点标记了部分回答、引用错位、无答案误接受和证据不足推断等边界。
+
+### 新增产物与校验
+
+- `reports/extension_v2/blind_review_codex_preliminary_scores.csv`：紧凑匿名 score map，供用户审核或修改；
+- `reports/extension_v2/blind_review_codex_preliminary.csv`：合并答案、证据和初评分的只读工作副本；
+- `reports/extension_v2/blind_review_codex_preliminary.md`：按题目和 A/B/C/D 标签排列的可读审核表；
+- `reports/extension_v2/blind_review_codex_preliminary_manifest.json`：源文件、score map 和输出哈希，明确记录 method identity/expected fields 未读取；
+- `reports/extension_v2/blind_review_rubric.md`：五个评分字段的 0-2、0-1 和 1-5 量表及审核步骤；
+- `scripts/build_extension_blind_preliminary.py`：校验 score map 并生成匿名工作副本；
+- `scripts/validate_extension_blind_preliminary.py`：校验 92 行、顺序、分数范围、哈希和身份隐藏；
+- `tests/test_extension_blind_preliminary.py`：3 个盲评产物合同测试。
+
+### 验证与下一步
+
+```text
+python scripts/validate_extension_blind_preliminary.py -> pass; 92 rows; identity hidden
+pytest -q tests/test_extension_blind_preliminary.py    -> 3 passed
+```
+
+下一步等待用户审核或修改 `blind_review_codex_preliminary_scores.csv`。在用户明确确认全部评分前，不运行 method key 解盲，不生成按方法人工指标，不更新正式实验结论。两份外部删除的 DOCX 继续保持未暂存状态。
+
+### 阶段 8.8a 收尾环境核对
+
+- 全量测试：`136 passed`；
+- `python scripts/validate_extension_results_v2.py`：通过，`completed_once`、23 x 4、92 invocations；
+- `python scripts/validate_extension_release_v2.py`：通过，runtime bundle、release 和模型 digest 记录一致；
+- `python scripts/validate_extension_blind_preliminary.py`：通过，92 行、方法身份和 expected 字段保持隐藏；
+- `python scripts/validate_extension_release_v2.py --check-runtime-model`：当前环境未通过，原因是本机 Ollama `0.32.1` 只有 `qwen3-vl:8b`，没有 `qwen3:4b`。这是外部环境缺口，不影响已完成并由 receipt/hash 锁定的 extension 结果；后续 live demo 若需 LLM 调用，必须先恢复该模型；
+- 两份外部删除的 DOCX 继续保持未暂存、未修改、未提交。

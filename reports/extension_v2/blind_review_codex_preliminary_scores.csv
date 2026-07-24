@@ -1,0 +1,93 @@
+review_item_id,answer_correctness,evidence_faithfulness,hallucination,over_refusal,readability,review_notes
+X-SH-01-A,2,2,0,0,5,direct and fully supported
+X-SH-01-B,2,2,0,0,4,correct answer with unnecessary source block
+X-SH-01-C,2,2,0,0,5,direct and fully supported
+X-SH-01-D,2,2,0,0,5,direct and fully supported
+X-SH-02-A,2,2,0,0,4,answers continuous target with unnecessary caveat
+X-SH-02-B,2,2,0,0,4,complete but verbose answer
+X-SH-02-C,2,2,0,0,5,concise and complete
+X-SH-02-D,2,2,0,0,5,concise and complete
+X-SH-03-A,2,2,0,0,5,directly answers feature scaling
+X-SH-03-B,0,,,1,,over-refusal on answerable question
+X-SH-03-C,2,2,0,0,5,directly answers feature scaling
+X-SH-03-D,0,,,1,,over-refusal on answerable question
+X-SH-04-A,0,,,1,,over-refusal on answerable question
+X-SH-04-B,0,2,0,0,,supported but irrelevant definition
+X-SH-04-C,2,2,0,0,4,fully answers feature subsampling with extra details
+X-SH-04-D,1,2,0,0,3,describes bootstrap but misses feature sampling
+X-MH-01-A,2,2,0,0,4,complete relation chain with extra metric details
+X-MH-01-B,0,,,1,,over-refusal on answerable question
+X-MH-01-C,1,1,0,0,3,partial chain with reversed R2 relation wording
+X-MH-01-D,1,2,0,0,4,only supplies the first link of the chain
+X-MH-02-A,0,,,1,,over-refusal on answerable question
+X-MH-02-B,2,2,0,0,4,complete mechanism and variance explanation
+X-MH-02-C,1,2,0,0,3,lists mechanisms but omits variance connection
+X-MH-02-D,1,2,0,0,3,explains variance but incompletely links both mechanisms
+X-MH-03-A,1,1,1,0,3,classification is supported but balanced accuracy claim is unsupported
+X-MH-03-B,1,2,0,0,4,only supplies the classification link
+X-MH-03-C,1,2,0,0,4,only supplies the classification link
+X-MH-03-D,0,,,1,,over-refusal on answerable question
+X-MH-04-A,0,,,1,,over-refusal on answerable question
+X-MH-04-B,2,1,1,0,4,answers both aspects but noise and overfit wording exceeds direct evidence
+X-MH-04-C,1,2,0,0,4,answers the task aspect but omits the noise limitation
+X-MH-04-D,1,2,0,0,4,answers the task aspect but omits the noise limitation
+X-DF-01-A,2,2,0,0,4,correct definition with an unnecessary caveat
+X-DF-01-B,2,1,0,0,4,correct definition but cites unrelated evidence IDs
+X-DF-01-C,0,,,1,,over-refusal on answerable question
+X-DF-01-D,2,2,0,0,5,concise and complete definition
+X-DF-02-A,2,2,0,0,5,complete definition and focus
+X-DF-02-B,1,2,0,0,4,definition is correct but focus is implicit
+X-DF-02-C,1,2,0,0,4,focus is correct but definition is omitted
+X-DF-02-D,0,,,1,,over-refusal on answerable question
+X-DF-03-A,2,2,0,0,5,correct definition
+X-DF-03-B,2,2,0,0,5,correct definition
+X-DF-03-C,2,2,0,0,5,correct definition
+X-DF-03-D,2,1,0,0,4,correct claim but cites unrelated evidence IDs
+X-CM-01-A,0,,,1,,over-refusal on answerable question
+X-CM-01-B,0,,,1,,over-refusal on answerable question
+X-CM-01-C,0,2,0,0,,true RF definition but misses the requested comparison
+X-CM-01-D,2,2,0,0,4,complete variance and interpretability comparison
+X-CM-02-A,2,2,0,0,4,complete task and training comparison
+X-CM-02-B,0,,,1,,over-refusal on answerable question
+X-CM-02-C,2,2,0,0,5,complete task and training comparison
+X-CM-02-D,1,2,0,0,3,partly relevant but omits the requested common requirements
+X-CM-03-A,1,2,0,0,3,answers the accuracy limitation but omits F1
+X-CM-03-B,1,1,0,0,3,mentions metrics but does not explain F1 limitations clearly
+X-CM-03-C,2,2,0,0,5,complete imbalance comparison
+X-CM-03-D,0,,,1,,over-refusal on answerable question
+X-PC-01-A,0,,,1,,over-refusal on answerable question
+X-PC-01-B,0,2,0,0,,supported solver detail but irrelevant to the question
+X-PC-01-C,1,1,1,0,3,regularization point is supported but noise robustness is not direct
+X-PC-01-D,1,2,0,0,3,addresses overfit only and omits noise robustness
+X-PC-02-A,1,1,1,0,3,noise concern is plausible but the weak-learner claim is not directly supported
+X-PC-02-B,1,1,0,0,3,mentions the limitation but does not explain its mechanism
+X-PC-02-C,1,1,0,0,4,states the noise limitation without explaining why
+X-PC-02-D,0,,,1,,over-refusal on answerable question
+X-PC-03-A,1,2,0,0,3,lists scaling cases but does not explain the training mechanism
+X-PC-03-B,0,,,1,,over-refusal on answerable question
+X-PC-03-C,2,2,0,0,5,complete mechanism explanation
+X-PC-03-D,0,,,1,,over-refusal on answerable question
+X-MS-01-A,1,2,0,0,4,defines both metrics but gives no priority recommendation
+X-MS-01-B,0,,,1,,over-refusal on answerable question
+X-MS-01-C,0,1,1,0,,gives the wrong priority and cited evidence only defines metrics
+X-MS-01-D,0,,,1,,over-refusal on answerable question
+X-MS-02-A,0,,,1,,over-refusal on answerable question
+X-MS-02-B,2,2,0,0,5,correct F1 explanation
+X-MS-02-C,0,,,1,,over-refusal on answerable question
+X-MS-02-D,0,2,0,0,,precision detail is supported but irrelevant
+X-NA-01-A,2,,,0,,correct refusal for out-of-scope question
+X-NA-01-B,2,,,0,,correct refusal for out-of-scope question
+X-NA-01-C,2,,,0,,correct refusal for out-of-scope question
+X-NA-01-D,2,,,0,,correct refusal for out-of-scope question
+X-NA-02-A,2,,,0,,correct refusal for out-of-scope question
+X-NA-02-B,0,0,1,0,,unsupported substantive answer outside the corpus
+X-NA-02-C,2,,,0,,correct refusal for out-of-scope question
+X-NA-02-D,2,,,0,,correct refusal for out-of-scope question
+X-NA-03-A,1,1,0,0,2,signals missing attribute evidence but does not clearly refuse
+X-NA-03-B,0,1,0,0,,repeats the unsupported attribute question
+X-NA-03-C,1,2,0,0,3,corrects the entity context but does not deny the requested attribute
+X-NA-03-D,2,,,0,,clear refusal for nonexistent attribute
+X-NA-04-A,2,,,0,,correct refusal for false or unsupported premise
+X-NA-04-B,1,2,0,0,3,provides related facts but does not explicitly reject the premise
+X-NA-04-C,1,2,0,0,3,provides the clustering fact but does not reject regression use
+X-NA-04-D,1,2,0,0,3,states both task facts but does not explicitly reject the premise
