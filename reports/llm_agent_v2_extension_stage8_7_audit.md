@@ -81,7 +81,7 @@ LLM Partial-pass v2 的自动错误：
 
 `blind_review.csv` 包含 92 行，每题恰有 A/B/C/D 四个随机标签；可见字段不包含 `method_id`、expected behavior、required aspects 或 forbidden claims。`blind_method_key.json` 单独保存映射。
 
-人工评分状态为 `pending_user_confirmed_single_review`。Answer Correctness、Evidence Faithfulness、Hallucination、Over-refusal 和 Readability 尚无人工结果，不得填造或提前汇总。Stage 8.8 必须先完成可见盲评表，再使用 method key 解盲。
+Stage 8.7 结束时人工评分状态为 `pending_user_confirmed_single_review`，当时 Answer Correctness、Evidence Faithfulness、Hallucination、Over-refusal 和 Readability 尚无人工结果。该历史状态保留用于说明解盲前边界。
 
 用户随后明确授权 Codex 进行辅助初评。初评严格只读取匿名 `blind_review.csv` 和其中展示的题目/证据，没有读取 method key 或 expected-answer 字段。92 行初评分数、理由、哈希和审核量表保存在：
 
@@ -93,7 +93,7 @@ reports/extension_v2/blind_review_codex_preliminary_manifest.json
 reports/extension_v2/blind_review_rubric.md
 ```
 
-初评分数状态为 `preliminary_pending_user_confirmation`，不能视为用户确认的人工结果。用户可修改紧凑 score map 后重新生成和校验匿名输出；确认前不解盲、不按方法汇总、不更新正式报告指标。
+初评分数状态为 `preliminary_pending_user_confirmation`。用户随后审核并明确确认全部 92 行，Stage 8.8 才读取 method key 解盲；用户确认指标和限制见 `reports/llm_agent_v2_extension_stage8_8_user_confirmed_audit.md`。初评文件继续保留，不回写或覆盖。
 
 ## 7. 不可变产物
 
@@ -112,4 +112,4 @@ Receipt 同时绑定上述路径与哈希。`validate_extension_results_v2.py` �
 
 ## 8. 阶段结论
 
-Stage 8.7 的一次性自动实验与结果审计已完成。下一阶段仅进入 Stage 8.8 人工盲评、解盲汇总、图表和最终报告；不得重跑 extension，不得根据本轮结果调整冻结实现，也不得在人工评分完成前声称 LLM 改善了回答正确性、证据忠实度或可读性。
+Stage 8.7 的一次性自动实验与结果审计已完成；Stage 8.8 用户确认盲评随后完成。后续只允许生成图表、误差分析和最终材料；不得重跑 extension 或根据 holdout 结果调整冻结实现。当前结果也不支持声称 Partial-pass 全面改善了正确性、忠实度和可读性。

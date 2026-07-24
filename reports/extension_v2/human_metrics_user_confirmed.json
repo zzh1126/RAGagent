@@ -1,0 +1,275 @@
+{
+  "schema_version": "2.0",
+  "artifact": "extension_human_metrics",
+  "protocol_version": "v2",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "reviewer": "User-confirmed review of Codex-assisted scoring",
+  "review_status": "user_confirmed",
+  "independent_double_annotation": false,
+  "method_order": [
+    "rule_baseline",
+    "llm_strict_v2",
+    "llm_no_verifier_v2",
+    "llm_partial_pass_v2"
+  ],
+  "methods": {
+    "rule_baseline": {
+      "question_count": 23,
+      "answer_correctness": {
+        "value": 0.587,
+        "numerator": 27,
+        "denominator": 46,
+        "note": "normalized 0-1 from user-confirmed 0/1/2 scores over all questions"
+      },
+      "evidence_faithfulness": {
+        "value": 0.881,
+        "numerator": 37,
+        "denominator": 42,
+        "note": "normalized 0-1 over substantive answers; refusals are not applicable"
+      },
+      "hallucination_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 21,
+        "note": "unsupported professional factual claims over substantive answers"
+      },
+      "over_refusal_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 19,
+        "note": "user-confirmed over-refusal over 19 answerable questions"
+      },
+      "readability": {
+        "value": 3.5556,
+        "numerator": 64,
+        "denominator": 18,
+        "note": "mean raw 1-5 score over correct or partially correct substantive answers"
+      },
+      "scored_row_counts": {
+        "correctness": 23,
+        "faithfulness": 21,
+        "hallucination": 21,
+        "over_refusal": 19,
+        "readability": 18
+      },
+      "score_distributions": {
+        "answer_correctness": {
+          "0": 3,
+          "1": 13,
+          "2": 7
+        },
+        "evidence_faithfulness": {
+          "1": 5,
+          "2": 16
+        },
+        "hallucination": {
+          "0": 21
+        },
+        "over_refusal": {
+          "0": 23
+        },
+        "readability": {
+          "3": 9,
+          "4": 8,
+          "5": 1
+        }
+      },
+      "reviewer": "User-confirmed review of Codex-assisted scoring",
+      "review_status": "user_confirmed"
+    },
+    "llm_strict_v2": {
+      "question_count": 23,
+      "answer_correctness": {
+        "value": 0.3043,
+        "numerator": 14,
+        "denominator": 46,
+        "note": "normalized 0-1 from user-confirmed 0/1/2 scores over all questions"
+      },
+      "evidence_faithfulness": {
+        "value": 1.0,
+        "numerator": 6,
+        "denominator": 6,
+        "note": "normalized 0-1 over substantive answers; refusals are not applicable"
+      },
+      "hallucination_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 3,
+        "note": "unsupported professional factual claims over substantive answers"
+      },
+      "over_refusal_rate": {
+        "value": 0.8421,
+        "numerator": 16,
+        "denominator": 19,
+        "note": "user-confirmed over-refusal over 19 answerable questions"
+      },
+      "readability": {
+        "value": 5.0,
+        "numerator": 15,
+        "denominator": 3,
+        "note": "mean raw 1-5 score over correct or partially correct substantive answers"
+      },
+      "scored_row_counts": {
+        "correctness": 23,
+        "faithfulness": 3,
+        "hallucination": 3,
+        "over_refusal": 19,
+        "readability": 3
+      },
+      "score_distributions": {
+        "answer_correctness": {
+          "0": 16,
+          "2": 7
+        },
+        "evidence_faithfulness": {
+          "2": 3
+        },
+        "hallucination": {
+          "0": 3
+        },
+        "over_refusal": {
+          "0": 7,
+          "1": 16
+        },
+        "readability": {
+          "5": 3
+        }
+      },
+      "reviewer": "User-confirmed review of Codex-assisted scoring",
+      "review_status": "user_confirmed"
+    },
+    "llm_no_verifier_v2": {
+      "question_count": 23,
+      "answer_correctness": {
+        "value": 0.7826,
+        "numerator": 36,
+        "denominator": 46,
+        "note": "normalized 0-1 from user-confirmed 0/1/2 scores over all questions"
+      },
+      "evidence_faithfulness": {
+        "value": 0.8182,
+        "numerator": 36,
+        "denominator": 44,
+        "note": "normalized 0-1 over substantive answers; refusals are not applicable"
+      },
+      "hallucination_rate": {
+        "value": 0.2727,
+        "numerator": 6,
+        "denominator": 22,
+        "note": "unsupported professional factual claims over substantive answers"
+      },
+      "over_refusal_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 19,
+        "note": "user-confirmed over-refusal over 19 answerable questions"
+      },
+      "readability": {
+        "value": 4.3158,
+        "numerator": 82,
+        "denominator": 19,
+        "note": "mean raw 1-5 score over correct or partially correct substantive answers"
+      },
+      "scored_row_counts": {
+        "correctness": 23,
+        "faithfulness": 22,
+        "hallucination": 22,
+        "over_refusal": 19,
+        "readability": 19
+      },
+      "score_distributions": {
+        "answer_correctness": {
+          "0": 3,
+          "1": 4,
+          "2": 16
+        },
+        "evidence_faithfulness": {
+          "0": 1,
+          "1": 6,
+          "2": 15
+        },
+        "hallucination": {
+          "0": 16,
+          "1": 6
+        },
+        "over_refusal": {
+          "0": 23
+        },
+        "readability": {
+          "3": 4,
+          "4": 5,
+          "5": 10
+        }
+      },
+      "reviewer": "User-confirmed review of Codex-assisted scoring",
+      "review_status": "user_confirmed"
+    },
+    "llm_partial_pass_v2": {
+      "question_count": 23,
+      "answer_correctness": {
+        "value": 0.5217,
+        "numerator": 24,
+        "denominator": 46,
+        "note": "normalized 0-1 from user-confirmed 0/1/2 scores over all questions"
+      },
+      "evidence_faithfulness": {
+        "value": 0.9375,
+        "numerator": 30,
+        "denominator": 32,
+        "note": "normalized 0-1 over substantive answers; refusals are not applicable"
+      },
+      "hallucination_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 16,
+        "note": "unsupported professional factual claims over substantive answers"
+      },
+      "over_refusal_rate": {
+        "value": 0.2632,
+        "numerator": 5,
+        "denominator": 19,
+        "note": "user-confirmed over-refusal over 19 answerable questions"
+      },
+      "readability": {
+        "value": 3.7333,
+        "numerator": 56,
+        "denominator": 15,
+        "note": "mean raw 1-5 score over correct or partially correct substantive answers"
+      },
+      "scored_row_counts": {
+        "correctness": 23,
+        "faithfulness": 16,
+        "hallucination": 16,
+        "over_refusal": 19,
+        "readability": 15
+      },
+      "score_distributions": {
+        "answer_correctness": {
+          "0": 6,
+          "1": 10,
+          "2": 7
+        },
+        "evidence_faithfulness": {
+          "1": 2,
+          "2": 14
+        },
+        "hallucination": {
+          "0": 16
+        },
+        "over_refusal": {
+          "0": 18,
+          "1": 5
+        },
+        "readability": {
+          "2": 1,
+          "3": 4,
+          "4": 8,
+          "5": 2
+        }
+      },
+      "reviewer": "User-confirmed review of Codex-assisted scoring",
+      "review_status": "user_confirmed"
+    }
+  },
+  "claim_scope": "descriptive_only_due_to_small_sample_and_single_confirmed_review"
+}

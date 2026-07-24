@@ -61,7 +61,7 @@
 | G05 | 证据上下文未按题型平衡 | `intent_aware_v2` 已完成 50 题只读合同回归 | 风险已关闭 | Done | 阶段 8.1 完成 |
 | G06 | Prompt 未限制原子 Claim | Prompt v2 与 1～4 Claim wire Schema 已通过 20/20 合成探针 | 风险已关闭 | Done | 阶段 8.2 完成 |
 | G07 | 重试过多 | Stage 8.5 dev retry rate 为 3/10，历史值 7/10 | 工程门槛通过；真实延迟仍主要来自 LLM | Done | 阶段 8.5 完成 |
-| G08 | 缺少 LLM extension 的人工答案质量结论 | Stage 8.7 已完成 92 次自动调用和匿名盲评表；人工评分未填 | 不能回答可读性、人工正确性和忠实度是否改善 | P0 | 阶段 8.8 先完成盲评，再解盲汇总 |
+| G08 | 缺少 LLM extension 的人工答案质量结论 | 92 行 Codex 辅助评分已由用户确认并在确认后解盲 | 风险已关闭；结论为权衡而非 Partial-pass 全面提升 | Done | 阶段 8.8 用户确认汇总完成 |
 | G09 | 延迟 trace 不完整 | Stage 8.4 已保存完整 trace；Stage 8.5 dev 平均端到端 9420.28 ms，其中生成 9408.91 ms | trace 风险关闭，生成延迟保留为限制 | Done | 阶段 8.5 已分析 |
 | G10 | Streamlit 不展示 LLM 参与细节 | model/backend/fallback/prewarm/结构状态/阶段延迟与 partial 样式已完成 | 风险已关闭 | Done | 阶段 8.4 完成 |
 | G11 | 稀疏检索语义能力有限 | TF-IDF + 人工词表 | 同义改写和跨语言召回受限 | P2 | 条件触发 |
@@ -745,7 +745,7 @@ Pilot 已观察到：
 
 ### 阶段 8.8：评分、报告与答辩
 
-人工盲评尚未完成。下一步填写 92 行匿名评分表，完成后才解盲汇总 Correctness、Faithfulness、Hallucination、Over-refusal 和 Readability；随后生成图表、误差分析、DOCX、PPT 和演示材料。自动指标不能替代人工答案质量结论。
+92 行 Codex 辅助盲评分数已由用户审核确认，评分锁定后才读取 method key 解盲。Partial-pass 的 Correctness/Faithfulness/Hallucination/Over-refusal/Readability 为 `0.5217/0.9375/0.0000/0.2632/3.73`；它相对 Strict 缓解过度拒答并保持零观察幻觉，但正确性未超过 Rule Baseline。No Verifier 的 Correctness 最高 (`0.7826`)，同时有 `6/22` hallucination，不能作为安全方案。下一步生成图表、类别与错误分析、DOCX、PPT 和演示材料。
 
 每个阶段单独实现、验证、写入 `PROGRESS.md`、提交 Git，再进入下一阶段。不会一次性跨过全部阶段。
 
@@ -812,18 +812,16 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-阶段 8.0～8.7 自动部分已验收。下一步只进入阶段 8.8：
+阶段 8.0～8.8 用户确认指标汇总已验收。下一步只做结果表达与交付材料：
 
 ```text
-填写 92 行 A/B/C/D 匿名盲评表
+生成 extension 自动/人工指标图表
     ↓
-保留 method key，完成前不解盲
+完成类别和典型错误分析
     ↓
-汇总人工指标并与自动指标并列
+更新报告、答辩材料和事实清单
     ↓
-更新图表、报告、答辩材料和事实清单
-    ↓
-禁止重跑 extension、覆盖输出或 holdout 后调参
+最终 DOCX、PPT 和演示脚本保持同一指标口径
 ```
 
-Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。当前只允许只读 validator 和盲评填写；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。
+Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。当前只允许读取用户确认结果生成图表和材料；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。

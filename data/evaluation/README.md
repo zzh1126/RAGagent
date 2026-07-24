@@ -64,8 +64,12 @@
 - `reports/evaluation_llm_agent_v2_dev_stage8_5_candidate.json`：10 题 dev 工程候选，包含 over-refusal、refusal accuracy、retry、Claim 保留/移除、错误阶段和分阶段延迟；不是独立保留集。
 - `reports/extension_v2/execution_state.json` 与 `execution_receipt.json`：v2 唯一一次执行的状态、92 次调用计数和全部输出哈希。
 - `reports/extension_v2/combined_metrics.json`：四方法自动决策、Claim 和延迟指标；不能替代人工答案正确性与证据忠实度评分。
-- `reports/extension_v2/blind_review.csv`：92 行 A/B/C/D 匿名评分表，不包含方法 ID 或 expected 字段；人工评分仍待完成。
-- `reports/extension_v2/blind_method_key.json`：与可见盲评表分离的方法映射，评分完成前不应提供给评分者。
+- `reports/extension_v2/blind_review.csv`：92 行 A/B/C/D 匿名评分表，不包含方法 ID 或 expected 字段；原始文件由 receipt 锁定。
+- `reports/extension_v2/blind_method_key.json`：与可见盲评表分离的方法映射，只在用户确认评分后用于解盲。
+- `reports/extension_v2/blind_review_user_confirmed.csv`：用户确认后的匿名评分，仍不包含方法身份。
+- `reports/extension_v2/human_metrics_user_confirmed.json`：解盲后的四方法 Correctness、Faithfulness、Hallucination、Over-refusal 和 Readability。
+- `reports/extension_v2/combined_metrics_user_confirmed.json`：不可变自动指标与用户确认人工指标的后置合并，不回写 receipt 绑定文件。
+- `reports/extension_v2/blind_review_user_confirmation_manifest.json`：确认来源、输入/输出哈希和单一确认限制。
 
 运行校验和评测：
 
@@ -78,6 +82,7 @@ python scripts/validate_runtime_trace.py
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release_v2.py --check-runtime-model
 python scripts/validate_extension_results_v2.py
+python scripts/validate_extension_blind_confirmation.py
 python scripts/run_evaluation.py --split dev
 ```
 

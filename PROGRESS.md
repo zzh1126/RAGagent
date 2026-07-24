@@ -3056,3 +3056,71 @@ pytest -q tests/test_extension_blind_preliminary.py    -> 3 passed
 - `python scripts/validate_extension_blind_preliminary.py`：通过，92 行、方法身份和 expected 字段保持隐藏；
 - `python scripts/validate_extension_release_v2.py --check-runtime-model`：当前环境未通过，原因是本机 Ollama `0.32.1` 只有 `qwen3-vl:8b`，没有 `qwen3:4b`。这是外部环境缺口，不影响已完成并由 receipt/hash 锁定的 extension 结果；后续 live demo 若需 LLM 调用，必须先恢复该模型；
 - 两份外部删除的 DOCX 继续保持未暂存、未修改、未提交。
+
+## 2026-07-24 阶段 8.8b：用户确认、解盲与四方法人工指标
+
+### 用户确认与晋级边界
+
+- 用户明确表示已经审核全部初评分数并确认继续；
+- 确认前的 score map、匿名输出和 manifest 均无未提交修改，确认脚本验证 score signature 后原值晋级，`scores_promoted_without_mutation=true`；
+- 只有在显式 `--confirm-user-review` 与精确 release ID 同时提供后，脚本才读取 `blind_method_key.json` 和 extension expected behavior；
+- 初评、原始盲评、method key、自动指标和 receipt 均保持只读；用户确认结果写入新文件，未回写不可变 Stage 8.7 输出；
+- 评审口径为 `User-confirmed review of Codex-assisted scoring`、状态 `user_confirmed`，不是独立双人标注或一致性研究。
+
+### 用户确认指标
+
+| 方法 | Auto Decision | Correctness | Faithfulness | Hallucination | Over-refusal | Readability | Mean E2E |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Rule Baseline | 0.9130 | 0.5870 | 0.8810 | 0/21 | 0/19 | 3.56 (n=18) | 5.46 ms |
+| LLM Strict v2 | 0.3043 | 0.3043 | 1.0000 | 0/3 | 16/19 | 5.00 (n=3) | 11891.29 ms |
+| LLM No Verifier v2 | 0.8261 | 0.7826 | 0.8182 | 6/22 | 0/19 | 4.32 (n=19) | 5207.65 ms |
+| LLM Partial-pass v2 | 0.6957 | 0.5217 | 0.9375 | 0/16 | 5/19 | 3.73 (n=15) | 7607.35 ms |
+
+- Correctness/Faithfulness 为 0-1 归一化值，Readability 为 1-5 原始均值；拒答不进入 Faithfulness、Hallucination 和 Readability 分母；
+- Partial-pass 相比 Strict 将用户确认 over-refusal 从 16/19 降到 5/19，并保持 0/16 观察 hallucination；
+- Partial-pass Correctness 0.5217 低于 Rule 0.5870，不能声明其全面提高回答质量；
+- No Verifier Correctness 0.7826 和 Readability 4.32 最高，同时有 6/22 hallucination、自动拒答准确率 0/4，不能作为安全最优方案；
+- Strict 的 Faithfulness 1.0000 和 Readability 5.00 只基于 3 条实质答案，必须连同 16/19 over-refusal 披露；
+- 四方法没有单一全维度赢家；当前结果支持把 Claim-level Partial-pass 描述为安全性与覆盖率折中。
+
+### 新增产物
+
+- `scripts/confirm_extension_blind_review.py`：显式确认后晋级匿名评分、读取 method key 解盲并计算指标；
+- `scripts/validate_extension_blind_confirmation.py`：重算方法指标、核对 92 行映射、score signature、确认状态和输出哈希；
+- `tests/test_extension_blind_confirmation.py`：确认产物与四方法覆盖测试；
+- `reports/extension_v2/blind_review_user_confirmed.csv`：用户确认匿名评分；
+- `reports/extension_v2/blind_review_unblinded_user_confirmed.csv`：确认后方法映射与评分；
+- `reports/extension_v2/human_metrics_user_confirmed.json`：四方法人工指标与有效分母；
+- `reports/extension_v2/combined_metrics_user_confirmed.json`：自动/人工指标后置合并；
+- `reports/extension_v2/metrics_user_confirmed.md`：可读指标表；
+- `reports/extension_v2/blind_review_user_confirmation_manifest.json`：确认来源和输入/输出哈希；
+- `reports/llm_agent_v2_extension_stage8_8_user_confirmed_audit.md`：结论、限制和哈希审计。
+
+确认 manifest 的关键输出哈希：
+
+```text
+blind_review_user_confirmed.csv              1bd59bcb619fda780d7dd4a0b6ff082a4a585747dca46995323df8f1acc1c353
+blind_review_unblinded_user_confirmed.csv    57bca45e49a6274659cb32ea4e0988db509712da9ec9177bc2daa577e6715898
+human_metrics_user_confirmed.json            d6e3183edecd146e0694c929a59e57d021f8fcdbdeea1c888dd608064f90a28c
+combined_metrics_user_confirmed.json         45439c7dd78bdc48766ca5cfa2bce630058c9874723dbac04d62e012741cb920
+metrics_user_confirmed.md                    c79916938ea7ed854b836eadb13f4445efe5cdcbb4e26296beeadc4beb5294be
+```
+
+### 文档同步与最终验证
+
+- README、项目手册、不足路线图、评测数据说明、Partial-pass 计划、技术决策、科研报告草稿和事实声明清单已同步为用户确认状态；
+- 科研报告新增 v2 extension 用户确认结果表，明确小样本、单一确认、不同有效分母和“无全面赢家”边界；
+- 当前本机仍缺少 `qwen3:4b`，因此本阶段使用不检查当前模型安装的 release validator；已完成结果继续由 receipt、模型 digest 和文件哈希锁定。
+
+```text
+pytest -q                                          -> 138 passed
+python scripts/validate_extension_results_v2.py   -> pass; completed_once; 92 invocations
+python scripts/validate_extension_release_v2.py   -> pass; frozen release identity valid
+python scripts/validate_extension_holdout.py      -> pass; v1 revoked; v2 completed_once
+python scripts/validate_extension_blind_preliminary.py -> pass; anonymous preliminary intact
+python scripts/validate_extension_blind_confirmation.py -> pass; user_confirmed; score signature stable
+python scripts/validate_report_claims.py           -> 52 source checks; 26 required; 24 forbidden
+git diff --check                                    -> pass
+```
+
+下一阶段只生成 extension 图表、类别/典型错误分析并继续定稿报告和答辩材料；不重跑 extension，不根据用户确认结果修改冻结 runtime。两份外部删除的 DOCX 继续保持未暂存状态。

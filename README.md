@@ -84,12 +84,15 @@ Stage 8.6 consumed the one permitted 40-question pilot freeze run on implementat
 
 Stage 8.7 then completed the only permitted v2 extension execution for release `extension-qwen3-4b-v2-e207cb91`: 23 questions x 4 frozen methods, for 92 QA invocations. The release record intentionally remains `authorized_not_executed`, while the immutable state and receipt make the effective execution status `completed_once`. Automatic decision accuracy was `21/23` for Rule Baseline, `7/23` for LLM Strict v2, `19/23` for LLM No Verifier v2, and `16/23` for LLM Partial-pass v2. Partial-pass reduced answerable over-refusal from Strict's `16/19` to `5/19` and leaked `0/27` unsupported Claims, but it falsely accepted two of four no-answer questions and did not beat the rule baseline on this automatic decision metric. These automatic labels do not replace human correctness, faithfulness, hallucination, or readability scoring.
 
-The anonymous A/B/C/D blind-review CSV contains 92 rows and does not expose method IDs or expected-answer fields; the method key is stored separately. Human scoring is pending, so no human answer-quality conclusion has been reported and no frozen runtime behavior will be tuned from these holdout results.
+The anonymous A/B/C/D blind-review CSV contains 92 rows and does not expose method IDs or expected-answer fields; the method key was kept separate until scoring was locked. Codex-assisted scores were subsequently reviewed and confirmed by the user before unblinding. User-confirmed Correctness / Faithfulness / Hallucination / Over-refusal / Readability were respectively `0.5870 / 0.8810 / 0.0000 / 0.0000 / 3.56` for Rule Baseline, `0.3043 / 1.0000 / 0.0000 / 0.8421 / 5.00` for LLM Strict v2, `0.7826 / 0.8182 / 0.2727 / 0.0000 / 4.32` for LLM No Verifier v2, and `0.5217 / 0.9375 / 0.0000 / 0.2632 / 3.73` for LLM Partial-pass v2. Readability denominators differ because refusals and fully incorrect answers are excluded; Strict's `5.00` is based on only three substantive answers.
+
+These results show a tradeoff rather than an overall winner. Partial-pass reduces over-refusal relative to Strict and preserves high faithfulness with no observed hallucination, but it does not exceed the rule baseline on user-confirmed correctness. No Verifier has the highest correctness and readability while leaking unsupported claims and producing a `6/22` user-confirmed hallucination rate. The review is a single user confirmation of Codex-assisted scores, not independent double annotation or a significance test.
 
 ```bash
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release_v2.py --check-runtime-model
 python scripts/validate_extension_results_v2.py
+python scripts/validate_extension_blind_confirmation.py
 ```
 
 The generic evaluation runner and revoked v1 runner remain locked. The v2 runner now rejects another execution because the one-run receipt already exists. Do not rerun or overwrite any extension artifact.
@@ -124,6 +127,6 @@ python scripts/generate_report_figures.py --check
 
 Dataset ownership and leakage rules are documented in `data/evaluation/README.md`. Generated reports are written under `reports/`.
 
-The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The separate 23-question `extension` holdout has now been consumed exactly once by the controlled v2 four-method runner. Reuse the immutable files under `reports/extension_v2/`; do not rerun the holdout or tune the frozen runtime from its results. Human blind-review scoring remains pending.
+The `final` holdout is frozen and must not be rerun. Reuse `reports/evaluation_final.json` and verify it with `python scripts/freeze_baseline.py --verify`. The separate 23-question `extension` holdout has been consumed exactly once by the controlled v2 four-method runner, and its 92 blind scores are now user-confirmed. Reuse the immutable and post-release audit files under `reports/extension_v2/`; do not rerun the holdout or tune the frozen runtime from its results.
 
 The frozen holdout run is stored in `reports/evaluation_final.json`: 39 of 40 routing/refusal decisions were correct (`0.975`), including all four no-answer cases. The single residual error is an overly conservative refusal on an AdaBoost definition question.

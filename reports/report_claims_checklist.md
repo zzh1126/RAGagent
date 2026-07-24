@@ -2,7 +2,7 @@
 
 ## 使用范围
 
-本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分已经由用户确认，Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整 trace、Stage 8.5 dev 工程回归、Stage 8.6 一次性 pilot/runtime/release 冻结和 Stage 8.7 一次性 extension 自动实验均已完成。v2 release 文件保留 `authorized_not_executed`，有效执行状态为 `completed_once`；92 行匿名盲评尚未评分。
+本清单约束 `reports/research_report_draft.md` 中容易被误述的范围、指标和实验状态。当前基线仍为 `v1.0-baseline`，开发分支为 `experiment/llm-agent-v2`；pilot 语义评分、Stage 8.7 一次性 extension 和 Stage 8.8 的 92 行盲评均已完成。Extension 评分由 Codex 辅助初评并经用户确认，确认后才解盲；v2 release 文件保留 `authorized_not_executed`，有效执行状态为 `completed_once`。
 
 ## 权威证据源
 
@@ -54,6 +54,10 @@
 | `reports/extension_v2/combined_metrics.json` | 四方法自动决策、Claim 和延迟指标 |
 | `reports/extension_v2/blind_review.csv` | 92 行匿名 A/B/C/D 人工评分输入，不含方法或期望标签 |
 | `reports/llm_agent_v2_extension_stage8_7_audit.md` | Stage 8.7 边界、自动结果、错误、哈希与人工评分限制 |
+| `reports/extension_v2/blind_review_user_confirmation_manifest.json` | 用户明确确认、分数签名、输入/输出哈希和确认后解盲状态 |
+| `reports/extension_v2/human_metrics_user_confirmed.json` | 四方法用户确认 Correctness、Faithfulness、Hallucination、Over-refusal、Readability 及分母 |
+| `reports/extension_v2/combined_metrics_user_confirmed.json` | 自动与用户确认人工指标的后置合并，不修改 receipt 绑定输出 |
+| `reports/llm_agent_v2_extension_stage8_8_user_confirmed_audit.md` | Stage 8.8 指标、可支持结论、限制和哈希 |
 | `config/settings.yaml` | 当前 rule Router、LLM Generator 与 offline_rule fallback 配置 |
 | `config/experiments.yaml` | 方法开关、final 只读策略、生成器类型 |
 | `config/settings.yaml` | Verifier 阈值、重试次数和默认后端 |
@@ -100,7 +104,13 @@
 | C36 | v2 runtime bundle 为 `ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b`，release `extension-qwen3-4b-v2-e207cb91` 的有效执行状态为 `completed_once`，receipt 记录 92 次 QA 调用 | 已核验 |
 | C37 | Stage 8.7 自动 Decision Accuracy 为 Rule 21/23、LLM Strict 7/23、LLM No Verifier 19/23、LLM Partial-pass 16/23；这不是人工回答正确性 | 已核验 |
 | C38 | Partial-pass 的 answerable over-refusal 为 5/19、unsupported Claim leakage 为 0/27；Strict 为 16/19，No Verifier 为 25/25 leakage | 已核验 |
-| C39 | `blind_review.csv` 有 92 行且不暴露 method/expected 字段；人工 Correctness、Faithfulness、Hallucination、Over-refusal、Readability 仍待评分 | 已核验 |
+| C39 | `blind_review.csv` 有 92 行且不暴露 method/expected 字段；用户确认前没有读取 method key，确认后才解盲 | 已核验 |
+| C40 | Extension 评分为 Codex 辅助初评后用户确认，状态 `user_confirmed`；不是独立双人标注或一致性实验 | 已核验 |
+| C41 | Rule/Strict/No Verifier/Partial-pass 的用户确认 Correctness 分别为 0.5870/0.3043/0.7826/0.5217 | 已核验 |
+| C42 | 对应 Faithfulness 为 0.8810/1.0000/0.8182/0.9375；Strict 仅有 3 条实质答案进入分母 | 已核验 |
+| C43 | No Verifier hallucination 为 6/22；Rule、Strict、Partial-pass 分别为 0/21、0/3、0/16，零观察不能推广为不会幻觉 | 已核验 |
+| C44 | Partial-pass 用户确认 over-refusal 为 5/19，相对 Strict 的 16/19 改善，但 Correctness 未超过 Rule | 已核验 |
+| C45 | Readability 为 Rule 3.56 (n=18)、Strict 5.00 (n=3)、No Verifier 4.32 (n=19)、Partial-pass 3.73 (n=15)，必须披露分母 | 已核验 |
 
 ## 禁止出现的结论
 
@@ -132,7 +142,10 @@
 - 将 v2 release 文件的 `authorized_not_executed` 状态误写为尚未执行，或将它误写为可再次运行。
 - 将 Stage 8.7 自动 Decision Accuracy、citation validity、Claim retention 或 `partial_pass` 直接写成已人工确认的 Correctness、Faithfulness、Hallucination 或 Readability。
 - 隐瞒 Partial-pass 的 5/19 answerable over-refusal、2/4 no-answer refusal accuracy、0/27 unsupported leakage，或隐瞒 No Verifier 的 25/25 unsupported leakage。
-- 在匿名盲评完成前解盲 method key、填造评分或声称 LLM 已改善人工答案质量。
+- 将用户确认盲评写成独立双人标注、标注者一致性结果或统计显著性结论。
+- 仅凭 Partial-pass 的高 Faithfulness 和零观察 hallucination 声称其全面优于 Rule，或隐瞒其 Correctness 0.5217 低于 Rule 0.5870。
+- 仅凭 No Verifier 的 Correctness 0.7826 声称其最好，或隐瞒 6/22 hallucination 与 0/4 自动拒答准确率。
+- 把 Strict 的 Readability 5.00 写成稳定整体优势而不披露只有 3 条实质答案进入分母。
 
 ## 发布前检查
 
@@ -145,6 +158,7 @@ python scripts/validate_scoring.py
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release_v2.py --check-runtime-model
 python scripts/validate_extension_results_v2.py
+python scripts/validate_extension_blind_confirmation.py
 python scripts/freeze_baseline.py --verify
 ```
 

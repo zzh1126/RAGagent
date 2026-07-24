@@ -36,7 +36,7 @@ REQUIRED_RULES = (
     TextRule(
         "R13",
         "Generator wiring, Planner No-Go, and extension governance must remain explicit",
-        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销；v2 release 文件状态仍为 `authorized_not_executed`，有效执行状态为 `completed_once`；Stage 8\.7 已完成 4 方法 × 23 题自动实验，人工盲评仍待完成",
+        r"当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销；v2 release 文件状态仍为 `authorized_not_executed`，有效执行状态为 `completed_once`；Stage 8\.7 已完成 4 方法 × 23 题自动实验，Stage 8\.8 的 92 行盲评已由用户确认并在确认后解盲",
     ),
     TextRule(
         "R14",
@@ -85,13 +85,23 @@ REQUIRED_RULES = (
     ),
     TextRule(
         "R23",
-        "the v2 extension must disclose its one-time completed status and pending human review",
-        r"Stage 8\.7[\s\S]{0,1600}92 次 QA 调用[\s\S]{0,1600}`completed_once`[\s\S]{0,1600}人工盲评(?:仍)?待完成",
+        "the v2 extension must disclose one-time execution and post-confirmation unblinding",
+        r"Stage 8\.7[\s\S]{0,1800}92 次 QA 调用[\s\S]{0,1800}`completed_once`[\s\S]{0,1800}用户逐行审核确认后才读取 method key 解盲",
     ),
     TextRule(
         "R24",
         "automatic extension decisions must be separated from human answer-quality claims",
         r"自动决策指标[\s\S]{0,1000}(?:不能替代|不等于)人工(?:回答正确性|正确性)、证据忠实度和可读性评分",
+    ),
+    TextRule(
+        "R25",
+        "confirmed extension scoring must disclose its single-review provenance",
+        r"92 行匿名评分先由 Codex 辅助生成，再由用户审核确认[\s\S]{0,500}不(?:是|等同于)独立双人标注",
+    ),
+    TextRule(
+        "R26",
+        "Partial-pass tradeoff must not be presented as overall superiority",
+        r"Partial-pass[\s\S]{0,500}0\.5217[\s\S]{0,500}(?:未超过|低于) Rule(?: Baseline)?[\s\S]{0,500}(?:不支持|不能宣称)[^。\n]{0,80}(?:全面优于|全面提高)",
     ),
 )
 
@@ -167,6 +177,16 @@ FORBIDDEN_RULES = (
         "stale claim that the v2 extension has not executed",
         r"v2 release 已冻结为 `authorized_not_executed`，尚未执行 extension",
     ),
+    TextRule(
+        "F23",
+        "stale claim that extension human scoring is pending",
+        r"(?:人工盲评仍待完成|人工盲评尚未完成|尚无人工盲评答案质量结论)",
+    ),
+    TextRule(
+        "F24",
+        "unsupported overall Partial-pass superiority claim",
+        r"(?:证明|表明|结论是)[^。\n]{0,50}Partial-pass[^。\n]{0,80}(?:全面优于|所有指标均优于|总体正确性优于)规则",
+    ),
 )
 
 
@@ -235,6 +255,15 @@ def expected_literals() -> dict[str, str]:
     extension_metrics = read_json(
         PROJECT_ROOT / "reports" / "extension_v2" / "combined_metrics.json"
     )
+    extension_human_metrics = read_json(
+        PROJECT_ROOT / "reports" / "extension_v2" / "human_metrics_user_confirmed.json"
+    )
+    extension_confirmation = read_json(
+        PROJECT_ROOT
+        / "reports"
+        / "extension_v2"
+        / "blind_review_user_confirmation_manifest.json"
+    )
 
     kb = stats["knowledge_base"]
     graph = stats["graph"]
@@ -243,6 +272,7 @@ def expected_literals() -> dict[str, str]:
     proposed_semantic = semantic["methods"]["proposed"]
     llm_summary = llm_probe["summary"]
     partial_metrics = extension_metrics["metrics"]["llm_partial_pass_v2"]
+    extension_human = extension_human_metrics["methods"]
 
     return {
         "S01 knowledge-base scale": (
@@ -373,6 +403,24 @@ def expected_literals() -> dict[str, str]:
             "LLM Partial-pass v2 unsupported Claim leakage 为 "
             f"{partial_metrics['unsupported_claim_leakage_rate']['numerator']}/"
             f"{partial_metrics['unsupported_claim_leakage_rate']['denominator']}"
+        ),
+        "S48 extension human review status": extension_human_metrics["review_status"],
+        "S49 extension confirmed row count": (
+            f"Stage 8.8 的 {extension_confirmation['row_count']} 行盲评已由用户确认"
+        ),
+        "S50 extension Partial-pass human row": (
+            "| LLM Partial-pass v2 | 0.6957 | "
+            f"{extension_human['llm_partial_pass_v2']['answer_correctness']['value']:.4f} | "
+            f"{extension_human['llm_partial_pass_v2']['evidence_faithfulness']['value']:.4f} | 0/16 | 5/19 | 3.73 (n=15) |"
+        ),
+        "S51 extension No Verifier hallucination": (
+            "No Verifier 的 hallucination 为 "
+            f"{extension_human['llm_no_verifier_v2']['hallucination_rate']['numerator']}/"
+            f"{extension_human['llm_no_verifier_v2']['hallucination_rate']['denominator']}"
+        ),
+        "S52 extension Strict readability denominator": (
+            "Strict 的 Faithfulness 和 Readability 只基于 "
+            f"{extension_human['llm_strict_v2']['readability']['denominator']} 条实质答案"
         ),
     }
 

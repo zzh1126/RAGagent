@@ -1,0 +1,93 @@
+﻿review_item_id,question_id,category,expected_behavior,answer_label,method_id,answer_correctness,evidence_faithfulness,hallucination,over_refusal,readability,review_notes,reviewer,review_status
+X-SH-01-A,X-SH-01,single_hop,answer,A,llm_partial_pass_v2,2,2,0,0,5,direct and fully supported,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-01-B,X-SH-01,single_hop,answer,B,rule_baseline,2,2,0,0,4,correct answer with unnecessary source block,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-01-C,X-SH-01,single_hop,answer,C,llm_no_verifier_v2,2,2,0,0,5,direct and fully supported,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-01-D,X-SH-01,single_hop,answer,D,llm_strict_v2,2,2,0,0,5,direct and fully supported,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-02-A,X-SH-02,single_hop,answer,A,llm_partial_pass_v2,2,2,0,0,4,answers continuous target with unnecessary caveat,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-02-B,X-SH-02,single_hop,answer,B,rule_baseline,2,2,0,0,4,complete but verbose answer,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-02-C,X-SH-02,single_hop,answer,C,llm_no_verifier_v2,2,2,0,0,5,concise and complete,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-02-D,X-SH-02,single_hop,answer,D,llm_strict_v2,2,2,0,0,5,concise and complete,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-03-A,X-SH-03,single_hop,answer,A,llm_no_verifier_v2,2,2,0,0,5,directly answers feature scaling,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-03-B,X-SH-03,single_hop,answer,B,llm_partial_pass_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-03-C,X-SH-03,single_hop,answer,C,rule_baseline,2,2,0,0,5,directly answers feature scaling,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-03-D,X-SH-03,single_hop,answer,D,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-04-A,X-SH-04,single_hop,answer,A,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-04-B,X-SH-04,single_hop,answer,B,rule_baseline,0,2,0,0,,supported but irrelevant definition,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-04-C,X-SH-04,single_hop,answer,C,llm_no_verifier_v2,2,2,0,0,4,fully answers feature subsampling with extra details,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-SH-04-D,X-SH-04,single_hop,answer,D,llm_partial_pass_v2,1,2,0,0,3,describes bootstrap but misses feature sampling,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-01-A,X-MH-01,multi_hop,answer,A,llm_no_verifier_v2,2,2,0,0,4,complete relation chain with extra metric details,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-01-B,X-MH-01,multi_hop,answer,B,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-01-C,X-MH-01,multi_hop,answer,C,rule_baseline,1,1,0,0,3,partial chain with reversed R2 relation wording,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-01-D,X-MH-01,multi_hop,answer,D,llm_partial_pass_v2,1,2,0,0,4,only supplies the first link of the chain,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-02-A,X-MH-02,multi_hop,answer,A,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-02-B,X-MH-02,multi_hop,answer,B,llm_no_verifier_v2,2,2,0,0,4,complete mechanism and variance explanation,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-02-C,X-MH-02,multi_hop,answer,C,rule_baseline,1,2,0,0,3,lists mechanisms but omits variance connection,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-02-D,X-MH-02,multi_hop,answer,D,llm_partial_pass_v2,1,2,0,0,3,explains variance but incompletely links both mechanisms,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-03-A,X-MH-03,multi_hop,answer,A,llm_no_verifier_v2,1,1,1,0,3,classification is supported but balanced accuracy claim is unsupported,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-03-B,X-MH-03,multi_hop,answer,B,rule_baseline,1,2,0,0,4,only supplies the classification link,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-03-C,X-MH-03,multi_hop,answer,C,llm_partial_pass_v2,1,2,0,0,4,only supplies the classification link,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-03-D,X-MH-03,multi_hop,answer,D,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-04-A,X-MH-04,multi_hop,answer,A,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-04-B,X-MH-04,multi_hop,answer,B,llm_no_verifier_v2,2,1,1,0,4,answers both aspects but noise and overfit wording exceeds direct evidence,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-04-C,X-MH-04,multi_hop,answer,C,rule_baseline,1,2,0,0,4,answers the task aspect but omits the noise limitation,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MH-04-D,X-MH-04,multi_hop,answer,D,llm_partial_pass_v2,1,2,0,0,4,answers the task aspect but omits the noise limitation,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-01-A,X-DF-01,definition,answer,A,llm_partial_pass_v2,2,2,0,0,4,correct definition with an unnecessary caveat,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-01-B,X-DF-01,definition,answer,B,rule_baseline,2,1,0,0,4,correct definition but cites unrelated evidence IDs,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-01-C,X-DF-01,definition,answer,C,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-01-D,X-DF-01,definition,answer,D,llm_no_verifier_v2,2,2,0,0,5,concise and complete definition,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-02-A,X-DF-02,definition,answer,A,llm_no_verifier_v2,2,2,0,0,5,complete definition and focus,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-02-B,X-DF-02,definition,answer,B,rule_baseline,1,2,0,0,4,definition is correct but focus is implicit,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-02-C,X-DF-02,definition,answer,C,llm_partial_pass_v2,1,2,0,0,4,focus is correct but definition is omitted,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-02-D,X-DF-02,definition,answer,D,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-03-A,X-DF-03,definition,answer,A,llm_partial_pass_v2,2,2,0,0,5,correct definition,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-03-B,X-DF-03,definition,answer,B,llm_strict_v2,2,2,0,0,5,correct definition,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-03-C,X-DF-03,definition,answer,C,llm_no_verifier_v2,2,2,0,0,5,correct definition,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-DF-03-D,X-DF-03,definition,answer,D,rule_baseline,2,1,0,0,4,correct claim but cites unrelated evidence IDs,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-01-A,X-CM-01,comparison,answer,A,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-01-B,X-CM-01,comparison,answer,B,llm_partial_pass_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-01-C,X-CM-01,comparison,answer,C,rule_baseline,0,2,0,0,,true RF definition but misses the requested comparison,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-01-D,X-CM-01,comparison,answer,D,llm_no_verifier_v2,2,2,0,0,4,complete variance and interpretability comparison,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-02-A,X-CM-02,comparison,answer,A,llm_partial_pass_v2,2,2,0,0,4,complete task and training comparison,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-02-B,X-CM-02,comparison,answer,B,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-02-C,X-CM-02,comparison,answer,C,llm_no_verifier_v2,2,2,0,0,5,complete task and training comparison,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-02-D,X-CM-02,comparison,answer,D,rule_baseline,1,2,0,0,3,partly relevant but omits the requested common requirements,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-03-A,X-CM-03,comparison,answer,A,llm_partial_pass_v2,1,2,0,0,3,answers the accuracy limitation but omits F1,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-03-B,X-CM-03,comparison,answer,B,rule_baseline,1,1,0,0,3,mentions metrics but does not explain F1 limitations clearly,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-03-C,X-CM-03,comparison,answer,C,llm_no_verifier_v2,2,2,0,0,5,complete imbalance comparison,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-CM-03-D,X-CM-03,comparison,answer,D,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-01-A,X-PC-01,principle_pros_cons,answer,A,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-01-B,X-PC-01,principle_pros_cons,answer,B,llm_partial_pass_v2,0,2,0,0,,supported solver detail but irrelevant to the question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-01-C,X-PC-01,principle_pros_cons,answer,C,llm_no_verifier_v2,1,1,1,0,3,regularization point is supported but noise robustness is not direct,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-01-D,X-PC-01,principle_pros_cons,answer,D,rule_baseline,1,2,0,0,3,addresses overfit only and omits noise robustness,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-02-A,X-PC-02,principle_pros_cons,answer,A,llm_no_verifier_v2,1,1,1,0,3,noise concern is plausible but the weak-learner claim is not directly supported,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-02-B,X-PC-02,principle_pros_cons,answer,B,rule_baseline,1,1,0,0,3,mentions the limitation but does not explain its mechanism,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-02-C,X-PC-02,principle_pros_cons,answer,C,llm_partial_pass_v2,1,1,0,0,4,states the noise limitation without explaining why,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-02-D,X-PC-02,principle_pros_cons,answer,D,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-03-A,X-PC-03,principle_pros_cons,answer,A,rule_baseline,1,2,0,0,3,lists scaling cases but does not explain the training mechanism,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-03-B,X-PC-03,principle_pros_cons,answer,B,llm_partial_pass_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-03-C,X-PC-03,principle_pros_cons,answer,C,llm_no_verifier_v2,2,2,0,0,5,complete mechanism explanation,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-PC-03-D,X-PC-03,principle_pros_cons,answer,D,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MS-01-A,X-MS-01,metric_selection,answer,A,rule_baseline,1,2,0,0,4,defines both metrics but gives no priority recommendation,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MS-01-B,X-MS-01,metric_selection,answer,B,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MS-01-C,X-MS-01,metric_selection,answer,C,llm_no_verifier_v2,0,1,1,0,,gives the wrong priority and cited evidence only defines metrics,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MS-01-D,X-MS-01,metric_selection,answer,D,llm_partial_pass_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MS-02-A,X-MS-02,metric_selection,answer,A,llm_partial_pass_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MS-02-B,X-MS-02,metric_selection,answer,B,llm_no_verifier_v2,2,2,0,0,5,correct F1 explanation,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MS-02-C,X-MS-02,metric_selection,answer,C,llm_strict_v2,0,,,1,,over-refusal on answerable question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-MS-02-D,X-MS-02,metric_selection,answer,D,rule_baseline,0,2,0,0,,precision detail is supported but irrelevant,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-01-A,X-NA-01,no_answer,refuse,A,llm_no_verifier_v2,2,,,0,,correct refusal for out-of-scope question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-01-B,X-NA-01,no_answer,refuse,B,llm_strict_v2,2,,,0,,correct refusal for out-of-scope question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-01-C,X-NA-01,no_answer,refuse,C,llm_partial_pass_v2,2,,,0,,correct refusal for out-of-scope question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-01-D,X-NA-01,no_answer,refuse,D,rule_baseline,2,,,0,,correct refusal for out-of-scope question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-02-A,X-NA-02,no_answer,refuse,A,llm_strict_v2,2,,,0,,correct refusal for out-of-scope question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-02-B,X-NA-02,no_answer,refuse,B,llm_no_verifier_v2,0,0,1,0,,unsupported substantive answer outside the corpus,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-02-C,X-NA-02,no_answer,refuse,C,rule_baseline,2,,,0,,correct refusal for out-of-scope question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-02-D,X-NA-02,no_answer,refuse,D,llm_partial_pass_v2,2,,,0,,correct refusal for out-of-scope question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-03-A,X-NA-03,no_answer,refuse,A,llm_partial_pass_v2,1,1,0,0,2,signals missing attribute evidence but does not clearly refuse,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-03-B,X-NA-03,no_answer,refuse,B,llm_no_verifier_v2,0,1,0,0,,repeats the unsupported attribute question,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-03-C,X-NA-03,no_answer,refuse,C,rule_baseline,1,2,0,0,3,corrects the entity context but does not deny the requested attribute,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-03-D,X-NA-03,no_answer,refuse,D,llm_strict_v2,2,,,0,,clear refusal for nonexistent attribute,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-04-A,X-NA-04,no_answer,refuse,A,llm_strict_v2,2,,,0,,correct refusal for false or unsupported premise,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-04-B,X-NA-04,no_answer,refuse,B,llm_partial_pass_v2,1,2,0,0,3,provides related facts but does not explicitly reject the premise,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-04-C,X-NA-04,no_answer,refuse,C,rule_baseline,1,2,0,0,3,provides the clustering fact but does not reject regression use,User-confirmed review of Codex-assisted scoring,user_confirmed
+X-NA-04-D,X-NA-04,no_answer,refuse,D,llm_no_verifier_v2,1,2,0,0,3,states both task facts but does not explicitly reject the premise,User-confirmed review of Codex-assisted scoring,user_confirmed

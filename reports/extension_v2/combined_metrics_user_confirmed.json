@@ -1,0 +1,754 @@
+{
+  "schema_version": "2.0",
+  "artifact": "extension_combined_metrics_user_confirmed",
+  "protocol_version": "v2",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "review_status": "user_confirmed",
+  "reviewer": "User-confirmed review of Codex-assisted scoring",
+  "automatic_metrics_source": {
+    "path": "reports/extension_v2/combined_metrics.json",
+    "sha256": "543b923f23886df9485d7f0c6ec07aece196d8e3d7ca783c974583789b6e5fc2"
+  },
+  "human_metrics_source": {
+    "path": "reports/extension_v2/human_metrics_user_confirmed.json"
+  },
+  "method_order": [
+    "rule_baseline",
+    "llm_strict_v2",
+    "llm_no_verifier_v2",
+    "llm_partial_pass_v2"
+  ],
+  "methods": {
+    "rule_baseline": {
+      "automatic": {
+        "decision_accuracy": {
+          "status": "computed",
+          "value": 0.913,
+          "numerator": 21,
+          "denominator": 23,
+          "note": ""
+        },
+        "refusal_accuracy": {
+          "status": "computed",
+          "value": 0.5,
+          "numerator": 2,
+          "denominator": 4,
+          "note": ""
+        },
+        "over_refusal_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 19,
+          "note": ""
+        },
+        "partial_pass_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 19,
+          "note": ""
+        },
+        "citation_validity": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 45,
+          "denominator": 45,
+          "note": "claim-level validity over generated claims with citations"
+        },
+        "supported_claim_retention_rate": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 44,
+          "denominator": 44,
+          "note": ""
+        },
+        "unsupported_claim_leakage_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 1,
+          "note": ""
+        },
+        "structured_output_success_rate": {
+          "status": "not_applicable",
+          "value": null,
+          "note": "offline rule generator"
+        },
+        "fallback_rate": {
+          "status": "not_applicable",
+          "value": null,
+          "note": "offline rule generator"
+        },
+        "cold_start_latency_ms": {
+          "status": "not_applicable",
+          "value": null,
+          "note": "first v2 LLM question after explicit model unload"
+        },
+        "warm_end_to_end_latency_ms": {
+          "status": "not_applicable",
+          "value": null,
+          "note": "mean question latency excluding the one cold-start question"
+        },
+        "mean_end_to_end_latency_ms": {
+          "status": "computed",
+          "value": 5.46,
+          "note": ""
+        },
+        "mean_retrieval_latency_ms": {
+          "status": "computed",
+          "value": 1.29,
+          "note": ""
+        },
+        "mean_generation_latency_ms": {
+          "status": "computed",
+          "value": 0.0,
+          "note": ""
+        },
+        "mean_evidence_packing_latency_ms": {
+          "status": "not_applicable",
+          "value": null,
+          "note": "LLM evidence packing only"
+        },
+        "mean_verification_latency_ms": {
+          "status": "computed",
+          "value": 0.49,
+          "note": ""
+        },
+        "mean_retry_latency_ms": {
+          "status": "computed",
+          "value": 0.07,
+          "note": ""
+        },
+        "generation_attempts_total": 0,
+        "generated_claim_count": 45,
+        "supported_claim_count": 44,
+        "unsupported_claim_count": 1,
+        "supported_claim_retained_count": 44,
+        "unsupported_claim_leakage_count": 0,
+        "decision_distribution": {
+          "pass": 21,
+          "refuse": 2
+        },
+        "question_count": 23
+      },
+      "human": {
+        "question_count": 23,
+        "answer_correctness": {
+          "value": 0.587,
+          "numerator": 27,
+          "denominator": 46,
+          "note": "normalized 0-1 from user-confirmed 0/1/2 scores over all questions"
+        },
+        "evidence_faithfulness": {
+          "value": 0.881,
+          "numerator": 37,
+          "denominator": 42,
+          "note": "normalized 0-1 over substantive answers; refusals are not applicable"
+        },
+        "hallucination_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 21,
+          "note": "unsupported professional factual claims over substantive answers"
+        },
+        "over_refusal_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 19,
+          "note": "user-confirmed over-refusal over 19 answerable questions"
+        },
+        "readability": {
+          "value": 3.5556,
+          "numerator": 64,
+          "denominator": 18,
+          "note": "mean raw 1-5 score over correct or partially correct substantive answers"
+        },
+        "scored_row_counts": {
+          "correctness": 23,
+          "faithfulness": 21,
+          "hallucination": 21,
+          "over_refusal": 19,
+          "readability": 18
+        },
+        "score_distributions": {
+          "answer_correctness": {
+            "0": 3,
+            "1": 13,
+            "2": 7
+          },
+          "evidence_faithfulness": {
+            "1": 5,
+            "2": 16
+          },
+          "hallucination": {
+            "0": 21
+          },
+          "over_refusal": {
+            "0": 23
+          },
+          "readability": {
+            "3": 9,
+            "4": 8,
+            "5": 1
+          }
+        },
+        "reviewer": "User-confirmed review of Codex-assisted scoring",
+        "review_status": "user_confirmed"
+      }
+    },
+    "llm_strict_v2": {
+      "automatic": {
+        "decision_accuracy": {
+          "status": "computed",
+          "value": 0.3043,
+          "numerator": 7,
+          "denominator": 23,
+          "note": ""
+        },
+        "refusal_accuracy": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 4,
+          "denominator": 4,
+          "note": ""
+        },
+        "over_refusal_rate": {
+          "status": "computed",
+          "value": 0.8421,
+          "numerator": 16,
+          "denominator": 19,
+          "note": ""
+        },
+        "partial_pass_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 19,
+          "note": ""
+        },
+        "citation_validity": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 50,
+          "denominator": 50,
+          "note": "claim-level validity over generated claims with citations"
+        },
+        "supported_claim_retention_rate": {
+          "status": "computed",
+          "value": 0.1154,
+          "numerator": 3,
+          "denominator": 26,
+          "note": ""
+        },
+        "unsupported_claim_leakage_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 24,
+          "note": ""
+        },
+        "structured_output_success_rate": {
+          "status": "computed",
+          "value": 0.9565,
+          "numerator": 22,
+          "denominator": 23,
+          "note": ""
+        },
+        "fallback_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 23,
+          "note": ""
+        },
+        "cold_start_latency_ms": {
+          "status": "computed",
+          "value": 25951.24,
+          "note": "first v2 LLM question after explicit model unload"
+        },
+        "warm_end_to_end_latency_ms": {
+          "status": "computed",
+          "value": 11252.2,
+          "note": "mean question latency excluding the one cold-start question"
+        },
+        "mean_end_to_end_latency_ms": {
+          "status": "computed",
+          "value": 11891.29,
+          "note": ""
+        },
+        "mean_retrieval_latency_ms": {
+          "status": "computed",
+          "value": 8.53,
+          "note": ""
+        },
+        "mean_generation_latency_ms": {
+          "status": "computed",
+          "value": 11867.82,
+          "note": ""
+        },
+        "mean_evidence_packing_latency_ms": {
+          "status": "computed",
+          "value": 5.39,
+          "note": "LLM evidence packing only"
+        },
+        "mean_verification_latency_ms": {
+          "status": "computed",
+          "value": 4.62,
+          "note": ""
+        },
+        "mean_retry_latency_ms": {
+          "status": "computed",
+          "value": 5318.8,
+          "note": ""
+        },
+        "generation_attempts_total": 41,
+        "generated_claim_count": 50,
+        "supported_claim_count": 26,
+        "unsupported_claim_count": 24,
+        "supported_claim_retained_count": 3,
+        "unsupported_claim_leakage_count": 0,
+        "decision_distribution": {
+          "pass": 3,
+          "refuse": 20
+        },
+        "question_count": 23
+      },
+      "human": {
+        "question_count": 23,
+        "answer_correctness": {
+          "value": 0.3043,
+          "numerator": 14,
+          "denominator": 46,
+          "note": "normalized 0-1 from user-confirmed 0/1/2 scores over all questions"
+        },
+        "evidence_faithfulness": {
+          "value": 1.0,
+          "numerator": 6,
+          "denominator": 6,
+          "note": "normalized 0-1 over substantive answers; refusals are not applicable"
+        },
+        "hallucination_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 3,
+          "note": "unsupported professional factual claims over substantive answers"
+        },
+        "over_refusal_rate": {
+          "value": 0.8421,
+          "numerator": 16,
+          "denominator": 19,
+          "note": "user-confirmed over-refusal over 19 answerable questions"
+        },
+        "readability": {
+          "value": 5.0,
+          "numerator": 15,
+          "denominator": 3,
+          "note": "mean raw 1-5 score over correct or partially correct substantive answers"
+        },
+        "scored_row_counts": {
+          "correctness": 23,
+          "faithfulness": 3,
+          "hallucination": 3,
+          "over_refusal": 19,
+          "readability": 3
+        },
+        "score_distributions": {
+          "answer_correctness": {
+            "0": 16,
+            "2": 7
+          },
+          "evidence_faithfulness": {
+            "2": 3
+          },
+          "hallucination": {
+            "0": 3
+          },
+          "over_refusal": {
+            "0": 7,
+            "1": 16
+          },
+          "readability": {
+            "5": 3
+          }
+        },
+        "reviewer": "User-confirmed review of Codex-assisted scoring",
+        "review_status": "user_confirmed"
+      }
+    },
+    "llm_no_verifier_v2": {
+      "automatic": {
+        "decision_accuracy": {
+          "status": "computed",
+          "value": 0.8261,
+          "numerator": 19,
+          "denominator": 23,
+          "note": ""
+        },
+        "refusal_accuracy": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 4,
+          "note": ""
+        },
+        "over_refusal_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 19,
+          "note": ""
+        },
+        "partial_pass_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 19,
+          "note": ""
+        },
+        "citation_validity": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 47,
+          "denominator": 47,
+          "note": "claim-level validity over generated claims with citations"
+        },
+        "supported_claim_retention_rate": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 22,
+          "denominator": 22,
+          "note": ""
+        },
+        "unsupported_claim_leakage_rate": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 25,
+          "denominator": 25,
+          "note": ""
+        },
+        "structured_output_success_rate": {
+          "status": "computed",
+          "value": 0.9565,
+          "numerator": 22,
+          "denominator": 23,
+          "note": ""
+        },
+        "fallback_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 23,
+          "note": ""
+        },
+        "cold_start_latency_ms": {
+          "status": "not_applicable",
+          "value": null,
+          "note": "first v2 LLM question after explicit model unload"
+        },
+        "warm_end_to_end_latency_ms": {
+          "status": "computed",
+          "value": 5207.65,
+          "note": "mean question latency excluding the one cold-start question"
+        },
+        "mean_end_to_end_latency_ms": {
+          "status": "computed",
+          "value": 5207.65,
+          "note": ""
+        },
+        "mean_retrieval_latency_ms": {
+          "status": "computed",
+          "value": 6.08,
+          "note": ""
+        },
+        "mean_generation_latency_ms": {
+          "status": "computed",
+          "value": 5193.86,
+          "note": ""
+        },
+        "mean_evidence_packing_latency_ms": {
+          "status": "computed",
+          "value": 2.35,
+          "note": "LLM evidence packing only"
+        },
+        "mean_verification_latency_ms": {
+          "status": "computed",
+          "value": 0.0,
+          "note": ""
+        },
+        "mean_retry_latency_ms": {
+          "status": "computed",
+          "value": 0.0,
+          "note": ""
+        },
+        "generation_attempts_total": 22,
+        "generated_claim_count": 47,
+        "supported_claim_count": 22,
+        "unsupported_claim_count": 25,
+        "supported_claim_retained_count": 22,
+        "unsupported_claim_leakage_count": 25,
+        "decision_distribution": {
+          "pass": 23
+        },
+        "question_count": 23
+      },
+      "human": {
+        "question_count": 23,
+        "answer_correctness": {
+          "value": 0.7826,
+          "numerator": 36,
+          "denominator": 46,
+          "note": "normalized 0-1 from user-confirmed 0/1/2 scores over all questions"
+        },
+        "evidence_faithfulness": {
+          "value": 0.8182,
+          "numerator": 36,
+          "denominator": 44,
+          "note": "normalized 0-1 over substantive answers; refusals are not applicable"
+        },
+        "hallucination_rate": {
+          "value": 0.2727,
+          "numerator": 6,
+          "denominator": 22,
+          "note": "unsupported professional factual claims over substantive answers"
+        },
+        "over_refusal_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 19,
+          "note": "user-confirmed over-refusal over 19 answerable questions"
+        },
+        "readability": {
+          "value": 4.3158,
+          "numerator": 82,
+          "denominator": 19,
+          "note": "mean raw 1-5 score over correct or partially correct substantive answers"
+        },
+        "scored_row_counts": {
+          "correctness": 23,
+          "faithfulness": 22,
+          "hallucination": 22,
+          "over_refusal": 19,
+          "readability": 19
+        },
+        "score_distributions": {
+          "answer_correctness": {
+            "0": 3,
+            "1": 4,
+            "2": 16
+          },
+          "evidence_faithfulness": {
+            "0": 1,
+            "1": 6,
+            "2": 15
+          },
+          "hallucination": {
+            "0": 16,
+            "1": 6
+          },
+          "over_refusal": {
+            "0": 23
+          },
+          "readability": {
+            "3": 4,
+            "4": 5,
+            "5": 10
+          }
+        },
+        "reviewer": "User-confirmed review of Codex-assisted scoring",
+        "review_status": "user_confirmed"
+      }
+    },
+    "llm_partial_pass_v2": {
+      "automatic": {
+        "decision_accuracy": {
+          "status": "computed",
+          "value": 0.6957,
+          "numerator": 16,
+          "denominator": 23,
+          "note": ""
+        },
+        "refusal_accuracy": {
+          "status": "computed",
+          "value": 0.5,
+          "numerator": 2,
+          "denominator": 4,
+          "note": ""
+        },
+        "over_refusal_rate": {
+          "status": "computed",
+          "value": 0.2632,
+          "numerator": 5,
+          "denominator": 19,
+          "note": ""
+        },
+        "partial_pass_rate": {
+          "status": "computed",
+          "value": 0.6316,
+          "numerator": 12,
+          "denominator": 19,
+          "note": ""
+        },
+        "citation_validity": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 50,
+          "denominator": 50,
+          "note": "claim-level validity over generated claims with citations"
+        },
+        "supported_claim_retention_rate": {
+          "status": "computed",
+          "value": 1.0,
+          "numerator": 23,
+          "denominator": 23,
+          "note": ""
+        },
+        "unsupported_claim_leakage_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 27,
+          "note": ""
+        },
+        "structured_output_success_rate": {
+          "status": "computed",
+          "value": 0.9565,
+          "numerator": 22,
+          "denominator": 23,
+          "note": ""
+        },
+        "fallback_rate": {
+          "status": "computed",
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 23,
+          "note": ""
+        },
+        "cold_start_latency_ms": {
+          "status": "not_applicable",
+          "value": null,
+          "note": "first v2 LLM question after explicit model unload"
+        },
+        "warm_end_to_end_latency_ms": {
+          "status": "computed",
+          "value": 7607.35,
+          "note": "mean question latency excluding the one cold-start question"
+        },
+        "mean_end_to_end_latency_ms": {
+          "status": "computed",
+          "value": 7607.35,
+          "note": ""
+        },
+        "mean_retrieval_latency_ms": {
+          "status": "computed",
+          "value": 4.51,
+          "note": ""
+        },
+        "mean_generation_latency_ms": {
+          "status": "computed",
+          "value": 7587.55,
+          "note": ""
+        },
+        "mean_evidence_packing_latency_ms": {
+          "status": "computed",
+          "value": 6.38,
+          "note": "LLM evidence packing only"
+        },
+        "mean_verification_latency_ms": {
+          "status": "computed",
+          "value": 2.69,
+          "note": ""
+        },
+        "mean_retry_latency_ms": {
+          "status": "computed",
+          "value": 2323.88,
+          "note": ""
+        },
+        "generation_attempts_total": 30,
+        "generated_claim_count": 50,
+        "supported_claim_count": 23,
+        "unsupported_claim_count": 27,
+        "supported_claim_retained_count": 23,
+        "unsupported_claim_leakage_count": 0,
+        "decision_distribution": {
+          "partial_pass": 14,
+          "pass": 2,
+          "refuse": 7
+        },
+        "question_count": 23
+      },
+      "human": {
+        "question_count": 23,
+        "answer_correctness": {
+          "value": 0.5217,
+          "numerator": 24,
+          "denominator": 46,
+          "note": "normalized 0-1 from user-confirmed 0/1/2 scores over all questions"
+        },
+        "evidence_faithfulness": {
+          "value": 0.9375,
+          "numerator": 30,
+          "denominator": 32,
+          "note": "normalized 0-1 over substantive answers; refusals are not applicable"
+        },
+        "hallucination_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 16,
+          "note": "unsupported professional factual claims over substantive answers"
+        },
+        "over_refusal_rate": {
+          "value": 0.2632,
+          "numerator": 5,
+          "denominator": 19,
+          "note": "user-confirmed over-refusal over 19 answerable questions"
+        },
+        "readability": {
+          "value": 3.7333,
+          "numerator": 56,
+          "denominator": 15,
+          "note": "mean raw 1-5 score over correct or partially correct substantive answers"
+        },
+        "scored_row_counts": {
+          "correctness": 23,
+          "faithfulness": 16,
+          "hallucination": 16,
+          "over_refusal": 19,
+          "readability": 15
+        },
+        "score_distributions": {
+          "answer_correctness": {
+            "0": 6,
+            "1": 10,
+            "2": 7
+          },
+          "evidence_faithfulness": {
+            "1": 2,
+            "2": 14
+          },
+          "hallucination": {
+            "0": 16
+          },
+          "over_refusal": {
+            "0": 18,
+            "1": 5
+          },
+          "readability": {
+            "2": 1,
+            "3": 4,
+            "4": 8,
+            "5": 2
+          }
+        },
+        "reviewer": "User-confirmed review of Codex-assisted scoring",
+        "review_status": "user_confirmed"
+      }
+    }
+  },
+  "limitations": [
+    "The extension contains 23 questions and only four no-answer cases.",
+    "Scores are Codex-assisted and user-confirmed rather than independent double annotation.",
+    "All method comparisons are descriptive and do not establish statistical significance.",
+    "The extension was executed once and was not rerun after scoring."
+  ]
+}

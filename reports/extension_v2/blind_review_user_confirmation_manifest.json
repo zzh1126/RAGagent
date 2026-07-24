@@ -1,0 +1,33 @@
+{
+  "schema_version": "2.0",
+  "artifact": "extension_blind_review_user_confirmation",
+  "protocol_version": "v2",
+  "release_id": "extension-qwen3-4b-v2-e207cb91",
+  "confirmed_at": "2026-07-24T07:42:22.908779+00:00",
+  "confirmation_source": "explicit_user_confirmation_after_review",
+  "reviewer": "User-confirmed review of Codex-assisted scoring",
+  "review_status": "user_confirmed",
+  "row_count": 92,
+  "scores_promoted_without_mutation": true,
+  "input_hashes": {
+    "immutable_blind_review": "5e8ce394a76dd0ca4e2fd91decf80191f625c7024ea1dc3073301c0ab70a189e",
+    "preliminary_score_map": "548a034ba8e787ea3267848e41629e3156af9cd5e83ff7c4f9696d9f30064c6a",
+    "preliminary_output": "b53267c456c7d52d6bd25dbd97d72e0bd3a9a8a62314fd9dd11017be224a994f",
+    "blind_method_key": "fdbf33cd26bdd21f22981cdbb7be2c4c0fc3efd9945f88d60a10672e7e1bc0ec",
+    "extension_dataset": "7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5",
+    "automatic_metrics": "543b923f23886df9485d7f0c6ec07aece196d8e3d7ca783c974583789b6e5fc2"
+  },
+  "output_hashes": {
+    "blind_review_user_confirmed.csv": "1bd59bcb619fda780d7dd4a0b6ff082a4a585747dca46995323df8f1acc1c353",
+    "blind_review_unblinded_user_confirmed.csv": "57bca45e49a6274659cb32ea4e0988db509712da9ec9177bc2daa577e6715898",
+    "human_metrics_user_confirmed.json": "d6e3183edecd146e0694c929a59e57d021f8fcdbdeea1c888dd608064f90a28c",
+    "combined_metrics_user_confirmed.json": "45439c7dd78bdc48766ca5cfa2bce630058c9874723dbac04d62e012741cb920",
+    "metrics_user_confirmed.md": "c79916938ea7ed854b836eadb13f4445efe5cdcbb4e26296beeadc4beb5294be"
+  },
+  "limitations": [
+    "The extension contains 23 questions and only four no-answer cases.",
+    "Scores are Codex-assisted and user-confirmed rather than independent double annotation.",
+    "All method comparisons are descriptive and do not establish statistical significance.",
+    "The extension was executed once and was not rerun after scoring."
+  ]
+}

@@ -16,7 +16,7 @@
 | 当前默认图后端 | NetworkX `3.3` |
 | 当前默认生成器 | Ollama `qwen3:4b`，失败时回退规则生成器 |
 | 正式基线状态 | v1.0 规则基线已冻结、可复验 |
-| LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；Stage 8.7 四方法自动实验已完成，人工盲评待完成 |
+| LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；Stage 8.7 四方法实验和 Stage 8.8 用户确认盲评均已完成 |
 | extension 状态 | 23 题已按 v2 合同执行且只执行一次；v1 有效状态为 `revoked_before_execution`；v2 有效执行状态为 `completed_once` |
 
 事实优先级如下：
@@ -78,8 +78,8 @@
 | 图结构是否改善结构化问题的证据覆盖和回答质量？ | Vector RAG、Graph Only、Proposed 对比 |
 | Verifier 是否改善拒答、问题对齐和证据忠实度？ | Proposed 与 No Verifier 消融 |
 | 系统是否可以本地、可追溯、可复现地运行？ | NetworkX、TF-IDF、LangGraph、归档和自动校验 |
-| LLM 是否改善可读性和完整性，同时保持证据忠实度？ | Stage 8.7 自动结果已完成，但必须等盲评 Correctness/Faithfulness/Readability 后回答 |
-| Partial-pass 是否降低过度拒答？ | v2 extension 自动 over-refusal 相对 Strict 从 16/19 降到 5/19；仍不能替代人工答案质量结论 |
+| LLM 是否改善可读性和完整性，同时保持证据忠实度？ | No Verifier 提高 Correctness/Readability 但产生 6/22 hallucination；Partial-pass 保持 0 hallucination 和 0.9375 Faithfulness，但 Correctness 未超过 Rule |
+| Partial-pass 是否降低过度拒答？ | 用户确认 over-refusal 相对 Strict 从 16/19 降到 5/19，同时 0/16 hallucination；该改善不等于总体正确性提升 |
 
 ## 5. 项目边界
 
@@ -729,9 +729,9 @@ extension 分布：4 单跳、4 多跳、3 定义、3 对比、3 原理优缺点
 - Evidence Faithfulness：0/1/2；
 - Hallucination：0/1；
 - Over-refusal：0/1；
-- Readability：1～5，仅在 extension v2 计划中正式加入。
+- Readability：1～5，在 extension v2 中对正确或部分正确的实质答案计算。
 
-Pilot 语义评分是 Codex 辅助初评后由用户确认的单一复核流程，不是独立双人标注，不能报告标注者一致性。
+Pilot 和 extension 语义评分都是 Codex 辅助初评后由用户确认的单一复核流程，不是独立双人标注，不能报告标注者一致性。Extension 在评分锁定后才读取独立 method key 解盲。
 
 ## 20. v1.0 规则基线结果
 
@@ -916,7 +916,16 @@ Stage 8.7 已使用 release `extension-qwen3-4b-v2-e207cb91` 执行唯一一次 
 | LLM No Verifier v2 | 19/23 | 0/4 | 0/19 | 25/25 | 5207.65 ms |
 | LLM Partial-pass v2 | 16/23 | 2/4 | 5/19 | 0/27 | 7607.35 ms |
 
-Partial-pass 自动减少了相对 Strict 的过度拒答并保持零 unsupported Claim 泄漏，但没有超过 Rule Baseline，且误接受 `X-NA-03`、`X-NA-04`。92 行 A/B/C/D 匿名盲评表和独立 method key 已生成，人工评分尚未完成，因此以上自动决策指标不等于 Answer Correctness、Evidence Faithfulness 或 Readability。v1/v2 release、manifest、state、receipt 和结果继续保留且不可覆盖。
+Partial-pass 自动减少了相对 Strict 的过度拒答并保持零 unsupported Claim 泄漏，但没有超过 Rule Baseline，且误接受 `X-NA-03`、`X-NA-04`。92 行 A/B/C/D 评分由 Codex 辅助初评并经用户确认，评分锁定后才解盲：
+
+| 方法 | Correctness | Faithfulness | Hallucination | Over-refusal | Readability |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Rule Baseline | 0.5870 | 0.8810 | 0/21 | 0/19 | 3.56 (n=18) |
+| LLM Strict v2 | 0.3043 | 1.0000 | 0/3 | 16/19 | 5.00 (n=3) |
+| LLM No Verifier v2 | 0.7826 | 0.8182 | 6/22 | 0/19 | 4.32 (n=19) |
+| LLM Partial-pass v2 | 0.5217 | 0.9375 | 0/16 | 5/19 | 3.73 (n=15) |
+
+结果支持 Partial-pass 作为 Strict 与 No Verifier 之间的安全性/覆盖率折中：它降低 Strict 的过度拒答并保持零观察 hallucination，但 Correctness 未超过 Rule。No Verifier 的 Correctness 最高，同时幻觉和无答案误接受风险明显。Strict 的高 Faithfulness/Readability 只有 3 条实质答案，必须连同分母披露。v1/v2 release、manifest、state、receipt 和结果继续保留且不可覆盖。
 
 ## 25. 复现与常用命令
 
@@ -1005,6 +1014,7 @@ Stage 8.7 后只允许只读审计校验：
 python scripts/validate_extension_holdout.py
 python scripts/validate_extension_release_v2.py --check-runtime-model
 python scripts/validate_extension_results_v2.py
+python scripts/validate_extension_blind_confirmation.py
 ```
 
 当前 v1 正式命令仍被撤销；v2 的唯一执行已经完成，runner 会因 `completed_once` 拒绝再次运行。通用 runner、覆盖输出、自动重跑和基于 holdout 结果调参仍被禁止。
@@ -1053,6 +1063,8 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 | 评分 | `build_human_scoring_template.py` | 生成评分模板 |
 | 评分 | `score_pilot_preliminary.py` | 生成 pilot 初步评分 |
 | 评分 | `confirm_pilot_scoring.py` | 晋级用户确认评分 |
+| 评分 | `confirm_extension_blind_review.py` | 显式确认后锁定 92 行评分并解盲汇总 |
+| 评分 | `validate_extension_blind_confirmation.py` | 重算用户确认指标、分数签名和输出哈希 |
 | 评分 | `summarize_scored_experiments.py` | 汇总人工指标 |
 | 图表 | `generate_report_figures.py` | 生成并校验 5 张报告图 |
 | LLM | `check_enhancement_readiness.py` | 检查 Ollama 和 Dense 模型条件 |
@@ -1083,7 +1095,7 @@ PROGRESS.md                  按阶段追加的唯一进度日志
 - 数据集泄漏和 split 护栏；
 - extension release、不可覆盖输出、哈希和一次性执行保护。
 
-Stage 8.7 收尾后的全量测试结果为 `133 passed`；Claim-level、extension 结果、release、holdout 与报告声明校验均已通过，`python scripts/validate_runtime_trace.py` 继续通过。浏览器 smoke 仍覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
+Stage 8.8 用户确认汇总后的全量测试结果为 `138 passed`；Claim-level、extension 结果、release、holdout、盲评确认与报告声明校验均已通过，`python scripts/validate_runtime_trace.py` 继续通过。浏览器 smoke 仍覆盖 pass、partial-pass、refuse 和 fallback 四条路径。
 
 ## 29. 可复现性与安全设计
 
@@ -1126,7 +1138,7 @@ Stage 8.7 收尾后的全量测试结果为 `133 passed`；Claim-level、extensi
 11. 提供带真实 model/backend/fallback/预热/延迟状态的响应式 Streamlit 演示界面；
 12. 建立了冻结题集、哈希、消融、人工评分和一次性 release 护栏。
 
-尚不能算已完成贡献：v2 四方法的人工答案质量结论、Dense Retrieval、Neo4j 正式部署基准。Stage 8.7 自动结果可以描述，但不能代替尚未完成的盲评。
+尚不能算已完成贡献：Dense Retrieval、Neo4j 正式部署基准和独立双人标注。v2 四方法自动与用户确认人工指标已完成，但只适用于当前 23 题小样本。
 
 ## 31. 常见答辩问答
 
@@ -1184,7 +1196,7 @@ Prompt 禁止使用模型记忆；每条 Claim 必须绑定真实 E ID 和逐字
 
 ### Q14：当前最好的正式结果是什么？
 
-v1.0 规则基线 final 的 Decision Accuracy 为 39/40，4/4 无答案题正确拒答。新 v2 extension 自动决策中 Rule Baseline 为 21/23，LLM Partial-pass v2 为 16/23；两套题集不能直接横向替代。LLM extension 的人工 Correctness、Faithfulness 和 Readability 尚未评分，因此当前不能宣称 LLM 答案质量优于规则基线。
+v1.0 规则基线 final 的 Decision Accuracy 为 39/40，4/4 无答案题正确拒答。v2 extension 中 Rule 的用户确认 Correctness 为 0.5870，Partial-pass 为 0.5217，No Verifier 为 0.7826；但 No Verifier 有 6/22 hallucination 和 0/4 自动拒答准确率。两套题集不能直接替代，v2 结果也不支持宣称 Partial-pass 全面优于规则基线。
 
 ### Q15：为什么不能重跑 final？
 
@@ -1196,7 +1208,7 @@ Pilot 曾用于发现并修复实现缺口，因此已被消费。后续只允�
 
 ### Q17：Extension 运行到什么状态？
 
-Stage 8.7 已按冻结 v2 release 执行且只执行一次：23 题、4 方法、92 次 QA 调用，receipt 状态为 `completed_once`。自动指标、逐题结果和 A/B/C/D 盲评表都已落盘；下一步是人工盲评，不能再重跑 extension 或根据结果调参。
+Stage 8.7 已按冻结 v2 release 执行且只执行一次：23 题、4 方法、92 次 QA 调用，receipt 状态为 `completed_once`。Stage 8.8 的 92 行盲评已由用户确认并在确认后解盲；不能再重跑 extension 或根据结果调参。
 
 ### Q18：项目的创新点是什么？
 
@@ -1204,11 +1216,11 @@ Stage 8.7 已按冻结 v2 release 执行且只执行一次：23 题、4 方法�
 
 ### Q19：目前最大的风险是什么？
 
-当前主要风险是 extension 人工盲评尚未完成、LLM 方法平均延迟约 5.21 至 11.89 秒、Partial-pass 仍有 5/19 过度拒答和 2/4 无答案误接受、样本规模小、单一人工复核以及稀疏检索语义能力有限。Stage 8.4 已能定位延迟来源，但“可观测”不等于“延迟已经优化完成”。
+当前主要风险是 LLM 方法平均延迟约 5.21 至 11.89 秒、Partial-pass 仍有 5/19 过度拒答和 2/4 无答案误接受、Correctness 未超过 Rule、样本规模小、单一确认而非双人标注，以及稀疏检索语义能力有限。Stage 8.4 已能定位延迟来源，但“可观测”不等于“延迟已经优化完成”。
 
 ### Q20：下一步是什么？
 
-v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结和 Stage 8.7 一次性 extension 自动实验均已完成。下一步进入 Stage 8.8：填写 92 行匿名盲评、在评分完成后解盲汇总、生成图表并定稿报告；仍禁止重跑 final/extension、通用 runner 绕过、结果覆盖和 holdout 后调参。
+v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结、Stage 8.7 extension 和 Stage 8.8 用户确认盲评均已完成。下一步生成 extension 图表、类别/错误分析并定稿报告与答辩材料；仍禁止重跑 final/extension、结果覆盖和 holdout 后调参。
 
 ## 32. 关联文档
 
@@ -1220,6 +1232,7 @@ v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Cla
 - `reports/llm_generator_dev_audit.md`：LLM dev 三轮结果；
 - `reports/extension_holdout_freeze.md`：extension 冻结与哈希；
 - `reports/llm_agent_v2_extension_stage8_7_audit.md`：一次性执行、自动指标、错误边界、产物哈希和盲评状态；
+- `reports/llm_agent_v2_extension_stage8_8_user_confirmed_audit.md`：用户确认指标、解盲结论、分母和输出哈希；
 - `reports/report_claims_checklist.md`：可声明和禁止声明；
 - `reports/releases/v1.0-baseline/release_notes.md`：v1.0 归档说明。
 

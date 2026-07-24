@@ -13,7 +13,7 @@
 | 重新进入复验 | `qwen3:4b`：**Generator Go，Planner No-Go** |
 | 当前实施范围 | LLM Answer Generator、intent-aware Evidence Packer、Verifier 与规则 fallback 已接线；不接入 LLM Query Planner |
 | final 处理 | 不重跑、不调参、不改变原始结果 |
-| extension holdout | v1 release 已在执行前撤销；v2 已完成唯一一次 4 方法 x 23 题运行，effective status 为 `completed_once`，人工盲评待完成 |
+| extension holdout | v1 release 已在执行前撤销；v2 已完成唯一一次 4 方法 x 23 题运行和用户确认盲评，effective status 为 `completed_once` |
 
 ## 前置条件审计
 
@@ -142,4 +142,6 @@ python scripts/smoke_llm_client.py --timeout 180
 
 阶段 8.5 已完成 10 道 dev 的完整工程回归。候选为 10/10 结构成功、0 fallback、9/10 自动决策、2/2 无答案正确拒答、1/8 answerable over-refusal、3/10 retry 和 0 unsupported Claim leakage。DEV02/03/10 返回过滤后的 `partial_pass`；DEV05 因固定六页语料没有 AdaBoost 样本权重机制原文继续拒答。Verifier 只增加大小写、ASCII/Unicode 连字符、弯引号和 `overfit`/`do not generalize` 直接变体的保守规范化，实质改写 quote 的负向测试仍拒绝。Dense Retrieval 不触发，因为唯一剩余错误不是正确 Chunk 未召回。该 dev 已用于调试，不能证明增强优于规则基线；下一步只进入一次 pilot 冻结前回归。
 
-阶段 8.6 的一次性 pilot 已完成并冻结 runtime。Stage 8.7 随后以冻结身份完成唯一一次 extension：23 题 x 4 方法，共 92 次 QA 调用。自动 Decision Accuracy 为 Rule 21/23、LLM Strict 7/23、LLM No Verifier 19/23、LLM Partial-pass 16/23；Partial-pass 的 answerable over-refusal 为 5/19，Strict 为 16/19，Partial-pass 的 unsupported Claim leakage 为 0/27。No Verifier 误接受全部 4 道无答案题并泄漏 25/25 unsupported Claims，说明 Verifier 的证据边界仍有必要。该结果不表示 LLM 优于 Rule Baseline，也不表示答案已经经人工确认；92 行匿名 A/B/C/D 盲评表尚待评分，冻结实现不得因这些 holdout 观察改变。
+阶段 8.6 的一次性 pilot 已完成并冻结 runtime。Stage 8.7 随后以冻结身份完成唯一一次 extension：23 题 x 4 方法，共 92 次 QA 调用。自动 Decision Accuracy 为 Rule 21/23、LLM Strict 7/23、LLM No Verifier 19/23、LLM Partial-pass 16/23；Partial-pass 的 answerable over-refusal 为 5/19，Strict 为 16/19，Partial-pass 的 unsupported Claim leakage 为 0/27。No Verifier 误接受全部 4 道无答案题并泄漏 25/25 unsupported Claims，说明 Verifier 的证据边界仍有必要。自动结果本身不能证明 LLM 优于 Rule Baseline，也不能替代后续人工答案质量评分；冻结实现不得因这些 holdout 观察改变。
+
+Stage 8.8 中，92 行 Codex 辅助评分经用户确认后才解盲。Partial-pass 的用户确认 Correctness 为 0.5217、Faithfulness 0.9375、Hallucination 0/16、Over-refusal 5/19、Readability 3.73；它相对 Strict 的 16/19 over-refusal 明显改善，但 Correctness 没有超过 Rule 的 0.5870。No Verifier 的 Correctness 0.7826 和 Readability 4.32 最高，同时 Hallucination 为 6/22 且自动拒答准确率为 0/4。最终技术判断仍是保留 Claim-level Verifier 和 Partial-pass 作为安全性/覆盖率折中，不把它描述为所有质量维度上的最佳方法。

@@ -6,7 +6,7 @@
 > - 项目路径：`E:\RAGagent`
 > - 基线版本：`v1.0-baseline`
 > - 当前实验分支：`experiment/llm-agent-v2`
-> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、intent-aware Evidence Packer、原子 Claim Prompt v2、Verifier 与规则 fallback；v1 extension release 已在执行前撤销，v2 四方法 extension 自动实验已完成且人工盲评待完成。
+> - 写作状态：方法、v1.0 基线、主实验、消融、用户确认语义评分和误差分析已填入；当前分支已接入 `qwen3:4b` Answer Generator、intent-aware Evidence Packer、原子 Claim Prompt v2、Verifier 与规则 fallback；v1 extension release 已在执行前撤销，v2 四方法 extension 与用户确认盲评均已完成。
 
 ## 摘要
 
@@ -14,7 +14,7 @@
 
 本项目严格区分开发集、演示集、pilot 集和 final 冻结保留集。v1.0 在仅运行一次的 40 题 final 集上取得 97.5% 的 pass/refuse 决策准确率，4 道无答案题全部正确拒答；该指标不等同于回答正确率。进一步在 pilot 集上比较 Vector RAG、Graph Only、Proposed 和 No Verifier 四种配置，Proposed 的决策准确率和无答案拒答准确率分别为 100% 和 100%，而关闭 Verifier 的配置对 4 道无答案题均未作出正确决策。用户确认后的语义复核显示 Proposed 的回答正确性为 0.8625、证据忠实度为 1.0000；评分初稿由 Codex 辅助生成，随后由用户确认，当前状态为 `user_confirmed`。
 
-实验结果显示，在由 approved 图关系定义的保守 gold Chunk 子集上，包含图检索的配置具有更高的 Recall@5；在 pilot 的 4 道无答案题上，Proposed 将拒答准确率从 No Verifier 的 0 提高到 1.0000。同时，唯一 final 错误 T-DF-01 说明保守验证也可能导致过度拒答。项目结果支持在短周期、小型领域知识库中采用“预定义知识图谱 + 文本证据 + 状态化验证”的可复现方案。
+实验结果显示，在由 approved 图关系定义的保守 gold Chunk 子集上，包含图检索的配置具有更高的 Recall@5；在 pilot 的 4 道无答案题上，Proposed 将拒答准确率从 No Verifier 的 0 提高到 1.0000。同时，唯一 final 错误 T-DF-01 说明保守验证也可能导致过度拒答。v2 extension 的用户确认盲评进一步显示：Partial-pass 相比 Strict 将过度拒答从 16/19 降为 5/19，并保持 0/16 观察幻觉和 0.9375 Faithfulness，但 Correctness 0.5217 未超过规则基线 0.5870；No Verifier 的 Correctness 达到 0.7826，同时产生 6/22 hallucination。项目结果支持在短周期、小型领域知识库中采用“预定义知识图谱 + 文本证据 + 状态化验证”的可复现方案，并表明验证强度需要在覆盖率与证据边界之间权衡。
 
 **关键词：** 检索增强生成；知识图谱；GraphRAG；LangGraph；证据验证；拒答机制；scikit-learn
 
@@ -279,7 +279,7 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 ## 5.8 技术增强决策
 
-**当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销；v2 release 文件状态仍为 `authorized_not_executed`，有效执行状态为 `completed_once`；Stage 8.7 已完成 4 方法 × 23 题自动实验，人工盲评仍待完成。**
+**当前状态：LLM Answer Generator、Verifier 与规则 fallback 已接入默认主链路，Planner No-Go；v1 extension release 已在执行前撤销；v2 release 文件状态仍为 `authorized_not_executed`，有效执行状态为 `completed_once`；Stage 8.7 已完成 4 方法 × 23 题自动实验，Stage 8.8 的 92 行盲评已由用户确认并在确认后解盲。**
 
 阶段 8.1 已完成 Evidence Packer、可见 ID 边界和逐次 packing trace。dev/pilot 50 题只读合同检查平均选择 4.38 条文本证据，最长上下文 7,783 字符，只有无答案题 `F-NA-01` 出现预期的 `no_text_evidence` gap。对“随机森林为什么更稳定”的真实 dev smoke 仍在一次重试后拒答：citation/path validity 均为 1.0000，但严格术语覆盖仅支持 1/3 Claim。因此 Packer 已通过工程验收，但尚未解决过度拒答，也不能视为独立增强效果结论。
 
@@ -297,7 +297,7 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 Stage 8.7 自动实验完成 92 次 QA 调用：冻结的 23 道 extension 题分别交给 Rule Baseline、LLM Strict v2、LLM No Verifier v2 和 LLM Partial-pass v2。四方法自动 Decision Accuracy 分别为 21/23 (0.9130)、7/23 (0.3043)、19/23 (0.8261) 和 16/23 (0.6957)。LLM Partial-pass v2 自动决策准确率为 0.6957，LLM Partial-pass v2 可回答题 over-refusal 为 5/19，LLM Partial-pass v2 unsupported Claim leakage 为 0/27；相对 Strict 的 16/19 over-refusal，Claim-level Partial-pass 确实保留了更多可回答题，同时没有将已判不支持 Claim 留在最终答案中。另一方面，Partial-pass 仅 2/4 无答案题正确拒答，`X-NA-03`、`X-NA-04` 被误作 `partial_pass`，并没有超过 Rule Baseline 的自动决策指标。No Verifier 接受全部 4 道无答案题并有 25/25 unsupported Claim leakage，表明 Verifier 对边界控制仍有直接作用。
 
-本轮 state 为 `completed`，receipt 的有效执行状态为 `completed_once`；release 文件的 `authorized_not_executed` 字段按不可变授权合同保留。A/B/C/D 盲评表包含 92 行且不暴露方法身份或 expected 字段，method key 单独存放。自动决策指标不能替代人工回答正确性、证据忠实度和可读性评分；人工盲评仍待完成。因此本报告只将 Stage 8.7 描述为一次完成的自动实验和证据合同审计，不宣称 LLM 已提升人工回答质量，也不使用 holdout 观察继续调参。
+本轮 state 为 `completed`，receipt 的有效执行状态为 `completed_once`；release 文件的 `authorized_not_executed` 字段按不可变授权合同保留。A/B/C/D 盲评表包含 92 行且不暴露方法身份或 expected 字段，method key 单独存放。Codex 辅助初评经用户逐行审核确认后才读取 method key 解盲。自动决策指标与用户确认人工指标分别报告，自动决策指标不能替代人工回答正确性、证据忠实度和可读性评分。Partial-pass 的用户确认 Correctness/Faithfulness/Hallucination/Over-refusal/Readability 为 `0.5217/0.9375/0.0000/0.2632/3.73`；Rule 为 `0.5870/0.8810/0.0000/0.0000/3.56`，Strict 为 `0.3043/1.0000/0.0000/0.8421/5.00`，No Verifier 为 `0.7826/0.8182/0.2727/0.0000/4.32`。Strict 的 Faithfulness 和 Readability 只基于 3 条实质答案，No Verifier 的 hallucination 为 6/22。结果支持 Partial-pass 缓解 Strict 的过度拒答并维持证据边界，但不支持其全面提高回答正确性；冻结实现未因 holdout 结果修改。
 
 初始审计中，Ollama `0.32.1` 与 `qwen3-vl:8b` 的 5 次手工受控调用和 1 次自动复验均把 JSON Schema 内容放入 `thinking` 字段，正式 `response` 或 `message.content` 为空，因此该视觉模型组合仍为 No-Go，且没有读取 thinking 绕过接口合同。
 
@@ -495,13 +495,26 @@ $$
 
 ![图 7-4 Pilot 各题型决策准确率](figures/pilot_category_decision_accuracy.png)
 
-## 7.10 有效性威胁
+## 7.10 v2 Extension 用户确认结果
+
+| 方法 | 自动决策准确率 | Correctness | Faithfulness | Hallucination | Over-refusal | Readability | 平均端到端延迟 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Rule Baseline | 0.9130 | 0.5870 | 0.8810 | 0/21 | 0/19 | 3.56 (n=18) | 5.46 ms |
+| LLM Strict v2 | 0.3043 | 0.3043 | 1.0000 | 0/3 | 16/19 | 5.00 (n=3) | 11891.29 ms |
+| LLM No Verifier v2 | 0.8261 | 0.7826 | 0.8182 | 6/22 | 0/19 | 4.32 (n=19) | 5207.65 ms |
+| LLM Partial-pass v2 | 0.6957 | 0.5217 | 0.9375 | 0/16 | 5/19 | 3.73 (n=15) | 7607.35 ms |
+
+92 行匿名评分先由 Codex 辅助生成，再由用户审核确认；method key 只在确认后读取。该流程不是独立双人标注，也没有标注者一致性统计。Correctness 和 Faithfulness 归一化到 0-1，Readability 为 1-5 原始均值。拒答不进入 Faithfulness、Hallucination 和 Readability 分母，因此不能忽略括号中的有效样本数。
+
+本轮没有出现单一方法在所有维度领先。Strict 具有最高 Faithfulness，但以 16/19 over-refusal 和最低 Correctness 为代价。No Verifier 具有最高 Correctness 和较高 Readability，同时出现 6/22 hallucination 且 4 道无答案题全部未拒答。Partial-pass 位于两者之间：相较 Strict 大幅降低过度拒答并保持零观察 hallucination，但 Correctness 仍低于 Rule Baseline。该结果回答了研究问题中的机制权衡，不支持“LLM 或 Partial-pass 全面优于规则基线”的结论。
+
+## 7.11 有效性威胁
 
 - final 仅 40 题，无答案题仅 4 道，统计置信度有限；
 - pilot 曾用于发现实现缺口，不能视为无泄漏最终结果；
 - 语义评分由 Codex 辅助生成并经用户确认，但未进行独立双人标注或一致性统计；
 - gold Chunk 由图关系保守推导，仅覆盖部分题；
-- v1.0 主实验使用规则生成器，不能据此外推真实 LLM 的幻觉表现；当前 LLM extension 只有自动决策与 Claim 合同结果，尚无人工盲评答案质量结论；
+- extension 人工指标来自 Codex 辅助初评后的用户单一确认，不是独立双人标注；各方法 Faithfulness、Hallucination 和 Readability 分母因拒答数量不同；
 - 延迟为单机本地服务结果；Stage 8.4 已拆分预热与问题阶段，但尚无完整 dev 的 cold/warm 统计图或跨硬件基准；
 - 知识库仅包含六页文档，结论不应泛化到完整 scikit-learn。
 
@@ -516,7 +529,7 @@ $$
 ## 8.2 局限
 
 1. 文本检索仍为 TF-IDF，复杂语义改写能力有限；
-2. v1.0 生成器为规则模板；当前 LLM 增强虽已完成一次 extension 自动实验，但人工盲评尚未完成，不能宣称其回答质量已改善；
+2. v1.0 生成器为规则模板；v2 extension 已完成用户确认盲评，但 Partial-pass Correctness 未超过 Rule，不能宣称其全面改善回答质量；
 3. 多跳检索对中间实体和关系方向敏感；
 4. Verifier 仍可能产生过度拒答，且固定语料缺失时只能部分回答或拒答；
 5. 数据集和知识库规模较小；
@@ -526,7 +539,7 @@ $$
 ## 8.3 后续工作
 
 - 保持 Stage 8.6 冻结的配置，不重跑 pilot 或依据逐题结果调参；
-- 完成 92 行匿名 extension 盲评，评分完成后再解盲汇总自动与人工指标；
+- 生成 extension 用户确认指标图表、类别误差分析和答辩摘要；
 - 完善属性级问题对齐和错误前提验证；
 - 改进多目标实体和多跳路径覆盖；
 - 汇总完整 dev/pilot 的冷启动、热启动和分阶段延迟统计图；
@@ -535,7 +548,7 @@ $$
 
 ## 8.4 当前可提交性
 
-LLM Generator、Evidence Packer、Prompt v2、统一 Schema、Client、Claim-level Verifier、Partial-pass 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；v1 extension release 已在正式执行前撤销，v2 四方法 extension 已完成一次不可重跑的自动实验。Stage 8.5 dev candidate 和 Stage 8.6 pilot 仍只是工程门槛；Stage 8.7 自动结果表明 Partial-pass 降低了相对 Strict 的过度拒答并保持零 unsupported Claim 泄漏，但未超过 Rule Baseline，且人工盲评未完成。v1.0 继续作为可提交保底版本，当前增强分支不能在盲评完成前宣称回答质量提升。
+LLM Generator、Evidence Packer、Prompt v2、统一 Schema、Client、Claim-level Verifier、Partial-pass 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；v1 extension release 已在正式执行前撤销，v2 四方法 extension 与用户确认盲评均已完成。结果表明 Partial-pass 降低了相对 Strict 的过度拒答并保持零观察 hallucination，但 Correctness 未超过 Rule Baseline；No Verifier 的高 Correctness 伴随 6/22 hallucination。v1.0 继续作为可提交保底版本，增强分支可以报告权衡结果，但不能宣称 Partial-pass 全面优于规则基线。
 
 ---
 
@@ -577,6 +590,8 @@ python scripts/validate_evidence_packer.py
 python scripts/validate_atomic_claim_prompt.py
 python scripts/validate_evaluation.py
 python scripts/validate_extension_holdout.py
+python scripts/validate_extension_results_v2.py
+python scripts/validate_extension_blind_confirmation.py
 python scripts/validate_experiments.py
 python scripts/validate_report_claims.py
 python scripts/generate_report_figures.py --check
@@ -601,7 +616,7 @@ python scripts/validate_scoring.py
 - [x] 实现原子 Claim Prompt v2、1～4 条 Claim wire Schema、逐字 quote 合同与 20 次合成探针；
 - [x] 实现 Claim-level Verifier、retained/removed Claim、`PARTIAL_PASS` 与 strict 对照模式；
 - [x] 实现完整运行时 trace、CLI/评测接线、合成预热和 Streamlit 四路径桌面/移动 smoke；
-- [ ] 使用专用 runner 执行一次 extension 并完成用户确认的盲评；
+- [x] 使用专用 runner 执行一次 extension，并完成 92 行用户确认盲评、确认后解盲和四方法指标汇总；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；
 - [ ] 制作答辩 PPT、演示脚本和录屏。
