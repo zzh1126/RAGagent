@@ -109,6 +109,10 @@ pytest -q tests/test_research_report_docx.py
 
 The deliverable is `reports/final/基于预定义知识图谱的轻量化混合GraphRAG科研实践报告.docx`. Its manifest binds the Markdown source, generator, nine figures, static render-verified TOC, and output SHA-256. All 30 rendered pages have been visually checked; QA PNGs are temporary review artifacts and are not committed.
 
+## Final Defense Deck
+
+The editable 14-slide defense deck is `reports/final/轻量化混合GraphRAG科研实践答辩.pptx`. It contains 12 main slides and two backup slides covering the bounded corpus, current architecture, Claim-level verification, verified Streamlit UI, experiment governance, frozen baseline, user-confirmed quality/safety trade-offs, latency, limitations, and claim boundaries. Every slide has been rendered and inspected; the final layout audit reports zero errors.
+
 ## Streamlit Demo
 
 ```bash

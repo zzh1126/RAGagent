@@ -9,7 +9,7 @@
 3. 马上要做什么、按什么顺序做、怎样才算完成；
 4. 哪些内容暂时不做，以及在什么条件下才重新考虑。
 
-本文审计基线为 2026-07-25、分支 `experiment/llm-agent-v2`、Stage 8.9 完成状态。详细项目事实见 `PROJECT_HANDBOOK.md`，Partial-pass 协议设计见 `reports/llm_agent_partial_pass_plan.md`，dev 误差审计见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
+本文审计基线为 2026-07-25、分支 `experiment/llm-agent-v2`、Stage 8.10 完成状态。详细项目事实见 `PROJECT_HANDBOOK.md`，Partial-pass 协议设计见 `reports/llm_agent_partial_pass_plan.md`，dev 误差审计见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
 
 状态含义：
 
@@ -74,7 +74,7 @@
 | G16 | 人工评分只有单一确认 | 无独立双人标注与一致性 | 外部有效性有限 | Deferred | 时间允许再做 |
 | G17 | 数据和题集规模小 | 6 页、final 40、extension 23 | 结论不可泛化 | Deferred | 报告中披露 |
 | G18 | 依赖版本约束较宽 | requirements 多数无精确版本 | 新环境可能漂移 | P2 | v2 release 时锁定快照 |
-| G19 | 最终答辩材料尚未全部完成 | 30 页正式 DOCX 已完成；PPT、演示脚本和故障预案仍待制作 | 报告风险已关闭，现场交付仍需收尾 | P1 | DOCX Done；下一阶段完成答辩材料 |
+| G19 | 现场演示材料尚未全部完成 | 30 页正式 DOCX 与 14 页答辩 PPT 已完成；逐页讲稿和故障预案仍待制作 | 视觉交付风险已关闭，现场表达仍需收尾 | P1 | DOCX/PPT Done；下一阶段完成讲稿与预案 |
 
 ## 4. P0：Extension release 治理
 
@@ -698,11 +698,12 @@ Pilot 已观察到：
 - Streamlit 截图；
 - 完整阶段日志；
 - 30 页 A4 正式 DOCX、生成器、哈希 manifest 和 3 项 DOCX 回归测试；
-- 30 页逐页渲染视觉验收记录。
+- 30 页逐页渲染视觉验收记录；
+- 14 页 16:9 可编辑答辩 PPT，包含架构、Claim 过滤、真实界面、治理时间线、质量/安全/延迟图与 2 页备份材料；
+- PPT 全页 PNG、联系表、布局检查和包完整性验收。
 
 仍缺：
 
-- 答辩 PPT；
 - 演示脚本和故障预案；
 - 可选录屏。
 
@@ -749,6 +750,10 @@ PPT 和演示材料必须直接复用冻结指标与正式报告口径，不再�
 ### 阶段 8.9：正式科研报告 DOCX（已完成）
 
 已将冻结 Markdown 源稿确定性生成 30 页 A4 正式 DOCX，包含静态渲染验收目录、14 张表、9 张图和 6 个公式。报告逐页完成 PNG 视觉检查，未发现裁切、重叠、图注分离或异常分页；manifest 绑定源稿、生成器、全部图表和输出 SHA-256。新增回归测试锁定 artifact 新鲜度、静态目录合同及有序列表从 1 重启。下一步只制作答辩 PPT、演示脚本和故障预案。
+
+### 阶段 8.10：答辩 PPT（已完成）
+
+已生成 14 页 16:9 可编辑答辩 PPT，其中 12 页主讲、2 页备份。叙事从研究问题、知识边界、主链路架构、Claim-level Partial-pass、真实 Streamlit 界面和实验治理，推进到 v1 final、extension 质量/安全/延迟权衡与准确结论。所有图表由冻结指标重绘为可编辑形状，唯一嵌入媒体为已验证的项目截图。全页 artifact-tool 渲染、联系表检查和布局检查完成，结果为 0 error；PPTX 包含 14 个 slide parts、1 个非空媒体文件。下一步只编写逐页讲稿、现场演示步骤和故障预案。
 
 每个阶段单独实现、验证、写入 `PROGRESS.md`、提交 Git，再进入下一阶段。不会一次性跨过全部阶段。
 
@@ -815,12 +820,12 @@ PPT 和演示材料必须直接复用冻结指标与正式报告口径，不再�
 
 ## 22. 下一步唯一入口
 
-阶段 8.0～8.9 的实验、用户确认指标、图表、误差分析和正式 DOCX 已验收。下一步只做答辩交付材料：
+阶段 8.0～8.10 的实验、用户确认指标、图表、误差分析、正式 DOCX 和答辩 PPT 已验收。下一步只做现场表达材料：
 
 ```text
-制作答辩 PPT
+编写逐页讲稿与时间分配
     ↓
-编写演示脚本、故障预案与可选录屏，并保持同一指标口径
+编写现场演示步骤、故障预案与可选录屏，并保持同一指标口径
 ```
 
 Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。当前只允许读取用户确认结果整理最终材料；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。

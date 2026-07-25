@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
+# Thread-scoped presentation build and visual-QA workspaces
+outputs/
+
 # Local secrets and runtime logs
 .env
 *.log

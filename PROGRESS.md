@@ -3262,3 +3262,54 @@ python scripts/generate_research_report_docx.py --check
 ### 当前状态与下一步
 
 Stage 8.9 已完成。正式科研实践报告已生成、逐页渲染验收并由 manifest 与测试保护。下一阶段只制作与冻结指标口径一致的答辩 PPT、演示脚本和故障预案；仍不得重跑 final、pilot 或 extension，也不得根据 holdout 结果调整冻结实现。
+
+## 2026-07-25 阶段 8.10：答辩 PPT
+
+### 执行边界
+
+- 本阶段从已推送提交 `41c1398` 继续，只制作答辩 PPT 和同步交付状态；
+- 未修改 `src/**`、冻结配置、Prompt、Packer、Verifier、知识库、图谱、题集、release、receipt 或任何实验输出；
+- 未重跑 extension、pilot 或 final；所有图表和结论只读取已冻结报告与用户确认指标；
+- 未使用或伪造学校、学院、课程、教师、学生姓名或 scikit-learn 品牌标识，因为没有权威模板与元数据；
+- 两份用户删除的根目录 DOCX 继续保持未恢复、未修改、未暂存、未提交。
+
+### 叙事与设计
+
+- 使用 artifact-tool 构建 14 页 16:9 可编辑 PPTX，其中 12 页主讲、2 页备份；
+- 制作脚本、逐页 PNG、布局 JSON 和 QA 评分表保存在 `outputs/<thread>/presentations/` 本地工作区；`.gitignore` 新增 `outputs/`，Git 只接收最终 PPTX；
+- primary profile 为 `engineering-platform`，按 8～10 分钟学术答辩组织；
+- 主叙事固定为“压缩知识边界 -> 形成可追溯证据 -> Claim-level 验证 -> 冻结后四方法评测 -> 诚实报告质量/安全/延迟权衡”；
+- 14 页依次覆盖：封面、三类失败、6 页知识边界、当前主链路、Claim 过滤、真实界面、实验治理、v1 final、extension 质量、安全权衡、延迟、结论、方法矩阵和声明边界；
+- 设计使用 paper/ink 背景与 cobalt/green/red/amber/violet 语义色，不使用渐变、伪 logo、装饰性卡片网格或无意义箭头；
+- 只嵌入 1 张已验证的 Streamlit PARTIAL_PASS 截图；质量柱图、安全散点图、对数延迟图、架构图和时间线均重绘为可编辑形状；
+- 架构页明确 Rule Router 固定、LLM 只参与 answer 节点、qwen3:4b 故障回退规则生成、Claim-level Verifier 四状态和最多一次 Hybrid 重试。
+
+### 事实口径
+
+- 封面只展示已验证事实：6 个官方页面、23 x 4 extension、143 项测试、Partial-pass extension 的 unsupported leakage 为 0；
+- v1 final 页使用 `39/40` 决策、`4/4` 无答案拒答和 `1.48 ms` 本地规则热路径；
+- extension 质量页保留 Correctness/Faithfulness 精确值和 Faithfulness 有效样本数 `21/3/22/16`；
+- 安全页保留 over-refusal 与 hallucination 的不同分母，并明确只作描述性权衡；
+- 延迟页使用对数尺度显示 Rule `5.46 ms` 与三个 LLM 方法 `5.21～11.89 s`，并标注单机本地限制；
+- 结论明确 Partial-pass Correctness `0.5217` 未超过 Rule `0.5870`，不声称 LLM 全面优于规则；
+- 备份页明确不能声称完整 Microsoft GraphRAG、Dense Retrieval、LLM Planner、Neo4j 正式基准或完整 scikit-learn 泛化。
+
+### 渲染与 QA
+
+- artifact-tool 全页导出 14 张 `1280 x 720` PNG，并逐页进行原始分辨率视觉检查；
+- 联系表通过缩略图叙事与节奏检查，14 页使用 13 类宏观布局，没有连续三页重复构图；
+- 修复第一轮 24 个布局 error：1～2 px 文本框交叠、图 10 语义区域溢出、图 9 标签框交叠和架构图重复箭头；
+- 修正 retry 连接语义：重试从 Verifier 分支返回 Hybrid Retriever，不再从 REFUSE 状态发出；
+- 最终布局检查为 `0 error / 7 warning`；7 条 warning 均为架构状态框和 Claim ID/正文的刻意相邻组件，逐页渲染确认没有碰撞或歧义；
+- PPTX 包检查：14 个 slide parts、1 个非空媒体、0 个空媒体；图表均为可编辑 primitives，因此无 native chart parts；
+- QA rubric 为 `44/45`，全部维度不低于 4，engineering-platform profile gate 通过。
+
+### 正式产物
+
+- `reports/final/轻量化混合GraphRAG科研实践答辩.pptx`；
+- 文件大小：`142229` bytes；
+- SHA-256：`be4bd8a0dc3dac36107d05b8286b6b215cc5cf7c7052249053ca4628bcdeae06`。
+
+### 当前状态与下一步
+
+Stage 8.10 已完成。正式 DOCX 与答辩 PPT 均已进入交付目录并完成视觉验收。下一阶段只编写逐页讲稿、时间分配、现场演示步骤和故障预案；仍不得重跑 final、pilot 或 extension，也不得根据 holdout 结果调整冻结实现。
