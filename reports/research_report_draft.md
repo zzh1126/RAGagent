@@ -211,7 +211,7 @@ Verifier 最多触发一次重试，避免无限循环。LangGraph 不可用时�
 - 向量构建产物：Chroma collection 与本地 TF-IDF 稀疏索引；当前运行时检索读取后者；
 - v1.0 冻结实验生成器：离线规则/模板；
 - 当前增强分支生成器：本地 Ollama `qwen3:4b`，失败时回退离线规则生成器；
-- v1.0 的 final/pilot 结果不包含 LLM；当前 LLM extension 已有自动结果，但人工答案质量结论仍待匿名盲评完成。
+- v1.0 的 final/pilot 结果不包含 LLM；v2 LLM extension 已完成自动评测、匿名盲评、用户确认和解盲，人工答案质量指标以用户确认结果为准。
 
 ---
 
@@ -283,13 +283,13 @@ No Verifier 配置保留完全相同的自适应路由、检索和生成器，�
 
 阶段 8.1 已完成 Evidence Packer、可见 ID 边界和逐次 packing trace。dev/pilot 50 题只读合同检查平均选择 4.38 条文本证据，最长上下文 7,783 字符，只有无答案题 `F-NA-01` 出现预期的 `no_text_evidence` gap。对“随机森林为什么更稳定”的真实 dev smoke 仍在一次重试后拒答：citation/path validity 均为 1.0000，但严格术语覆盖仅支持 1/3 Claim。因此 Packer 已通过工程验收，但尚未解决过度拒答，也不能视为独立增强效果结论。
 
-阶段 8.2 已冻结原子 Claim Prompt v2 和 wire Schema。Prompt v2 合成探针成功为 20/20，覆盖随机森林双事实、AdaBoost 三事实、Bagging/Boosting 对比和“部分有证据、部分无证据”四类人工场景；报告不保存 Prompt、回答正文、quote 或 thinking。Prompt v2 SHA-256 为 `e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`，wire Schema SHA-256 为 `b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`。这只是工程结构门槛，不是独立回答质量实验。
+阶段 8.2 已冻结原子 Claim Prompt v2 和 wire Schema。Prompt v2 合成探针成功为 20/20；Prompt v2 SHA-256 为 `e5c6fa6bbc992a9af2c66daffd8fcffeb2da1eae02202d932aef33fbbb774cad`，wire Schema SHA-256 为 `b11bf9c445d3aa37c98cd571b880a157387661fdebf63a11a43aef786c7087eb`。这只是工程结构门槛，不是独立回答质量实验。
 
 同一随机森林 dev smoke 在 Prompt v2 下生成 4 条分离 Claim，citation/path validity 仍为 1.0000，Claim coverage 从 0.3333 提高到 0.5000，但阶段 8.2 的整题 Verifier 仍在一次重试后 `refuse`。该历史对照说明 Prompt 改善不能替代决策层过滤。
 
 阶段 8.3 已接入 Claim-level Verifier 和 `PARTIAL_PASS`。每条 Claim 现在具有 C ID、supported/retained、有效 E/P ID 和 reason codes；默认 LLM 使用 partial-pass，规则基线保持 strict。DEV02 脱敏 smoke 保留 C1/C2、删除 C3/C4，decision=`partial_pass`，Claim coverage=0.5000，citation/path validity=1.0000，retry count=0，generation call count=1，unsupported Claim leakage=0；warm generation latency 为 7275.8 ms，end-to-end latency 为 7288 ms。该单题开发 smoke 只证明过滤机制按设计工作，不是完整 dev/pilot 回归，也不能证明 LLM 增强有效。
 
-阶段 8.4 已补齐运行时可观测性和演示状态。系统按单调时钟记录 routing、全部 retrieval、packing、全部 LLM generation、全部 verification、retry branch 和 end-to-end；retry 是与子阶段重叠的墙钟时间，不能重复相加。Generation trace 同时保存 provider/model、requested/actual backend 和 fallback。Streamlit 启动时执行固定合成预热，不读取任何评测题面；问题响应仍明确 `cache_status=disabled`。CLI、开发评测和 extension runner 使用同一 trace。该阶段没有运行完整 dev/pilot/final/extension，因此只证明 trace 与 UI 合同成立。
+阶段 8.4 已补齐 routing、retrieval、packing、generation、verification、retry 和 end-to-end trace，并记录 provider/model、requested/actual backend 与 fallback。Streamlit 使用不读取评测题面的固定合成预热，问题响应明确 `cache_status=disabled`；CLI、开发评测和 extension runner 共用该 trace。该阶段没有运行完整 dev/pilot/final/extension，因此只证明 trace 与 UI 合同成立。
 
 阶段 8.5 只使用 10 道 dev、合成测试和单元测试完成误差审计。当前 v2 dev candidate 的结构化输出成功率为 1.0000，pass/partial/refuse 自动决策准确率为 0.9000，fallback rate 为 0.0000；2 道无答案题均正确拒答，可回答题 over-refusal 为 1/8，retry rate 为 3/10，unsupported Claim leakage 为 0。19 条生成 Claim 中 9 条 retained、10 条 removed。DEV02、DEV03 和 DEV10 从历史整题拒答转为过滤后的 `partial_pass`；DEV05 仍拒答，因为当前 180 个 Chunk 没有 AdaBoost 样本权重更新机制的直接原文。DEV10 只增加大小写、ASCII/Unicode 连字符、弯引号和 `overfit`/`do not generalize` 直接变体的保守规范化，实质改写 quote 的负向测试仍拒绝。该 dev 已用于调试，`partial_pass` 也未经独立人工正确性评分，因此以上结果只是进入 pilot 冻结前回归的工程门槛，不能证明 LLM 增强有效或优于规则基线。
 
@@ -303,7 +303,7 @@ Stage 8.7 自动实验完成 92 次 QA 调用：冻结的 23 道 extension 题�
 
 随后在独立分支安装纯文本 `qwen3:4b` 并执行三类各 20 次正式探针。结构化 Schema 成功为 60/60，空 `message.content` 和非空 thinking 均为 0；简单状态与嵌套 AnswerPayload 的语义成功均为 20/20，但 QueryPlan 语义成功仅为 1/20。冷启动约 20.698 s，全部热请求平均约 0.930 s、P95 约 1.294 s。因此当前只批准 LLM Answer Generator，继续使用规则 Router，不实现或宣称 LLM Planner。
 
-在任何业务实现前，项目已冻结 23 题 `extension_holdout` 和评分合同，题集 SHA-256 为 `7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5`。实现随后冻结在提交 `bdedf7d`：runtime bundle SHA-256 为 `b4676d37dc9f2babde6ade4f1a3d212ed775d590adf202e3cef710cadbbe03f0`，Prompt v1 SHA-256 为 `f4af2d9668b8ba53cb8f884ff840e4ce282d55d15e4468039b039ff3a0e5c60e`，trace contract SHA-256 为 `f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d`。一次性 release `extension-qwen3-4b-v1-bdedf7dc` 的原文件保留 `authorized_not_executed`，但不可变撤销记录已将有效状态固定为 `revoked_before_execution`；v1 没有 extension 输出或 enhanced 指标。v2 评分和 trace 合同在任何 extension 输出出现前冻结为四方法比较；Stage 8.6 随后将实现冻结在 `e207cb9`，runtime bundle SHA-256 为 `ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b`，并创建 release `extension-qwen3-4b-v2-e207cb91`。Stage 8.7 已按该 release 完成唯一一次受控运行，状态为 `completed_once`，结果、receipt 和盲评表见 `reports/extension_v2/`。统一 Client、LLM Generator、quote/ID 校验、Verifier 和离线 fallback 已完成；模拟服务不可用时，已知题可自动回退并继续 pass。候选 dev 的结构化输出成功率为 1.0000、fallback rate 为 0.0000、pass/refuse 决策准确率为 0.6000，4 个错误均为 answerable 问题的过度拒答；规则 dev 基线为 1.0000。该结果只用于开发调试，不能证明 LLM 增强有效。完整依据见 `reports/llm_generator_dev_audit.md`、`reports/llm_agent_v2_pilot_stage8_6_audit.md`、`reports/llm_agent_v2_extension_stage8_7_audit.md`、`reports/technical_enhancement_decision.md` 与 `reports/extension_holdout_freeze.md`。
+项目在实现前冻结 23 题 `extension_holdout` 和评分合同，题集 SHA-256 为 `7b2b2e76ecdd690574fd0c8220bee7edf20a326bcd2ff8e401659f4acc15e3a5`。v1 实现冻结于提交 `bdedf7d`：runtime bundle SHA-256 为 `b4676d37dc9f2babde6ade4f1a3d212ed775d590adf202e3cef710cadbbe03f0`，Prompt v1 SHA-256 为 `f4af2d9668b8ba53cb8f884ff840e4ce282d55d15e4468039b039ff3a0e5c60e`，trace contract SHA-256 为 `f68cde4cae30845e1b04a98f27c6d95dd08a8af4d2edf4f32b615b25da08185d`。一次性 release `extension-qwen3-4b-v1-bdedf7dc` 的原文件保留 `authorized_not_executed`，但不可变撤销记录已将有效状态固定为 `revoked_before_execution`；v1 没有 extension 输出或 enhanced 指标。v2 四方法评分与 trace 合同也在输出前冻结；Stage 8.6 实现冻结于 `e207cb9`，runtime bundle SHA-256 为 `ae639c6a51bdb65c3cd291db865485ffa8eb22ffcc0dd2c443e339cd0e00e44b`，并创建 release `extension-qwen3-4b-v2-e207cb91`。Stage 8.7 唯一一次受控运行状态为 `completed_once`。候选 dev 的结构化输出成功率为 1.0000、fallback rate 为 0.0000、pass/refuse 决策准确率为 0.6000；该结果只用于开发调试，不能证明 LLM 增强有效。
 
 ---
 
@@ -434,7 +434,7 @@ $$
 
 ## 7.5 pilot 主结果
 
-| 方法 | 决策准确率 | Answer Correctness | Faithfulness | Recall@5 | Path Validity | Refusal Acc. | Hallucination | Latency |
+| 方法 | 决策准确率 | Answer Correctness | Faithfulness | Recall@5 | Path Validity | Refusal Acc. | 幻觉率 | Latency |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Vector RAG | 0.9000 | 0.5375 | 0.4875 | 0.8276 | 不适用 | 0.0000 | 0.0000 | 1.325 ms |
 | Graph Only | 0.9000 | 0.8375 | 0.9250 | 0.9655 | 1.0000 | 0.0000 | 0.0000 | 1.000 ms |
@@ -571,7 +571,7 @@ Rule 的平均端到端延迟为 5.46 ms，三个 LLM 方法为 5.21 至 11.89 s
 
 ## 8.4 当前可提交性
 
-LLM Generator、Evidence Packer、Prompt v2、统一 Schema、Client、Claim-level Verifier、Partial-pass 和规则 fallback 已进入默认 LangGraph 主链路，且服务不可用时仍能完成问答；v1 extension release 已在正式执行前撤销，v2 四方法 extension 与用户确认盲评均已完成。结果表明 Partial-pass 降低了相对 Strict 的过度拒答并保持零观察 hallucination，但 Correctness 未超过 Rule Baseline；No Verifier 的高 Correctness 伴随 6/22 hallucination。v1.0 继续作为可提交保底版本，增强分支可以报告权衡结果，但不能宣称 Partial-pass 全面优于规则基线。
+LLM Agent 增强已进入 LangGraph 主链路并支持规则故障回退。v1 release 已在执行前撤销；v2 四方法 extension 与用户确认盲评已完成。Partial-pass 相比 Strict 降低过度拒答且保持零观察 hallucination，但 Correctness 未超过 Rule Baseline；No Verifier 有 6/22 hallucination。因此 v1.0 仍为保底版本，增强分支只报告权衡，不宣称全面优于规则基线。
 
 ---
 
@@ -643,5 +643,5 @@ python scripts/validate_scoring.py
 - [x] 使用专用 runner 执行一次 extension，并完成 92 行用户确认盲评、确认后解盲和四方法指标汇总；
 - [x] 已生成 5 张实验/架构图并用静态 PNG 替换 Mermaid；
 - [x] 已生成 4 张 extension 用户确认结果图、哈希 manifest 和类别/典型错误分析；
-- [ ] 将 Markdown 定稿转换为 DOCX 并完成分页、图表编号和参考文献格式；
+- [x] 已将 Markdown 定稿转换为 30 页 A4 正式 DOCX，完成静态目录、分页、图表编号、参考文献格式、逐页渲染视觉验收和 manifest/测试保护；
 - [ ] 制作答辩 PPT、演示脚本和录屏。

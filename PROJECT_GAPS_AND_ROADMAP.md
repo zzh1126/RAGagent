@@ -9,7 +9,7 @@
 3. 马上要做什么、按什么顺序做、怎样才算完成；
 4. 哪些内容暂时不做，以及在什么条件下才重新考虑。
 
-本文审计基线为 2026-07-23、分支 `experiment/llm-agent-v2`，Stage 8.5 从提交 `16ac995` 开始。详细项目事实见 `PROJECT_HANDBOOK.md`，Partial-pass 协议设计见 `reports/llm_agent_partial_pass_plan.md`，dev 误差审计见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
+本文审计基线为 2026-07-25、分支 `experiment/llm-agent-v2`、Stage 8.9 完成状态。详细项目事实见 `PROJECT_HANDBOOK.md`，Partial-pass 协议设计见 `reports/llm_agent_partial_pass_plan.md`，dev 误差审计见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
 
 状态含义：
 
@@ -26,9 +26,9 @@
 项目不是“还没有做出来”，而是已经有两个成熟度不同的层次：
 
 1. **v1.0 规则基线已经完整**：数据、图谱、检索、Verifier、LangGraph、Streamlit、final、pilot 消融、归档和报告素材都已具备；
-2. **LLM 增强主链路已经可运行但尚未完成科研验证**：结构化输出稳定，安全边界保守，但过度拒答、延迟和实验协议还需完善。
+2. **LLM 增强主链路和科研验证已经完成**：extension 一次性实验、用户确认盲评、误差分析和正式 DOCX 均已落盘；结果说明 Partial-pass 缓解 Strict 过度拒答，但正确性没有超过规则基线，延迟仍是主要限制。
 
-当前最重要的缺口不是再增加新工具，而是把 LLM 链路从：
+此前最重要的技术缺口是把 LLM 链路从：
 
 ```text
 一个 Claim 不受支持
@@ -50,12 +50,14 @@
 完整回答 / 部分回答 / 拒答
 ```
 
+该升级已在 Stage 8.3 完成，并通过 Stage 8.7/8.8 extension 与用户确认评测量化其收益和代价。当前主线缺口已转为答辩 PPT、演示脚本和故障预案，不再增加新的运行时实验变量。
+
 ## 3. 当前不足总表
 
 | ID | 不足 | 证据 | 影响 | 优先级 | 计划状态 |
 | --- | --- | --- | --- | --- | --- |
 | G01 | v1 extension 授权与最新暂停决定并存 | v1 已建立不可变撤销记录，runner 先于题集读取拒绝旧 ID | 风险已关闭 | Done | 阶段 8.0 完成 |
-| G02 | Verifier 过度拒答 | Stage 8.5 dev candidate 为 1/8 answerable over-refusal，历史值 4/8 | 工程门槛通过；正式效果仍待 extension | Done | 阶段 8.5 完成 |
+| G02 | Verifier 过度拒答 | Stage 8.5 dev 为 1/8；extension 用户确认中 Strict 为 16/19、Partial-pass 为 5/19 | Partial-pass 已量化缓解但未消除过度拒答 | Done | 阶段 8.8 完成正式权衡分析 |
 | G03 | ClaimResult 未真正接线 | VerifyResult 已输出逐 Claim supported/retained/reason codes | 风险已关闭 | Done | 阶段 8.3 完成 |
 | G04 | 没有 `PARTIAL_PASS` | 四状态决策、过滤和固定限制句已接入 | 风险已关闭 | Done | 阶段 8.3 完成 |
 | G05 | 证据上下文未按题型平衡 | `intent_aware_v2` 已完成 50 题只读合同回归 | 风险已关闭 | Done | 阶段 8.1 完成 |
@@ -72,7 +74,7 @@
 | G16 | 人工评分只有单一确认 | 无独立双人标注与一致性 | 外部有效性有限 | Deferred | 时间允许再做 |
 | G17 | 数据和题集规模小 | 6 页、final 40、extension 23 | 结论不可泛化 | Deferred | 报告中披露 |
 | G18 | 依赖版本约束较宽 | requirements 多数无精确版本 | 新环境可能漂移 | P2 | v2 release 时锁定快照 |
-| G19 | 正式报告仍是 Markdown 草稿 | DOCX、PPT、演示脚本未定稿 | 最终交付尚未完成 | P1 | extension 后完成 |
+| G19 | 最终答辩材料尚未全部完成 | 30 页正式 DOCX 已完成；PPT、演示脚本和故障预案仍待制作 | 报告风险已关闭，现场交付仍需收尾 | P1 | DOCX Done；下一阶段完成答辩材料 |
 
 ## 4. P0：Extension release 治理
 
@@ -688,26 +690,23 @@ Pilot 已观察到：
 
 当前已有：
 
-- 科研报告 Markdown 初稿；
-- 5 张静态图；
+- 科研报告 Markdown 单一内容源；
+- 9 张静态图及对应 manifest；
 - 用户确认 pilot 评分；
 - 9 个错误案例；
 - v1.0 release；
 - Streamlit 截图；
-- 完整阶段日志。
+- 完整阶段日志；
+- 30 页 A4 正式 DOCX、生成器、哈希 manifest 和 3 项 DOCX 回归测试；
+- 30 页逐页渲染视觉验收记录。
 
 仍缺：
 
-- v2 extension 结果；
-- 四方法盲评；
-- Partial-pass 前后错误分析；
-- 分阶段 LLM 延迟图；
-- 正式 DOCX 排版；
 - 答辩 PPT；
 - 演示脚本和故障预案；
-- 最终事实声明复核。
+- 可选录屏。
 
-这些应在 extension 一次性实验和评分完成后集中处理，避免报告先写结论再找数据。
+PPT 和演示材料必须直接复用冻结指标与正式报告口径，不再读取逐题结果调参，也不重跑 final、pilot 或 extension。
 
 ## 18. 马上要做的阶段顺序
 
@@ -743,9 +742,13 @@ Pilot 已观察到：
 
 已使用 `extension-qwen3-4b-v2-e207cb91` 完成唯一一次 4 方法 x 23 题运行，共 92 次 QA 调用。state 为 `completed`，receipt 的有效执行状态为 `completed_once`，全部输出哈希、匿名 A/B/C/D 盲评表和独立 method key 均已校验。自动 Decision Accuracy 为 Rule 21/23、LLM Strict 7/23、LLM No Verifier 19/23、LLM Partial-pass 16/23；Partial-pass 将 Strict 的 answerable over-refusal 从 16/19 降到 5/19，unsupported Claim leakage 为 0/27，但仍误接受 2/4 无答案题，且未超过 Rule Baseline。不得重跑、覆盖或根据 holdout 结果修改冻结 runtime。
 
-### 阶段 8.8：评分、报告与答辩（图表与分析已完成）
+### 阶段 8.8：评分、图表与误差分析（已完成）
 
-92 行 Codex 辅助盲评分数已由用户审核确认，评分锁定后才读取 method key 解盲。Partial-pass 的 Correctness/Faithfulness/Hallucination/Over-refusal/Readability 为 `0.5217/0.9375/0.0000/0.2632/3.73`；它相对 Strict 缓解过度拒答并保持零观察幻觉，但正确性未超过 Rule Baseline。No Verifier 的 Correctness 最高 (`0.7826`)，同时有 `6/22` hallucination，不能作为安全方案。4 张用户确认结果图、哈希 manifest、类别/典型错误分析和科研报告同步已经完成；下一步只整理 DOCX、PPT 和演示材料。
+92 行 Codex 辅助盲评分数已由用户审核确认，评分锁定后才读取 method key 解盲。Partial-pass 的 Correctness/Faithfulness/Hallucination/Over-refusal/Readability 为 `0.5217/0.9375/0.0000/0.2632/3.73`；它相对 Strict 缓解过度拒答并保持零观察幻觉，但正确性未超过 Rule Baseline。No Verifier 的 Correctness 最高 (`0.7826`)，同时有 `6/22` hallucination，不能作为安全方案。4 张用户确认结果图、哈希 manifest、类别/典型错误分析和科研报告正文同步已经完成。
+
+### 阶段 8.9：正式科研报告 DOCX（已完成）
+
+已将冻结 Markdown 源稿确定性生成 30 页 A4 正式 DOCX，包含静态渲染验收目录、14 张表、9 张图和 6 个公式。报告逐页完成 PNG 视觉检查，未发现裁切、重叠、图注分离或异常分页；manifest 绑定源稿、生成器、全部图表和输出 SHA-256。新增回归测试锁定 artifact 新鲜度、静态目录合同及有序列表从 1 重启。下一步只制作答辩 PPT、演示脚本和故障预案。
 
 每个阶段单独实现、验证、写入 `PROGRESS.md`、提交 Git，再进入下一阶段。不会一次性跨过全部阶段。
 
@@ -812,12 +815,12 @@ Pilot 已观察到：
 
 ## 22. 下一步唯一入口
 
-阶段 8.0～8.8c 用户确认指标、图表和类别误差分析已验收。下一步只做最终交付材料：
+阶段 8.0～8.9 的实验、用户确认指标、图表、误差分析和正式 DOCX 已验收。下一步只做答辩交付材料：
 
 ```text
-将当前 Markdown 报告转换并排版为最终 DOCX
+制作答辩 PPT
     ↓
-制作 PPT 和演示脚本，并保持同一指标口径
+编写演示脚本、故障预案与可选录屏，并保持同一指标口径
 ```
 
 Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。当前只允许读取用户确认结果整理最终材料；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。

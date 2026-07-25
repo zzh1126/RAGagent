@@ -97,6 +97,18 @@ python scripts/validate_extension_blind_confirmation.py
 
 The generic evaluation runner and revoked v1 runner remain locked. The v2 runner now rejects another execution because the one-run receipt already exists. Do not rerun or overwrite any extension artifact.
 
+## Final Research Report
+
+The formal 30-page A4 report is generated deterministically from `reports/research_report_draft.md`:
+
+```bash
+python scripts/generate_research_report_docx.py --check
+python scripts/validate_report_claims.py
+pytest -q tests/test_research_report_docx.py
+```
+
+The deliverable is `reports/final/基于预定义知识图谱的轻量化混合GraphRAG科研实践报告.docx`. Its manifest binds the Markdown source, generator, nine figures, static render-verified TOC, and output SHA-256. All 30 rendered pages have been visually checked; QA PNGs are temporary review artifacts and are not committed.
+
 ## Streamlit Demo
 
 ```bash

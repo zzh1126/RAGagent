@@ -9,8 +9,8 @@
 | 工作区 | `E:\RAGagent` |
 | GitHub | `https://github.com/zzh1126/RAGagent.git` |
 | 当前分支 | `experiment/llm-agent-v2` |
-| 本文审计基线 | 阶段 8.8c 完成状态 |
-| 审计日期 | 2026-07-24 |
+| 本文审计基线 | 阶段 8.9 完成状态 |
+| 审计日期 | 2026-07-25 |
 | v1.0 标签 | `v1.0-baseline` |
 | 当前工作流引擎 | LangGraph `1.0.10` |
 | 当前默认图后端 | NetworkX `3.3` |
@@ -18,6 +18,7 @@
 | 正式基线状态 | v1.0 规则基线已冻结、可复验 |
 | LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；Stage 8.7 四方法实验、Stage 8.8 用户确认盲评及 8.8c 图表误差分析均已完成 |
 | extension 状态 | 23 题已按 v2 合同执行且只执行一次；v1 有效状态为 `revoked_before_execution`；v2 有效执行状态为 `completed_once` |
+| 正式报告状态 | 30 页 A4 DOCX 已生成并完成逐页渲染视觉验收；源稿、生成器、图表和输出哈希由 manifest 与自动测试保护 |
 
 事实优先级如下：
 
@@ -1221,7 +1222,7 @@ Stage 8.7 已按冻结 v2 release 执行且只执行一次：23 题、4 方法�
 
 ### Q20：下一步是什么？
 
-v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结、Stage 8.7 extension、Stage 8.8 用户确认盲评及 8.8c 图表误差分析均已完成。下一步只整理最终 DOCX、PPT 与演示材料；仍禁止重跑 final/extension、结果覆盖和 holdout 后调参。
+v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结、Stage 8.7 extension、Stage 8.8 用户确认盲评及图表误差分析、Stage 8.9 正式 DOCX 均已完成。下一步只制作口径一致的答辩 PPT、演示脚本和故障预案；仍禁止重跑 final/extension、结果覆盖和 holdout 后调参。
 
 ## 32. 关联文档
 
@@ -1229,7 +1230,9 @@ v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Cla
 - `reports/llm_agent_partial_pass_plan.md`：Partial-pass v2 的详细执行合同；
 - `reports/extension_v2/category_error_analysis_user_confirmed.md`：用户确认的类别指标、典型错误和答辩结论；
 - `PROGRESS.md`：每个阶段的实际完成记录；
-- `reports/research_report_draft.md`：科研报告初稿；
+- `reports/research_report_draft.md`：最终报告的 Markdown 单一内容源；
+- `reports/final/基于预定义知识图谱的轻量化混合GraphRAG科研实践报告.docx`：已完成渲染验收的 30 页正式报告；
+- `reports/final/research_report_docx_manifest.json`：报告源稿、生成器、图表、目录和输出哈希清单；
 - `reports/technical_enhancement_decision.md`：LLM/Dense 前置审计；
 - `reports/llm_generator_dev_audit.md`：LLM dev 三轮结果；
 - `reports/extension_holdout_freeze.md`：extension 冻结与哈希；
@@ -1238,4 +1241,4 @@ v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Cla
 - `reports/report_claims_checklist.md`：可声明和禁止声明；
 - `reports/releases/v1.0-baseline/release_notes.md`：v1.0 归档说明。
 
-本手册描述的是 2026-07-24 Stage 8.7 完成后的项目状态。后续每完成一个阶段，应同步更新本文的状态表、实验结果和常见问答，同时继续在 `PROGRESS.md` 追加不可回写的阶段记录。
+本手册描述的是 2026-07-25 Stage 8.9 完成后的项目状态。后续每完成一个阶段，应同步更新本文的状态表、实验结果和常见问答，同时继续在 `PROGRESS.md` 追加不可回写的阶段记录。

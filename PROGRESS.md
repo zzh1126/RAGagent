@@ -3202,3 +3202,63 @@ git diff --check                                         -> pass
 ### 当前状态与下一步
 
 Stage 8.8c 已完成。Extension 图表、类别/典型错误分析、科研报告正文、事实清单、项目手册和路线图现在使用同一组用户确认指标，并由输入/输出哈希和自动校验保护。下一阶段应在不修改实验结果的前提下，将 Markdown 报告排版为最终 DOCX，再制作口径一致的答辩 PPT 与演示脚本。
+
+## 2026-07-25 阶段 8.9：正式科研实践报告 DOCX
+
+### 执行边界
+
+- 本阶段从已推送提交 `1920405` 继续，只处理科研报告生成、排版、验证和交接文档；
+- 未修改 `src/**`、冻结配置、Prompt、Packer、Verifier、知识库、图谱、题集、release、receipt 或任何实验输出；
+- 未重跑 extension、pilot 或 final，也未依据已观察 holdout 结果调整运行时；
+- 两份用户删除的根目录 DOCX 继续保持未恢复、未修改、未暂存、未提交。
+
+### 正式报告生成
+
+- 新增 `scripts/generate_research_report_docx.py`，以 `reports/research_report_draft.md` 为单一内容源生成正式 DOCX；
+- 正式产物为 `reports/final/基于预定义知识图谱的轻量化混合GraphRAG科研实践报告.docx`；
+- 新增 `reports/final/research_report_docx_manifest.json`，绑定源稿、生成器、9 张图、静态目录、输出文件大小和 SHA-256；
+- 最终 DOCX 为 30 页 A4、3 个 section、14 张表、9 张图和 6 个公式；
+- 目录采用渲染后确认的静态页码：摘要 `i`，第 1～8 章分别为 `1/3/4/6/8/13/15/25`，参考文献 `26`，附录 A `27`；
+- 每个有序列表使用独立 OOXML 编号实例并从 `1` 重启；表格使用固定 DXA 几何，标题、图注、代码块、页眉和页码使用统一样式；
+- Appendix B 只作为 Markdown 内部交付清单，不进入正式报告。
+
+最终哈希：
+
+| 项目 | SHA-256 / 大小 |
+| --- | --- |
+| Markdown 源稿 | `1bb0b26e0fb783b638f8ff3da211c21cb66f5a15bf231913665cca213b56f7fd` |
+| DOCX 生成器 | `49b03e8c62d5cfd453915d344d52c3db35dc12281823dfd2357c50de33c97271` |
+| 正式 DOCX | `c8dea4831784c958367324bed514ae44b53d9eadd02d12688d51be5218966b26` / `829511` bytes |
+| DOCX manifest | `5b706cf5a09d16d16f8800b1bd1106ae6649d0dac88282a819eacdc1e8975aca` |
+
+### 排版修复与视觉验收
+
+- 将 LibreOffice 无内容的动态目录替换为确定性静态目录，并在最终渲染后锁定页码；
+- 清理重复关键词、表后空段和多个孤立/近空白页，压缩正文节奏但保留章节另起页的正式报告结构；
+- 修正有序列表不重启、长哈希/URL 拉伸、技术段落两端对齐异常、普通公式过宽和旧 4.5 状态表述；
+- Pilot 表头将被强行拆成 `Hallucinatio/n` 的英文列名改为“幻觉率”；
+- 使用本机 LibreOffice Portable 直接导出 PDF，再用 Poppler 生成 150 DPI PNG；canonical `render_docx.py` 在 Windows 的 LibreOffice profile URL 调用上不可用，因此没有伪装为其成功；
+- 最终 30 页均按原始分辨率逐页检查，未发现文字/表格裁切、重叠、缺字、图注分离、页眉页脚错位或异常分页；
+- 内部清单更新后再次生成 v13 渲染，30 页 PNG 与已验收 v12 逐页 SHA-256 完全一致。
+
+### 自动化保护与文档同步
+
+- 新增 `tests/test_research_report_docx.py`，包含 3 项测试：DOCX/manifest 新鲜度、静态目录页码合同、有序列表独立编号与从 1 重启；
+- `scripts/generate_research_report_docx.py --check` 同时验证 A4 section、页边距、14 表固定几何、9 图、6 公式、禁用草稿文本和动态目录；
+- 同步更新 `PROJECT_HANDBOOK.md`、`PROJECT_GAPS_AND_ROADMAP.md`、`README.md` 和 Markdown 内部交付清单；
+- 统一当前状态为“正式 DOCX 已完成，下一步只制作答辩 PPT、演示脚本和故障预案”。
+
+### 最终验证
+
+```text
+pytest -q                                            -> 143 passed
+python scripts/generate_report_figures.py --check   -> 5 figures + manifest current
+python scripts/generate_extension_figures.py --check -> 4 figures + manifest current
+python scripts/validate_report_claims.py             -> 59 source; 26 required; 24 forbidden
+python scripts/generate_research_report_docx.py --check
+                                                    -> 3 sections; 14 tables; 9 figures; 6 formulas
+```
+
+### 当前状态与下一步
+
+Stage 8.9 已完成。正式科研实践报告已生成、逐页渲染验收并由 manifest 与测试保护。下一阶段只制作与冻结指标口径一致的答辩 PPT、演示脚本和故障预案；仍不得重跑 final、pilot 或 extension，也不得根据 holdout 结果调整冻结实现。
