@@ -3313,3 +3313,67 @@ Stage 8.9 已完成。正式科研实践报告已生成、逐页渲染验收并�
 ### 当前状态与下一步
 
 Stage 8.10 已完成。正式 DOCX 与答辩 PPT 均已进入交付目录并完成视觉验收。下一阶段只编写逐页讲稿、时间分配、现场演示步骤和故障预案；仍不得重跑 final、pilot 或 extension，也不得根据 holdout 结果调整冻结实现。
+
+## 2026-07-25 阶段 8.11：答辩讲稿、现场演示预案与问答速查
+
+### 执行边界
+
+- 本阶段从已推送提交 `27e5582` 继续，只补充现场表达材料、恢复真实模型演示环境并运行单题工程 smoke；
+- 未修改 `src/**`、冻结配置、Prompt、Evidence Packer、Verifier、知识库、图谱、题集、release、receipt 或任何实验输出；
+- 未重跑 final、pilot 或 extension，也未根据 holdout 结果调整冻结实现；
+- 现场 smoke 只使用合成 Client 探针、已登记 demo 题或单条演示问法，不写入正式指标；
+- 两份用户删除的根目录 DOCX 继续保持未恢复、未修改、未暂存、未提交。
+
+### 真实模型环境恢复与演示 smoke
+
+- 本机原先只有 `qwen3-vl:8b`；本阶段安装了正式运行所需的 `qwen3:4b`，模型 ID 前缀为 `359d7dd4bcda`，大小约 2.5 GB；
+- `python scripts/smoke_llm_client.py --timeout 180` 通过：provider 为 Ollama，model 为 `qwen3:4b`，`formal_content_used=True`，未记录 thinking，单次延迟约 `6604.1 ms`；
+- 真实 LLM 演示题“随机森林降低方差的机制是什么？”返回 `partial_pass`：保留 3/4 Claim、retry 1 次、structured output success、fallback false、端到端约 `15563.261 ms`；
+- 真实 LLM 属性题“随机森林是否有学习率参数？”返回 `refuse`：0 条 Claim 可保留、retry 1 次、structured output success、fallback false、端到端约 `9618.726 ms`；
+- 强制 `offline_rule` 对“随机森林为什么更稳定”返回 `pass`，端到端约 `7.411 ms`；对学习率属性题也保守拒答，确认故障降级路径可用；
+- 上述运行只证明当前设备上的演示可用性和拒答路径，不构成新增 dev、pilot、final 或 extension 实验，也不替代已冻结延迟结果。
+
+### 新增现场材料
+
+- 新增 `reports/final/答辩逐页讲稿.md`：
+  - 对应 14 页最终 PPT，固定第 1～12 页主讲、第 13～14 页追问备用；
+  - 12 页主讲时间合计约 8 分 25 秒，每页包含可直接讲述正文、转场、必须强调点和禁止误述口径；
+  - 补充 60 秒超时收束、被打断恢复和上台前口径检查；
+- 新增 `reports/final/现场演示与故障预案.md`：
+  - 主演示顺序固定为 DEMO01 模型族关系、DEMO02 方差机制、DEMO07 属性拒答；
+  - 明确现场输出只作 smoke，不运行 `final`、`pilot` 或 `extension`；
+  - 提供依赖检查、Ollama/model 检查、Streamlit 启动、LLM/offline 模式切换和 8502 备用端口命令；
+  - 覆盖 Ollama 未启动、模型缺失、超时、端口占用、依赖缺失、页面故障、无网络、输出波动和中文乱码；
+  - 明确不使用临时改写的 XGBoost 问题，故障时改用 CLI、离线规则或 PPT 第 6 页已验证截图；
+- 新增 `reports/final/答辩问答速查.md`：
+  - 共 50 个高频问题，覆盖课题定位、数据检索、Router/LLM、Claim-level Verifier、实验治理、指标分母、结果、工程性能和局限；
+  - 收录四方法用户确认指标表，并解释 v1 Decision Accuracy 与 extension 人工 Correctness 不可直接比较；
+  - 单独列出完整 Microsoft GraphRAG、Dense Retrieval、LLM Planner、Neo4j、零幻觉、全面优于 Rule 和双人标注等禁止误述口径。
+
+### 文档同步
+
+- `PROJECT_HANDBOOK.md` 审计基线升级为 Stage 8.11，答辩材料状态、Q20、关联文档和结尾状态均已同步；
+- `PROJECT_GAPS_AND_ROADMAP.md` 新增 Stage 8.11 完成记录，并将下一步唯一入口改为计时排练、答辩前 demo smoke 和可选录屏；
+- 项目正式交付物现在包含最终 DOCX、PPTX、逐页讲稿、演示与故障预案、答辩问答速查；当前没有新的代码或正式实验主线。
+
+### 验证
+
+```text
+逐页讲稿结构检查                              -> 14 页，其中 12 页主讲、2 页备份
+答辩问答速查结构检查                          -> 50 个 Q&A
+现场演示结构检查                              -> 3 个固定主演示步骤
+pytest -q                                     -> 143 passed
+python scripts/generate_research_report_docx.py --check
+                                               -> 3 sections; 14 tables; 9 figures; 6 formulas
+python scripts/validate_report_claims.py       -> 59 source; 26 required; 24 forbidden
+python scripts/validate_extension_results_v2.py
+                                               -> completed_once; 23 x 4; 92 invocations
+python scripts/validate_extension_release_v2.py --check-runtime-model
+                                               -> release/runtime/model digest valid
+python scripts/validate_extension_holdout.py   -> v1 revoked; v2 completed_once; holdout valid
+git diff --check                              -> pass
+```
+
+### 当前状态与下一步
+
+Stage 8.11 已完成。正式科研报告、答辩 PPT、逐页讲稿、现场演示与故障预案、50 题问答速查现已使用同一组冻结事实和用户确认指标。下一步只需进行 8～10 分钟计时排练，并在答辩前按预案确认 Ollama、`qwen3:4b`、Streamlit 和离线 fallback；不得重跑或覆盖 final、pilot、extension，也不得把现场 smoke 包装为新增科研结果。

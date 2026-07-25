@@ -9,7 +9,7 @@
 | 工作区 | `E:\RAGagent` |
 | GitHub | `https://github.com/zzh1126/RAGagent.git` |
 | 当前分支 | `experiment/llm-agent-v2` |
-| 本文审计基线 | 阶段 8.10 完成状态 |
+| 本文审计基线 | 阶段 8.11 完成状态 |
 | 审计日期 | 2026-07-25 |
 | v1.0 标签 | `v1.0-baseline` |
 | 当前工作流引擎 | LangGraph `1.0.10` |
@@ -19,7 +19,7 @@
 | LLM 增强状态 | Evidence Packer、原子 Claim Prompt v2 与 Claim-level Partial-pass 已实现；Stage 8.7 四方法实验、Stage 8.8 用户确认盲评及 8.8c 图表误差分析均已完成 |
 | extension 状态 | 23 题已按 v2 合同执行且只执行一次；v1 有效状态为 `revoked_before_execution`；v2 有效执行状态为 `completed_once` |
 | 正式报告状态 | 30 页 A4 DOCX 已生成并完成逐页渲染视觉验收；源稿、生成器、图表和输出哈希由 manifest 与自动测试保护 |
-| 答辩材料状态 | 14 页 16:9 可编辑 PPTX 已生成并完成全页渲染、联系表和布局验收；逐页讲稿与故障预案待下一阶段完成 |
+| 答辩材料状态 | 14 页 16:9 可编辑 PPTX 已完成全页验收；8 分 25 秒逐页讲稿、三题现场演示与故障预案、50 题答辩速查均已完成 |
 
 事实优先级如下：
 
@@ -1223,7 +1223,7 @@ Stage 8.7 已按冻结 v2 release 执行且只执行一次：23 题、4 方法�
 
 ### Q20：下一步是什么？
 
-v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结、Stage 8.7 extension、Stage 8.8 用户确认盲评及图表误差分析、Stage 8.9 正式 DOCX 和 Stage 8.10 答辩 PPT 均已完成。下一步只编写逐页讲稿、现场演示步骤和故障预案；仍禁止重跑 final/extension、结果覆盖和 holdout 后调参。
+v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Claim-level Partial-pass、完整阶段 trace、Ollama 预热、Streamlit 状态展示、Stage 8.5 dev 审计、Stage 8.6 冻结、Stage 8.7 extension、Stage 8.8 用户确认盲评及图表误差分析、Stage 8.9 正式 DOCX、Stage 8.10 答辩 PPT 和 Stage 8.11 现场表达材料均已完成。当前只需按逐页讲稿计时排练，答辩前执行 demo smoke，并可选制作明确标注日期和环境的演示录屏；仍禁止重跑 final/pilot/extension、结果覆盖和 holdout 后调参。
 
 ## 32. 关联文档
 
@@ -1235,6 +1235,9 @@ v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Cla
 - `reports/final/基于预定义知识图谱的轻量化混合GraphRAG科研实践报告.docx`：已完成渲染验收的 30 页正式报告；
 - `reports/final/research_report_docx_manifest.json`：报告源稿、生成器、图表、目录和输出哈希清单；
 - `reports/final/轻量化混合GraphRAG科研实践答辩.pptx`：已完成渲染与布局验收的 14 页答辩 PPT；
+- `reports/final/答辩逐页讲稿.md`：12 页主讲、2 页备份、8 分 25 秒时间分配与口径检查；
+- `reports/final/现场演示与故障预案.md`：DEMO01/02/07 演示流程、真实/离线运行命令和分级故障降级；
+- `reports/final/答辩问答速查.md`：50 个高频追问、冻结指标分母和禁止误述口径；
 - `reports/technical_enhancement_decision.md`：LLM/Dense 前置审计；
 - `reports/llm_generator_dev_audit.md`：LLM dev 三轮结果；
 - `reports/extension_holdout_freeze.md`：extension 冻结与哈希；
@@ -1243,4 +1246,4 @@ v1 revocation、v2 实验合同、Evidence Packer、原子 Claim Prompt v2、Cla
 - `reports/report_claims_checklist.md`：可声明和禁止声明；
 - `reports/releases/v1.0-baseline/release_notes.md`：v1.0 归档说明。
 
-本手册描述的是 2026-07-25 Stage 8.10 完成后的项目状态。后续每完成一个阶段，应同步更新本文的状态表、实验结果和常见问答，同时继续在 `PROGRESS.md` 追加不可回写的阶段记录。
+本手册描述的是 2026-07-25 Stage 8.11 完成后的项目状态。后续每完成一个阶段，应同步更新本文的状态表、实验结果和常见问答，同时继续在 `PROGRESS.md` 追加不可回写的阶段记录。

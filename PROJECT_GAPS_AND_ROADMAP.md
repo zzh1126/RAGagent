@@ -9,7 +9,7 @@
 3. 马上要做什么、按什么顺序做、怎样才算完成；
 4. 哪些内容暂时不做，以及在什么条件下才重新考虑。
 
-本文审计基线为 2026-07-25、分支 `experiment/llm-agent-v2`、Stage 8.10 完成状态。详细项目事实见 `PROJECT_HANDBOOK.md`，Partial-pass 协议设计见 `reports/llm_agent_partial_pass_plan.md`，dev 误差审计见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
+本文审计基线为 2026-07-25、分支 `experiment/llm-agent-v2`、Stage 8.11 完成状态。详细项目事实见 `PROJECT_HANDBOOK.md`，Partial-pass 协议设计见 `reports/llm_agent_partial_pass_plan.md`，dev 误差审计见 `reports/llm_agent_v2_dev_stage8_5_audit.md`。
 
 状态含义：
 
@@ -755,6 +755,10 @@ PPT 和演示材料必须直接复用冻结指标与正式报告口径，不再�
 
 已生成 14 页 16:9 可编辑答辩 PPT，其中 12 页主讲、2 页备份。叙事从研究问题、知识边界、主链路架构、Claim-level Partial-pass、真实 Streamlit 界面和实验治理，推进到 v1 final、extension 质量/安全/延迟权衡与准确结论。所有图表由冻结指标重绘为可编辑形状，唯一嵌入媒体为已验证的项目截图。全页 artifact-tool 渲染、联系表检查和布局检查完成，结果为 0 error；PPTX 包含 14 个 slide parts、1 个非空媒体文件。下一步只编写逐页讲稿、现场演示步骤和故障预案。
 
+### 阶段 8.11：讲稿、现场演示与答辩速查（已完成）
+
+已完成三份与冻结 PPT 和实验口径一致的现场材料：`答辩逐页讲稿.md` 为 12 页主讲分配约 8 分 25 秒，并为 2 页备份给出追问触发条件；`现场演示与故障预案.md` 固定使用 DEMO01、DEMO02、DEMO07，覆盖 Ollama、离线 fallback、端口、依赖、网络、页面和输出波动故障；`答辩问答速查.md` 汇总 50 个高频问题、四方法指标与分母、局限和禁止误述口径。当前本机已恢复 `qwen3:4b`，真实 LLM 的结构化 Client、机制题 `PARTIAL_PASS` 和属性题 `REFUSE` smoke 均通过；这些结果只证明现场可用性，不进入正式实验。
+
 每个阶段单独实现、验证、写入 `PROGRESS.md`、提交 Git，再进入下一阶段。不会一次性跨过全部阶段。
 
 ## 19. 暂时不打算实现的内容
@@ -820,12 +824,14 @@ PPT 和演示材料必须直接复用冻结指标与正式报告口径，不再�
 
 ## 22. 下一步唯一入口
 
-阶段 8.0～8.10 的实验、用户确认指标、图表、误差分析、正式 DOCX 和答辩 PPT 已验收。下一步只做现场表达材料：
+阶段 8.0～8.11 的实现、实验、用户确认指标、图表、误差分析、正式 DOCX、答辩 PPT 和现场表达材料均已验收。当前没有新的代码或实验主线，下一步只做答辩前排练与环境确认：
 
 ```text
-编写逐页讲稿与时间分配
+按 8 分 25 秒讲稿完成计时排练
     ↓
-编写现场演示步骤、故障预案与可选录屏，并保持同一指标口径
+答辩前运行 DEMO01 / DEMO02 / DEMO07 smoke
+    ↓
+可选制作明确标注环境与日期的演示录屏
 ```
 
-Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。当前只允许读取用户确认结果整理最终材料；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。
+Stage 8.6 pilot 和 Stage 8.7 extension 都已消费，不能重跑或继续逐题调参。v2 release 文件按不可变合同仍记录 `authorized_not_executed`，但 state/receipt 的有效执行状态为 `completed_once`。排练和 demo smoke 不生成或覆盖科研结果；`scripts/run_extension_evaluation_v2.py` 必须拒绝新的执行请求。
